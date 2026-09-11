@@ -1,0 +1,21 @@
+/* PLACEHOLDER — see _placeholder-notice.md. */
+:root {
+  --width-full: 100%;
+  --width-wide: 90rem; /* 1440 */
+  --width-content: 75rem; /* 1200 */
+  --width-text: 42rem; /* comfortable measure, ~68ch */
+  --width-narrow: 32rem;
+
+  --gutter: clamp(1.25rem, 0.9rem + 1.8vw, 3rem);
+
+  /* Editorial grid. Asymmetry comes from column spans, not from magic margins. */
+  --grid-columns: 12;
+  --grid-gap: clamp(1rem, 0.6rem + 1.6vw, 2rem);
+
+  --radius-none: 0;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  /* Deliberately no large radii token: rounded pill chrome is off-brief. */
+
+  --border-hairline: 1px;
+}

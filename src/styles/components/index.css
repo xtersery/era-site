@@ -1,0 +1,10 @@
+/*
+ * Component stylesheets are registered here.
+ *
+ * Convention: a component owns its stylesheet. Small, single-use styles can be
+ * co-located (`components/ui/Button/Button.css`) and imported from the .tsx.
+ * This file exists for shared component-layer primitives that no single
+ * component owns.
+ *
+ * Nothing yet — the design pass has not started.
+ */

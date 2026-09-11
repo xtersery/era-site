@@ -1,0 +1,22 @@
+/* PLACEHOLDER — see _placeholder-notice.md.
+   Mirrored in tokens.ts. GSAP reads the TS copy; CSS reads this one. */
+:root {
+  /* Durations (seconds for GSAP, ms for CSS transitions). */
+  --dur-instant: 120ms;
+  --dur-fast: 240ms;
+  --dur-base: 420ms;
+  --dur-slow: 720ms;
+  --dur-slower: 1100ms;
+  --dur-cinematic: 1800ms;
+
+  /* Easings. Deliberately few: a house curve reads as intent, a zoo reads as noise. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* primary — entrances */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* transitions between states */
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45); /* exits */
+  --ease-linear: linear; /* scrub only */
+
+  /* Stagger baselines used by reveal choreography. */
+  --stagger-tight: 0.03s;
+  --stagger-base: 0.06s;
+  --stagger-loose: 0.12s;
+}

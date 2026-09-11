@@ -1,0 +1,29 @@
+/* Structural utilities only. No decoration, no component styling. */
+.u-shell {
+  width: 100%;
+  max-width: var(--width-wide);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.u-shell--content {
+  max-width: var(--width-content);
+}
+
+.u-shell--text {
+  max-width: var(--width-text);
+}
+
+.u-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  gap: var(--grid-gap);
+}
+
+/* The persistent WebGL layer. One canvas for the whole page, positioned once. */
+.u-canvas-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-canvas);
+  pointer-events: none;
+}

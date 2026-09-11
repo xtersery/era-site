@@ -1,0 +1,39 @@
+/* PLACEHOLDER — see _placeholder-notice.md. Neutral greys only, no brand hues yet. */
+:root {
+  /* Raw ramp — the only place literals are allowed. */
+  --c-neutral-0: #ffffff;
+  --c-neutral-50: #f7f7f6;
+  --c-neutral-100: #eeedeb;
+  --c-neutral-200: #d9d8d4;
+  --c-neutral-300: #b8b6b0;
+  --c-neutral-400: #8d8a84;
+  --c-neutral-500: #6a6762;
+  --c-neutral-600: #4c4945;
+  --c-neutral-700: #34322f;
+  --c-neutral-800: #1f1e1c;
+  --c-neutral-900: #121110;
+  --c-neutral-1000: #000000;
+
+  /* TODO(branding): accent ramp. Intentionally left as neutral aliases so that
+     nothing silently ships a placeholder brand colour. */
+  --c-accent-weak: var(--c-neutral-200);
+  --c-accent: var(--c-neutral-700);
+  --c-accent-strong: var(--c-neutral-900);
+
+  /* Semantic layer — components use these, never the raw ramp. */
+  --color-bg: var(--c-neutral-50);
+  --color-bg-elevated: var(--c-neutral-0);
+  --color-bg-inverse: var(--c-neutral-900);
+
+  --color-text: var(--c-neutral-900);
+  --color-text-muted: var(--c-neutral-500);
+  --color-text-inverse: var(--c-neutral-50);
+
+  --color-line: var(--c-neutral-200);
+  --color-line-strong: var(--c-neutral-400);
+
+  --color-focus: var(--c-neutral-900);
+
+  /* Used by the WebGL layer so canvas clear colour cannot drift from the page. */
+  --color-canvas-clear: var(--color-bg);
+}

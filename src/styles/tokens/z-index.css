@@ -1,0 +1,15 @@
+/* PLACEHOLDER — see _placeholder-notice.md.
+   One scale for the whole app. Never write a bare z-index in a component. */
+:root {
+  --z-below: -1;
+  --z-base: 0;
+  --z-canvas: 1; /* persistent WebGL layer sitting behind content */
+  --z-content: 10;
+  --z-sticky: 20;
+  --z-header: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-cursor: 60;
+  --z-transition: 70; /* page-transition curtain sits above everything */
+  --z-debug: 100;
+}

@@ -1,0 +1,12 @@
+dist
+node_modules
+public
+
+# Third-party content — never reformat. See docs/SKILLS.md.
+.references
+.claude
+
+# GLSL: prettier has no grammar for it and mangles the source.
+*.glsl
+*.vert
+*.frag

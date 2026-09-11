@@ -1,0 +1,13 @@
+/*
+ * Single stylesheet entrypoint, imported once from `src/main.tsx`.
+ *
+ * Order is load-bearing:
+ *   tokens  → values only, no selectors beyond :root
+ *   globals → reset + document defaults + structural utilities
+ *   components → per-component stylesheets (co-located imports are fine too)
+ */
+@import './tokens/index.css';
+@import './globals/reset.css';
+@import './globals/base.css';
+@import './globals/layout.css';
+@import './components/index.css';

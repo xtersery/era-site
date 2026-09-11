@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build output
+dist/
+dist-ssr/
+build/
+*.local
+
+# External reference repositories (see README.md → "Reference repositories").
+# These are read-only third-party clones used as knowledge for Claude Code.
+# They are large (~300 MB) and are NEVER committed to this repository.
+.references/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Thumbs.db
+
+# Caches
+.eslintcache
+.cache/
+.vite/
+node_modules/.vite/
+*.tsbuildinfo
+
+# Local Claude Code state (project skills and CLAUDE.md ARE committed)
+.claude/settings.local.json
+
+# Heavy local media that should live in asset storage, not git
+public/video/*.mp4
+public/video/*.webm
+public/video/*.mov
+!public/video/.gitkeep
