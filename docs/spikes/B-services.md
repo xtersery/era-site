@@ -118,7 +118,7 @@ chamber is rejected: perspective walls, seams, camera-inside-a-polygon and angle
 text read as architecture / an exhibition. Final direction: flatten this exact
 information model into a 2D radial experience.
 
-## Pass 5 — 2D RADIAL EDITORIAL SYSTEM: AWAITING VISUAL APPROVAL (13.09.2026)
+## Pass 5 — 2D RADIAL EDITORIAL SYSTEM: direction APPROVED, board format rejected (13.09.2026)
 
 Model: one enormous invisible 2D wheel. Two rings about the same centre — the
 outer ring carries the seven complete editorial states, the inner ring is the
@@ -156,10 +156,45 @@ composition call for the next pass.
 
 ## Next steps (blocked on approval)
 
-1. Approve pass 5 (the 2D radial system) or return notes on the board.
-2. Then: pass 6 = the radial system with real interaction (dial names / drag on
-   the ring / phone swipe → wheel tween with the mineral ease; keyboard; 07 → 01
-   wrap; reduced-motion lands on the focal state), measured, on the review board
-   — page scroll is never hijacked, the mouse wheel never rotates the system.
+1. Review pass 6 in the working spike (not the board) and return notes.
+2. Then: productionise Services from `spikes/radial/` into `src/sections/services`
+   (tokens, `useGSAP`, `lib/stage` grips, the `none` tier = the greyscale
+   prototype's list; the real Mineral Glass strip when the WebGL phase opens).
 3. Do NOT start Spike C. Do NOT generate the seven service images. Do NOT
    productionise Services.
+
+**Review of pass 5:** the strongest direction so far — a service is a full
+editorial state; the system is 2D radial. But the ring of mini pages / the
+top-down plan are internal explanation only, never the user-facing solution; the
+visitor must never look at the whole wheel as an object. Next: a real section
+prototype, not a board.
+
+## Pass 6 — THE RADIAL SECTION, working spike: AWAITING REVIEW (13.09.2026)
+
+`spikes/radial/` is now the working section logic (`ServicesRadial`): the wheel
+is a hidden navigation engine. One active spread; the dial arc enters from the
+left (desktop) / sits along the bottom (phone) with the active name horizontal
+on the content line and the neighbours as tilted hints; a 14 % ghost of the
+next title at the edge; the whole state travels as one unit.
+
+Engine: `turn` (float, states) tweened with GSAP on a CustomEase «mineral»
+(`M0,0 C0.52,0 0.18,1 1,1`; 1.5 s + 0.5 s per state, 1.1 s for a snap); shortest
+path with wrap (07 ↔ 01); transforms written imperatively in one `apply()` (no
+React re-render on the frame path); `prefers-reduced-motion` lands without a
+tween. Grips: the dial is a pointer grip (angle about the wheel centre; a flick
+carries at most one state); on the phone the spread takes a horizontal swipe
+(`touch-action: pan-y`); names are links (`aria-current`); keyboard ← ↑ / → ↓ on
+the section; inactive states are `inert` + `aria-hidden`; a live region announces
+the service. The mouse wheel is not handled; page scroll is untouched (proved).
+
+Spike artifact (interactive): https://claude.ai/code/artifact/f5dd8b8f-4a3b-495c-97cb-803aa7c58cbb
+Board: https://claude.ai/code/artifact/652ec34b-820b-4860-81e4-5b88875d106e
+(local `docs/spikes/boards/services-radial-section.html`). Bundle:
+`SPIKE=radial npx vite build --config vite.spike.config.ts && node scripts/inline-spike.mjs radial`
+→ `dist-spike/radial.html` (fonts and images inlined, ~3.9 MB). Proof:
+`node e2e/spike-radial.interact.mjs` (click, keyboard, wrap, drag, wheel-ignored,
+swipe, tap, reduced motion — all pass).
+
+Not yet: the glass strip is a CSS stand-in; images are the Spike A stand-ins;
+the phone mid-turn is sparse by geometry; the header/neighbour sections are
+stubs. No production code.

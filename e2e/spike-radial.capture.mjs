@@ -20,7 +20,7 @@ const strip = async (page, buffers, cols, file, labels) => {
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1.5 });
   const page = await ctx.newPage();
-  const TS = [0, 0.12, 0.25, 0.38, 0.5, 0.62, 0.75, 0.88, 1];
+  const TS = [0, 0.15, 0.28, 0.38, 0.47, 0.56, 0.66, 0.8, 1];
   const frames = [];
   for (const t of TS) { await page.goto(`${base}?t=${t}&hud=0`, { waitUntil: 'networkidle' }); await settle(page); await page.screenshot({ path: `${OUT}/d-t${t}.png` }); frames.push(await page.screenshot()); }
   await strip(page, frames, 3, `${OUT}/desktop-sequence.png`, TS.map((t) => `t ${t}`));
@@ -34,7 +34,7 @@ const strip = async (page, buffers, cols, file, labels) => {
   const m = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const page = await m.newPage();
   const frames = [];
-  const TS = [0, 0.25, 0.5, 0.75, 1];
+  const TS = [0, 0.3, 0.47, 0.64, 1];
   for (const t of TS) { await page.goto(`${base}?t=${t}&hud=0`, { waitUntil: 'networkidle' }); await settle(page); await page.screenshot({ path: `${OUT}/m-t${t}.png` }); frames.push(await page.screenshot()); }
   await strip(page, frames, 5, `${OUT}/mobile-sequence.png`, TS.map((t) => `t ${t}`));
   await m.close();

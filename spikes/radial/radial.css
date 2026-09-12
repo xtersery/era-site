@@ -7,6 +7,28 @@
   overflow: hidden;
   background: #ece8df;
   color: #0d0c0b;
+  outline: none;
+}
+.radial:focus-visible .dial__name[aria-current] {
+  outline: 1px solid #0d0c0b;
+  outline-offset: 6px;
+}
+
+/* the dial is also the drag grip: the left third on desktop */
+.dial {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 38%;
+  z-index: 3;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.dial:active { cursor: grabbing; }
+.radial__states {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 /* --- the dial ---------------------------------------------------------- */
@@ -36,9 +58,13 @@
 }
 .dial__name {
   position: absolute;
+  left: 0;
+  top: 0;
   white-space: nowrap;
   transform-origin: 100% 50%;
+  will-change: transform;
 }
+.dial__name:focus-visible { outline: 1px solid #0d0c0b; outline-offset: 6px; }
 .dial__name {
   font-family: var(--font-display);
   font-size: calc(0.95rem + (1.5rem - 0.95rem) * (1 - var(--mix)));
@@ -66,6 +92,8 @@
 /* --- a state: one complete editorial composition ---------------------- */
 .state {
   position: absolute;
+  left: 0;
+  top: 0;
   transform-origin: 50% 50%;
   display: grid;
   grid-template-columns: 46% 1fr;
@@ -128,6 +156,10 @@
   gap: var(--space-md);
   margin-top: var(--space-md);
 }
+.state__btn,
+.state__link { text-decoration: none; color: inherit; }
+.state__btn:focus-visible,
+.state__link:focus-visible { outline: 1px solid #0d0c0b; outline-offset: 4px; }
 .state__btn {
   display: inline-grid;
   place-items: center;
@@ -213,9 +245,44 @@
   color: #625d55;
 }
 
+.radial__keys {
+  position: absolute;
+  left: var(--gutter);
+  bottom: var(--space-md);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #8a847a;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* stubs around the section — honest neighbours, so page scroll is visibly normal */
+.stub {
+  background: #08140f;
+  color: #98a39c;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: var(--space-md) var(--gutter);
+}
+.stub--bar {
+  grid-template-columns: 1fr auto;
+  place-items: center start;
+  background: rgba(8, 20, 15, 0.92);
+  color: #eae6dc;
+  padding-block: var(--space-sm);
+}
+.stub__mark { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: -0.02em; }
+.stub__cta { border: 1px solid #cfaf72; color: #f7e4b1; padding: 8px 16px; font-family: var(--font-body); }
+.stub--before { min-height: 46svh; }
+.stub--after { min-height: 60svh; }
+
 .hud {
   position: fixed;
-  left: 8px;
+  right: 8px;
   bottom: 8px;
   font: 11px/1.4 var(--font-mono);
   color: #625d55;
@@ -226,6 +293,13 @@
 
 /* --- phone: the frame sits above the centre; the dial is a bottom arc ------ */
 @media (max-width: 1023.98px) {
+  .dial {
+    inset: auto 0 0 0;
+    width: auto;
+    height: 26%;
+  }
+  .radial__states { touch-action: pan-y; }
+  .radial__keys { bottom: var(--space-sm); left: 50%; transform: translateX(-50%); white-space: nowrap; }
   .state {
     display: flex;
     flex-direction: column;

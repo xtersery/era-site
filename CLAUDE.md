@@ -11,8 +11,9 @@ done; Spike A (hero refraction) CLOSED — material approved, hero composition
 NOT final; Spike B (services) — the wheel, three alternative directions, the
 chamber-in-a-field and the literal 3D room were rejected; what survived is the
 information model (a service state = the entire editorial composition, moving as
-one unit). The direction is now the 2D RADIAL EDITORIAL SYSTEM (`spikes/radial/`
-— seven full states on one invisible flat wheel), awaiting visual approval. See
+one unit). The direction — 2D RADIAL EDITORIAL SYSTEM — is approved in principle: the wheel
+is a hidden navigation engine, never shown as an object. `spikes/radial/` is the
+working section prototype (interactive spike, pass 6), awaiting review. See
 `docs/spikes/B-services.md`.** The concept phase is closed. Do
 not propose alternative art directions, reorder sections, change the colour
 system or typography philosophy, or remove the glass metaphor. The greyscale
