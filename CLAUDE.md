@@ -8,9 +8,10 @@ hides the booking path.
 
 **Status: art direction approved — THROUGH GLASS. Immersive system: Step 0–1
 done; Spike A (hero refraction) CLOSED — material approved, hero composition
-NOT final; Spike B (services) — the wheel and the three alternative directions were
-rejected; the single direction is now SERVICES 360 CHAMBER (`spikes/chamber/`),
-awaiting visual approval. See `docs/spikes/B-services.md`.** The concept phase is closed. Do
+NOT final; Spike B (services) — the wheel, the three alternative directions and
+the chamber-in-a-field were rejected; the direction is now the FULL 360°
+EDITORIAL CHAMBER (`spikes/room/` — the whole section is one rotating room of
+seven complete walls), awaiting visual approval. See `docs/spikes/B-services.md`.** The concept phase is closed. Do
 not propose alternative art directions, reorder sections, change the colour
 system or typography philosophy, or remove the glass metaphor. The greyscale
 prototype is the `none` tier and stays greyscale; the immersive layer is gated

@@ -1,0 +1,342 @@
+/*
+ * The whole Services section is the room. The viewer stands at the axis; seven
+ * complete editorial walls stand around her at the cylinder's apothem. The section
+ * is a viewport-sized stage with true 3D perspective; nothing outside it moves.
+ */
+.room360 {
+  --wall-w: 100vw;
+  --wall-h: 118svh;
+  /* Heptagon apothem for a wall of width W: (W / 2) / tan(π/7). Overrun 1.12 so the
+     frontal wall exceeds the viewport slightly — we are inside, not looking at a card. */
+  /* exact heptagon: walls meet at their edges (tan(π/7) = 0.4816) — no overlap, clean corners */
+  --apothem: calc(var(--wall-w) * 0.5 / 0.4816);
+  --persp: calc(100vw * 0.9); /* eye distance scales with the viewport: the frontal wall fills ~87 %, neighbours show at both edges */
+  position: relative;
+  width: 100vw;
+  height: 100svh;
+  overflow: hidden;
+  background: #ece8df;
+  color: #0d0c0b;
+  perspective: var(--persp);
+  perspective-origin: 50% 46%;
+}
+
+/* Move the scene so its axis sits at the viewer, then turn the room. */
+.room360__scene {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: translateZ(calc(var(--persp) - var(--dolly, 0px))) rotateX(var(--tilt, 0deg)) rotateY(var(--turn, 0deg));
+  will-change: transform;
+}
+
+.wall {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--wall-w);
+  height: var(--wall-h);
+  margin-left: calc(-0.5 * var(--wall-w));
+  margin-top: calc(-0.5 * var(--wall-h));
+  transform: rotateY(var(--angle)) translateZ(calc(-1 * var(--apothem)));
+  backface-visibility: hidden;
+  background: #e9e4da;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: auto 1fr auto;
+  column-gap: var(--grid-gap);
+  padding: calc(9svh + var(--space-md)) var(--gutter) 9svh;
+  box-shadow: inset 0 0 0 1px rgba(13, 12, 11, 0.06);
+}
+
+/* Wall edges: a graphite return on both sides so the corners read when turning. */
+.wall::before,
+.wall::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.2vw;
+  background: linear-gradient(90deg, #10201a, #1a2b24);
+  transform-origin: left center;
+}
+.wall::before {
+  left: 0;
+  transform: rotateY(90deg);
+}
+.wall::after {
+  right: 0;
+  transform-origin: right center;
+  transform: rotateY(-90deg);
+}
+
+/* ---- the spread on one wall ---- */
+.wall__label {
+  grid-column: 1 / 5;
+  grid-row: 1;
+  border-top: 1px solid rgba(13, 12, 11, 0.45);
+  padding-top: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Orientation strip: the seven positions live on the wall; the current one is ink. */
+.wall__strip {
+  grid-column: 5 / 13;
+  grid-row: 1;
+  border-top: 1px solid rgba(13, 12, 11, 0.45);
+  padding-top: var(--space-sm);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #7d766d;
+}
+.wall__strip b {
+  font-weight: 400;
+  color: #0d0c0b;
+  border-bottom: 1px solid #cfaf72;
+}
+
+.wall__prev,
+.wall__next {
+  position: absolute;
+  top: 50%;
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  line-height: 1;
+  color: #8a847a;
+  writing-mode: vertical-rl;
+  transform: translateY(-50%) rotate(180deg);
+  white-space: nowrap;
+}
+.wall__prev {
+  left: calc(var(--gutter) * 0.35);
+}
+.wall__next {
+  right: calc(var(--gutter) * 0.35);
+  transform: translateY(-50%);
+}
+.wall__prev small,
+.wall__next small {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  margin-inline: 0.6em;
+}
+
+.wall__text {
+  grid-column: 2 / 7;
+  grid-row: 2;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding-right: var(--space-lg);
+}
+.wall__no {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #625d55;
+}
+.wall__title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 4.9vw, 5.6rem);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  max-width: 10ch;
+}
+.wall__promise {
+  font-family: var(--font-text);
+  font-size: var(--text-lg);
+  line-height: 1.45;
+  max-width: 30ch;
+}
+.wall__copy {
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  line-height: 1.55;
+  color: #625d55;
+  max-width: 44ch;
+}
+.wall__meta {
+  display: grid;
+  grid-template-columns: 14ch 1fr;
+  row-gap: 0.4em;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #625d55;
+  border-top: 1px solid rgba(13, 12, 11, 0.2);
+  padding-top: var(--space-xs);
+  max-width: 34ch;
+}
+.wall__meta dd {
+  margin: 0;
+  color: #0d0c0b;
+}
+.wall__cta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-top: var(--space-sm);
+}
+.wall__btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  padding-inline: var(--space-lg);
+  background: #0d0c0b;
+  color: #ece8df;
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: var(--text-cta);
+}
+.wall__link {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+}
+
+/* The visual field: a deep-green recess cut into the wall, the image inside, one detail
+   crop forward, one gold hairline at the marble's diagonal, one restrained glass strip. */
+.wall__field {
+  grid-column: 8 / 12;
+  grid-row: 2;
+  position: relative;
+  align-self: center;
+  aspect-ratio: 4 / 4.6;
+  max-height: 68svh;
+  width: 100%;
+}
+.wall__recess {
+  position: absolute;
+  inset: 0 6% 0 0;
+  background: #0f1d17;
+}
+.wall__image {
+  position: absolute;
+  left: 8%;
+  top: 6%;
+  width: 62%;
+  aspect-ratio: 4 / 5;
+  background-size: cover;
+  background-position: var(--pos, 60% 20%);
+  transform: translateZ(1px);
+}
+.wall__detail {
+  position: absolute;
+  right: 0;
+  bottom: 8%;
+  width: 34%;
+  aspect-ratio: 1;
+  background-size: cover;
+  background-position: 55% 45%;
+  transform: translateZ(40px);
+  box-shadow: 0 30px 60px rgba(13, 12, 11, 0.25);
+}
+.wall__hair {
+  position: absolute;
+  left: 30%;
+  top: -4%;
+  width: 70%;
+  height: 1px;
+  background: #cfaf72;
+  transform: rotate(-35deg);
+  transform-origin: left center;
+}
+.wall__glass {
+  position: absolute;
+  left: 58%;
+  top: 14%;
+  width: 22%;
+  height: 58%;
+  background: linear-gradient(180deg, rgba(236, 232, 223, 0.34), rgba(127, 176, 164, 0.12));
+  border: 1px solid rgba(207, 175, 114, 0.45);
+  transform: translateZ(70px) rotateY(-6deg);
+  box-shadow: 0 40px 80px rgba(13, 12, 11, 0.18);
+}
+.wall__caption {
+  position: absolute;
+  left: 8%;
+  bottom: -1.8em;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #625d55;
+}
+
+.wall__foot {
+  grid-column: 2 / 13;
+  grid-row: 3;
+  border-top: 1px solid rgba(13, 12, 11, 0.2);
+  padding-top: var(--space-sm);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #625d55;
+}
+
+.hud {
+  position: fixed;
+  right: var(--gutter);
+  bottom: var(--space-md);
+  z-index: 100;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: #eae6dc;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.hud a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* ---- phone: the same cylinder; the wall is the viewport; the spread stacks ---- */
+@media (max-width: 1023.98px) {
+  .room360 {
+    --persp: calc(100vw * 0.95);
+    --apothem: calc(var(--wall-w) * 0.5 / 0.4816);
+  }
+  .wall {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: calc(var(--header-height) + var(--space-sm)) var(--gutter) var(--space-lg);
+  }
+  .wall__label,
+  .wall__strip {
+    grid-column: auto;
+  }
+  .wall__strip {
+    font-size: 0.62rem;
+  }
+  .wall__prev,
+  .wall__next {
+    font-size: 1rem;
+  }
+  .wall__field {
+    order: 1;
+    width: 70%;
+    align-self: center; /* clear of the vertical neighbour names on both edges */
+
+    max-height: 40svh;
+    aspect-ratio: 4 / 4.2;
+  }
+  .wall__text {
+    order: 2;
+    padding: 0;
+    gap: var(--space-sm);
+  }
+  .wall__title {
+    font-size: 2.6rem;
+    max-width: none;
+  }
+  .wall__copy,
+  .wall__meta {
+    display: none;
+  }
+  .wall__foot {
+    order: 3;
+  }
+}
