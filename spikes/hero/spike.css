@@ -1,0 +1,84 @@
+/* Spike A — the hero room becomes a glass room: transparent ground, canvas behind. */
+.spike .room--hero {
+  background: transparent;
+}
+
+/* The DOM wordmark stays in the tree (LCP, a11y) but the scene draws it once ready. */
+.spike.is-stage-ready .hero__wordmark {
+  opacity: 0;
+}
+
+/* Storyboard placement: the lens overlaps the «а». Spike-only nudge of the prototype anchor. */
+@media (min-width: 768px) {
+  .spike .hero__lens {
+    left: 13%;
+    bottom: 9%;
+  }
+}
+
+/* The lens placeholder frame is replaced by the glass. */
+.spike .hero__lens-ph {
+  visibility: hidden;
+}
+
+.spike .spacer {
+  min-height: 160svh;
+  background: var(--color-bg);
+}
+
+/* Official mark placeholder — DOM only, never in the scene. */
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--c-neutral-100);
+}
+
+.mark svg {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.mark__text {
+  font-family: var(--font-text);
+  font-weight: var(--weight-medium);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+}
+
+.spike-hud {
+  position: fixed;
+  right: var(--gutter);
+  bottom: var(--space-md);
+  z-index: var(--z-debug);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: #eae6dc;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.spike-hud a,
+.spike-hud button {
+  pointer-events: auto;
+  color: inherit;
+  text-decoration: underline;
+}
+
+.compare-labels {
+  position: fixed;
+  inset: auto 0 12svh 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #98a39c;
+  pointer-events: none;
+  z-index: var(--z-debug);
+}

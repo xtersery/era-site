@@ -1,0 +1,9 @@
+.stage-grip {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-content);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
