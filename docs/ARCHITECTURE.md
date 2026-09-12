@@ -43,7 +43,7 @@ re-points the semantic colour tokens. The rhythm is fixed:
 | --- | ------------- | ------------------ | ---------- | ------------ |
 | 00  | `hero`        | Главная            | dark       | appearance 1 |
 | 01  | `manifesto`   | Манифест           | dark→light | appearance 2 |
-| 02  | `services`    | Услуги             | light      | —            |
+| 02  | `services`    | Услуги             | light      | pending — see docs/spikes/B-services.md |
 | 03  | `pricing`     | Стоимость          | dark       | —            |
 | 04  | `cases`       | Кейсы · до / после | light      | CSS «Линза»  |
 | 05  | `specialists` | Специалисты        | light      | —            |

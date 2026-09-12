@@ -7,7 +7,10 @@ website** — not a clinic template with effects on it, and not an art piece tha
 hides the booking path.
 
 **Status: art direction approved — THROUGH GLASS. Immersive system: Step 0–1
-done, Spike A (hero refraction) in progress.** The concept phase is closed. Do
+done; Spike A (hero refraction) CLOSED — material approved, hero composition
+NOT final; Spike B (services) — the wheel was rejected, three alternative
+directions await visual approval (recommended: 3 · Mineral Strata). See
+`docs/spikes/`.** The concept phase is closed. Do
 not propose alternative art directions, reorder sections, change the colour
 system or typography philosophy, or remove the glass metaphor. The greyscale
 prototype is the `none` tier and stays greyscale; the immersive layer is gated
@@ -358,6 +361,9 @@ npm run refs:sync  # clone/refresh .references (git-ignored, ~300 MB)
   authority (§0.6).
 - Spikes live in `spikes/<name>/` (dev-only Vite pages, type-checked, not
   built for production) and never touch the prototype's rooms.
+- Decision records and review-board links live in `docs/spikes/*.md`
+  (`A-hero.md` closed; `B-services.md` open). Read them before touching the
+  hero or services rooms.
 - Phases are gated. Do not continue into the next production phase (colour,
   imagery, WebGL glass, post-processing, advanced choreography) without
   explicit approval.

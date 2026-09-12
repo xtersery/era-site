@@ -1,0 +1,17 @@
+/* Concept pass: the object column gets a taller stage; phone shows it above the copy. */
+.concept .wheel-anchor {
+  min-height: 62svh;
+}
+
+@media (max-width: 1023.98px) {
+  .concept .services__spread {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .concept .wheel-anchor {
+    order: -1;
+    min-height: 58svh;
+    margin-inline: calc(-1 * var(--gutter));
+  }
+}

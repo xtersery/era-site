@@ -1,6 +1,6 @@
 # Spike A — Hero refraction · results
 
-**Status: CLOSED — approved on the real test portrait (2026-09-12).** Paths, attenuation, composition rule, `NoToneMapping` and the mark-outside-the-scene rule are approved; the emotional criterion was judged on `portrait-test.png` (see the final review below). Dev-only entry: `spikes/hero/` (`npm run dev` →
+**Status: CLOSED — material approved on the real test portrait (2026-09-12). NOT approved as hero art direction: the crop, darkness, circular lens geometry, placement and composition are to be art-directed later with this material system.** Review board: https://claude.ai/code/artifact/9471d543-fdbd-4c1e-bfff-6c8a73c6ec28 (local copy `docs/spikes/boards/spike-a-review.html`). Paths, attenuation, composition rule, `NoToneMapping` and the mark-outside-the-scene rule are approved; the emotional criterion was judged on `portrait-test.png` (see the final review below). Dev-only entry: `spikes/hero/` (`npm run dev` →
 `/spikes/hero/?path=A|B|C&mode=hero|compare|diag&tier=high|mid&dpr=1.5&poster=1`).
 Captures: `spikes/hero/__captures__/` (git-ignored). Capture suite: `node e2e/spike-hero.capture.mjs`.
 

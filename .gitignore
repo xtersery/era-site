@@ -65,3 +65,6 @@ spikes/**/__captures__/
 # Test-only generated portrait (regenerable from docs/spikes/A-hero-portrait-brief.md)
 spikes/**/portrait-test.png
 spikes/**/portrait-test.jpg
+
+# Review boards (self-contained HTML with embedded captures, ~3 MB each; artifact URLs are in docs/spikes/*.md)
+docs/spikes/boards/

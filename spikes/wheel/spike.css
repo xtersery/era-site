@@ -1,0 +1,97 @@
+/* Spike B — the services room becomes a glass room: transparent ground, canvas behind. */
+.spike .room--services {
+  background: transparent;
+  min-height: 100svh;
+}
+
+.spike .room--services .services__spread {
+  min-height: 60svh;
+}
+
+/* The wheel anchor: the right column of the spread; the grip captures drag. */
+.wheel-anchor {
+  position: relative;
+  grid-area: image;
+  min-height: 52svh;
+}
+
+/* Give the partial orbit room: the spread becomes text 3 / object 4 of 7 columns. */
+@media (min-width: 1024px) {
+  .spike .services--tabs .services__spread {
+    grid-template-areas:
+      'title title title title title title title'
+      'text text text image image image image'
+      'handoff handoff handoff handoff handoff handoff handoff';
+  }
+}
+
+.wheel-anchor .stage-grip {
+  cursor: grab;
+}
+
+.spike-hud {
+  position: fixed;
+  right: var(--gutter);
+  bottom: var(--space-md);
+  z-index: var(--z-debug);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: #eae6dc;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.spike-hud a {
+  pointer-events: auto;
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* ---- CSS 3D fallback drum (PASS B/C basis): seven facets in perspective, no glass. */
+.css-wheel {
+  position: absolute;
+  inset: 0;
+  perspective: 1400px;
+  perspective-origin: 50% 40%;
+  overflow: hidden;
+}
+
+.css-wheel__drum {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: translate(-50%, -50%) rotateX(-8deg) rotateY(var(--wheel-angle, 0deg));
+}
+
+.css-wheel__facet {
+  position: absolute;
+  left: calc(-1 * var(--facet-w) / 2);
+  top: calc(-1 * var(--facet-h) / 2);
+  width: var(--facet-w);
+  height: var(--facet-h);
+  transform: rotateY(var(--facet-angle)) translateZ(var(--facet-d));
+  background-size: cover;
+  background-position: center;
+  backface-visibility: hidden;
+  filter: brightness(var(--facet-b, 1));
+  outline: 1px solid rgba(207, 175, 114, 0.18);
+}
+
+/* Phone: the wheel sits above the accordion. */
+@media (max-width: 1023.98px) {
+  .spike .room--services .services__spread {
+    min-height: 0;
+  }
+
+  .wheel-anchor {
+    min-height: 62svh;
+  }
+}
