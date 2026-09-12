@@ -42,6 +42,30 @@ mechanism; surprises with neutral imagery; strongest on phone (the object is the
 image); one scalar drives five masked quads + two glass strata; CSS `clip-path` twin
 for the `none` tier. Direction 1 is the safe editorial fallback.
 
+## Pass 3 — SERVICES 360 CHAMBER (the single direction): AWAITING VISUAL APPROVAL (13.09.2026)
+
+The three-direction pass was rejected (all read as wheels of images / curved
+galleries / layered posters). The brief was clarified: the orbit idea stands,
+interpreted as ONE chamber with seven orientations — the whole right-hand
+environment turns; nothing is shown as a ring, wheel or set of panels.
+
+Built in `spikes/chamber/` as pseudo-motion (`?a=0..6&t=0..1`): the viewer stands
+inside a seven-sided rotunda (radius 3, viewer 2 inside, slightly left of the
+axis), looking at one wall through the right-hand field; the canvas is clipped to
+the field so the field is a window onto the chamber. Each wall = bone wall, dark
+mineral recess, one dominant image, one macro, one calm glass slab (vein ≈ 0,
+faces shift but never warp), one gold hairline at 35°. The chamber turns 51.4°
+about its invisible axis per service; the camera is fixed (≤ 0.08 dolly). DOM
+title takes a subtle CSS perspective and resolves flat; index and copy stay.
+
+Board (artifact): https://claude.ai/code/artifact/f15d26a7-b99b-4fc2-ae56-a4b640b97f00
+Local copy: `docs/spikes/boards/services-chamber.html`. Captures:
+`node e2e/spike-chamber.capture.mjs` → `spikes/chamber/__captures__/`.
+
+Caveats on the board: face 02.2 uses the instrument plate (dark, empty); the
+mid-turn corner is a hard seam (production: a soft graphite return between
+walls); interaction is not built.
+
 ## Next steps (blocked on approval)
 
 1. Approve a direction (or ask for a second concept pass).

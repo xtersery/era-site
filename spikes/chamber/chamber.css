@@ -1,0 +1,111 @@
+/*
+ * Services 360 chamber. The room is a glass room only where the chamber lives:
+ * the index and the copy are opaque bone DOM above the canvas; the visual field
+ * (right) is transparent and shows the chamber behind it.
+ */
+.chamber .room--services {
+  background: transparent;
+  min-height: 100svh;
+}
+
+.chamber .services__index,
+.chamber .services__spread-text,
+.chamber .services__handoff,
+.chamber .room__label {
+  position: relative;
+  z-index: 2;
+}
+
+.chamber .services__spread-text {
+  padding-right: var(--space-lg);
+}
+
+/* The right field: title + visual. The title participates in the turn through a
+   subtle CSS perspective; it resolves flat when the face is frontal. */
+.chamber .services--tabs .services__spread {
+  grid-template-areas:
+    'text text text field field field field'
+    'handoff handoff handoff handoff handoff handoff handoff';
+  min-height: 74svh;
+}
+
+.chamber .field {
+  grid-area: field;
+  position: relative;
+  min-height: 70svh;
+  perspective: 1400px;
+  perspective-origin: 62% 50%;
+}
+
+.chamber .field__title {
+  position: absolute;
+  left: var(--space-lg);
+  top: var(--space-lg);
+  margin: 0;
+  max-width: 78%;
+  font-size: var(--text-h3);
+  color: var(--color-bg);
+  mix-blend-mode: normal;
+  transform: rotateY(var(--face-turn, 0deg)) translateX(var(--face-shift, 0));
+  transform-origin: 62% 50%;
+  will-change: transform;
+}
+
+.chamber .field__meta {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  text-align: right;
+  transform: rotateY(var(--face-turn, 0deg));
+  transform-origin: 62% 50%;
+}
+
+.chamber .services__title {
+  display: none;
+}
+
+.chamber .spike-hud {
+  position: fixed;
+  right: var(--gutter);
+  bottom: var(--space-md);
+  z-index: var(--z-debug);
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: #eae6dc;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.chamber .spike-hud a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+@media (max-width: 1023.98px) {
+  .chamber .services--tabs .services__spread {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .chamber .field {
+    order: -1;
+    min-height: 66svh;
+    margin-inline: calc(-1 * var(--gutter));
+  }
+
+  .chamber .field__title {
+    left: var(--gutter);
+    right: var(--gutter);
+    top: var(--space-lg);
+    bottom: auto;
+    max-width: 82%;
+  }
+
+  .chamber .field__meta {
+    right: var(--gutter);
+    bottom: var(--space-md);
+    top: auto;
+  }
+}
