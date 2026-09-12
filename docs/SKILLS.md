@@ -12,19 +12,19 @@ different kind of judgement, and they are most useful kept distinct.
 
 ## Quick reference
 
-| Skill | Source | Use it when |
-|---|---|---|
-| `premium-web-design` | **custom** | Before designing anything. This project's art direction and the specific looks it must avoid. |
-| `design-dna` | [zanwei/design-dna](https://github.com/zanwei/design-dna) | Turning references into a structured design profile; defining real tokens. |
-| `taste-skill` | [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill) | Quality gate — catching output that has drifted toward templated defaults. |
-| `scroll-craft` | [nateherkai/scroll-craft](https://github.com/nateherkai/scroll-craft) | Deciding what the scroll *does*: journey, page grammar, signature move. |
-| `gsap-motion` | **custom** | Implementing motion: timelines, ScrollTrigger, reveals, pinning, cleanup. |
-| `react-three-fiber` | **custom** | Any R3F scene: Canvas, useFrame, loading, disposal, GSAP coordination. |
-| `threejs` | **custom** | Core three.js: materials, lighting, colour management, instancing, debugging. |
-| `webgl-shaders` | **custom** | Writing GLSL, and deciding whether a shader is worth its cost. |
-| `web-performance` | **custom** | Budgets, Core Web Vitals, mobile, anything heavy. |
-| `frontend-design` | [anthropics/skills](https://github.com/anthropics/skills) | Baseline visual craft. The floor, not the ceiling. |
-| `webapp-testing` | [anthropics/skills](https://github.com/anthropics/skills) | Verifying visual work in a real browser instead of assuming. |
+| Skill                | Source                                                                | Use it when                                                                                   |
+| -------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `premium-web-design` | **custom**                                                            | Before designing anything. This project's art direction and the specific looks it must avoid. |
+| `design-dna`         | [zanwei/design-dna](https://github.com/zanwei/design-dna)             | Turning references into a structured design profile; defining real tokens.                    |
+| `taste-skill`        | [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill)       | Quality gate — catching output that has drifted toward templated defaults.                    |
+| `scroll-craft`       | [nateherkai/scroll-craft](https://github.com/nateherkai/scroll-craft) | Deciding what the scroll _does_: journey, page grammar, signature move.                       |
+| `gsap-motion`        | **custom**                                                            | Implementing motion: timelines, ScrollTrigger, reveals, pinning, cleanup.                     |
+| `react-three-fiber`  | **custom**                                                            | Any R3F scene: Canvas, useFrame, loading, disposal, GSAP coordination.                        |
+| `threejs`            | **custom**                                                            | Core three.js: materials, lighting, colour management, instancing, debugging.                 |
+| `webgl-shaders`      | **custom**                                                            | Writing GLSL, and deciding whether a shader is worth its cost.                                |
+| `web-performance`    | **custom**                                                            | Budgets, Core Web Vitals, mobile, anything heavy.                                             |
+| `frontend-design`    | [anthropics/skills](https://github.com/anthropics/skills)             | Baseline visual craft. The floor, not the ceiling.                                            |
+| `webapp-testing`     | [anthropics/skills](https://github.com/anthropics/skills)             | Verifying visual work in a real browser instead of assuming.                                  |
 
 ---
 
@@ -57,7 +57,8 @@ Everything else is judgement.
   distribution), corporate landing page.
 - What to prioritise: editorial composition, intentional asymmetry, typographic
   scale contrast, uneven premium whitespace, restrained colour, strong art
-  direction on real photography.
+  direction on imagery (see `CLAUDE.md` Hard rule 3 for the launch-vs-concept
+  asset policy).
 - The order of work — typography and composition **before** motion, motion
   before WebGL. Steps 5 and 6 do not rescue steps 1–4.
 
@@ -92,15 +93,15 @@ check. Its general landing-page conventions defer to `premium-web-design`.
 
 Scroll as a narrative timeline: visitor journey, page grammar, emotional peak,
 one bespoke signature move, dimensional heroes with independent visual planes,
-and a *separate* mobile composition.
+and a _separate_ mobile composition.
 
 The strongest reference we have for **what the scroll does**. Pair it with
 `gsap-motion`, which covers **how to implement it**.
 
 Two project constraints (see its `PROJECT-NOTES.md`): its kie.ai asset
-generation is unavailable and must not be used — clinic imagery is real
-photography — and its standalone-HTML engine is reference for technique only;
-we implement in React + GSAP.
+generation is unavailable and must not be used — generated imagery follows the
+Higgsfield asset policy in `CLAUDE.md` — and its standalone-HTML engine is
+reference for technique only; we implement in React + GSAP.
 
 ### `frontend-design` — imported, unmodified
 
@@ -173,7 +174,9 @@ composition, "it compiles" proves nothing. Use it to check the hero at 390 /
 768 / 1440 px, scroll states, `prefers-reduced-motion`, the no-WebGL fallback,
 and a clean console.
 
-Chromium is pre-installed at `/opt/pw-browsers`; do not run `playwright install`.
+Locally, Playwright drives the installed Google Chrome (`channel: 'chrome'` in
+`playwright.config.ts`) — no browser download. In the cloud environment Chromium
+is pre-installed at `/opt/pw-browsers`; do not run `playwright install`.
 
 ---
 
@@ -182,15 +185,15 @@ Chromium is pre-installed at `/opt/pw-browsers`; do not run `playwright install`
 Repositories were inspected before anything was copied. Three of the four
 "existing skill" repositories were **not** bare Claude skills:
 
-| Repository | What it actually was | What was imported |
-|---|---|---|
-| `zanwei/design-dna` | A valid skill at the repo root | `SKILL.md` + `references/` + `scripts/`, verbatim |
-| `Leonxlnx/taste-skill` | A plugin marketplace with **13** skills | Only `skills/taste-skill/`. One edit: frontmatter `name` was `design-taste-frontend`, which does not match the loading folder — changed to `taste-skill`. |
-| `nateherkai/scroll-craft` | A Claude Code **plugin** | The skill subtree from `plugins/nateherk-design/skills/scroll-craft/`, unmodified. The plugin wrapper was not imported. |
-| `anthropics/skills` | ~19 skills, mostly document tooling | Only `frontend-design` and `webapp-testing`. |
-| `pmndrs/react-three-fiber` | Library source + docs, **no skill** | Nothing. A custom `react-three-fiber` skill was written that references it. |
-| `pmndrs/drei` | Library source, **no skill** | Nothing. Covered inside the `react-three-fiber` skill. |
-| `mrdoob/three.js` | Library source + docs, **no skill** | Nothing. A custom `threejs` skill was written that references it. |
+| Repository                 | What it actually was                    | What was imported                                                                                                                                         |
+| -------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `zanwei/design-dna`        | A valid skill at the repo root          | `SKILL.md` + `references/` + `scripts/`, verbatim                                                                                                         |
+| `Leonxlnx/taste-skill`     | A plugin marketplace with **13** skills | Only `skills/taste-skill/`. One edit: frontmatter `name` was `design-taste-frontend`, which does not match the loading folder — changed to `taste-skill`. |
+| `nateherkai/scroll-craft`  | A Claude Code **plugin**                | The skill subtree from `plugins/nateherk-design/skills/scroll-craft/`, unmodified. The plugin wrapper was not imported.                                   |
+| `anthropics/skills`        | ~19 skills, mostly document tooling     | Only `frontend-design` and `webapp-testing`.                                                                                                              |
+| `pmndrs/react-three-fiber` | Library source + docs, **no skill**     | Nothing. A custom `react-three-fiber` skill was written that references it.                                                                               |
+| `pmndrs/drei`              | Library source, **no skill**            | Nothing. Covered inside the `react-three-fiber` skill.                                                                                                    |
+| `mrdoob/three.js`          | Library source + docs, **no skill**     | Nothing. A custom `threejs` skill was written that references it.                                                                                         |
 
 Each imported skill has a `PROJECT-NOTES.md` beside it recording what was
 adapted and how it applies here. Upstream `SKILL.md` bodies are otherwise not

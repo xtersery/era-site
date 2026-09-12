@@ -1,0 +1,128 @@
+.services {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-xl);
+}
+
+.services__index {
+  display: flex;
+  flex-direction: column;
+}
+
+.services__item {
+  border-top: var(--border-hairline) solid var(--color-line);
+}
+
+.services__item:last-child {
+  border-bottom: var(--border-hairline) solid var(--color-line);
+}
+
+.services__tab {
+  display: grid;
+  grid-template-columns: 4ch 1fr;
+  align-items: baseline;
+  column-gap: var(--space-md);
+  width: 100%;
+  min-height: var(--control-height);
+  padding-block: var(--space-sm);
+  text-align: left;
+  color: var(--color-text-muted);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.services__tab-index {
+  padding-top: 0.35em;
+}
+
+.services__tab-name {
+  max-width: none;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.services__tab:hover,
+.services__tab.is-selected {
+  color: var(--color-text);
+}
+
+.services__tab.is-selected .services__tab-name {
+  transform: translateX(0.15em);
+}
+
+/* Accordion: the open button already reads the name — do not repeat it. */
+.services--accordion .services__title {
+  display: none;
+}
+
+.services__spread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding-block: var(--space-lg) var(--space-xl);
+}
+
+.services__spread:focus {
+  outline: none;
+}
+
+.services__spread-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.services__promise {
+  max-width: 32ch;
+}
+
+.services__meta {
+  max-width: 40ch;
+}
+
+@media (min-width: 1024px) {
+  .services--tabs {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--grid-gap);
+    align-items: start;
+  }
+
+  .services--tabs .services__index {
+    grid-column: 1 / 5;
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-lg));
+  }
+
+  .services--tabs .services__spread {
+    grid-column: 6 / -1;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-areas:
+      'title title title title title title title'
+      'text text text text image image image'
+      'handoff handoff handoff handoff handoff handoff handoff';
+    column-gap: var(--grid-gap);
+    row-gap: var(--space-2xl);
+    padding-block: 0;
+  }
+
+  .services--tabs .services__title {
+    grid-area: title;
+    max-width: none;
+  }
+
+  .services--tabs .services__spread-text {
+    grid-area: text;
+  }
+
+  .services--tabs .services__image {
+    grid-area: image;
+    align-self: start;
+  }
+
+  .services--tabs .services__handoff {
+    grid-area: handoff;
+  }
+
+  .services__tab {
+    grid-template-columns: 5ch 1fr;
+  }
+}

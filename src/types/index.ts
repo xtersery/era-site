@@ -1,6 +1,7 @@
 import type { SectionId } from '@/lib/constants/sections';
 
 export type { SectionId };
+export type * from './content';
 
 /** A section's scroll progress, 0 before it enters, 1 after it leaves. */
 export type ScrollProgress = number;

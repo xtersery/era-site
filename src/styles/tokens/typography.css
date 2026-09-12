@@ -1,35 +1,73 @@
-/* PLACEHOLDER — see _placeholder-notice.md. System stacks only; no licensed faces chosen yet. */
+/*
+ * Typography tokens — the executable form of docs/TYPOGRAPHY.md.
+ *
+ * Fluid sizes: clamp(min @390px, linear, max @1440px). Above 1440 nothing
+ * grows. Body size is stepped by media query instead (larger on phone for an
+ * older audience), because it *decreases* with viewport width.
+ */
 :root {
-  /* TODO(branding): replace both families. The display face carries the
-     editorial identity; the text face must stay quiet and highly legible. */
-  --font-display: ui-serif, Georgia, 'Times New Roman', serif;
-  --font-text: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Families — development set; production swaps these three lines only. */
+  --font-display: 'Prata', 'Prata Fallback', Georgia, 'Times New Roman', serif;
+  --font-text: 'Inter Variable', 'Inter Fallback', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  --font-mono:
+    'JetBrains Mono Variable', 'JetBrains Mono Fallback', ui-monospace, Menlo, Consolas, monospace;
 
-  /* Fluid scale. clamp() min/max are placeholders; the ratio is what matters. */
-  --text-2xs: clamp(0.6875rem, 0.66rem + 0.14vw, 0.75rem);
-  --text-xs: clamp(0.75rem, 0.72rem + 0.16vw, 0.8125rem);
-  --text-sm: clamp(0.875rem, 0.84rem + 0.18vw, 0.9375rem);
-  --text-base: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
-  --text-md: clamp(1.125rem, 1.06rem + 0.33vw, 1.3125rem);
-  --text-lg: clamp(1.375rem, 1.24rem + 0.68vw, 1.75rem);
-  --text-xl: clamp(1.75rem, 1.47rem + 1.4vw, 2.5rem);
-  --text-2xl: clamp(2.25rem, 1.7rem + 2.75vw, 3.75rem);
-  --text-3xl: clamp(2.75rem, 1.7rem + 5.25vw, 5.5rem);
-  --text-display: clamp(3.25rem, 1.2rem + 10.25vw, 9rem);
+  /* Scale — see docs/TYPOGRAPHY.md §3 */
+  --text-hero: clamp(7rem, 4.03rem + 12.19vw, 15rem);
+  --text-display: clamp(2.75rem, 1.73rem + 4.19vw, 5.5rem);
+  --text-h2: clamp(2.25rem, 1.6rem + 2.67vw, 4rem);
+  --text-h3: clamp(1.625rem, 1.21rem + 1.71vw, 2.75rem);
+  --text-lead: clamp(1.375rem, 1.14rem + 0.95vw, 2rem);
+  --text-lg: clamp(1.125rem, 1.08rem + 0.19vw, 1.25rem);
+  --text-body: 1.125rem; /* phone; stepped down at md — see below */
+  --text-sm: 0.9375rem;
+  --text-input: 1.25rem;
+  --text-cta: 1rem;
+  --text-price: clamp(1rem, 0.98rem + 0.095vw, 1.0625rem);
+  --text-meta: clamp(0.6875rem, 0.66rem + 0.095vw, 0.75rem);
 
-  --leading-tight: 0.95;
-  --leading-snug: 1.1;
-  --leading-normal: 1.45;
-  --leading-relaxed: 1.65;
+  /* Legacy aliases kept for the few places that predate the system. */
+  --text-base: var(--text-body);
+  --text-xs: var(--text-meta);
 
-  --tracking-tighter: -0.03em;
-  --tracking-tight: -0.015em;
+  /* Leading */
+  --leading-hero: 0.9;
+  --leading-display: 0.95;
+  --leading-h2: 1;
+  --leading-h3: 1.1;
+  --leading-lead: 1.25;
+  --leading-lg: 1.55;
+  --leading-body: 1.6;
+  --leading-sm: 1.5;
+  --leading-meta: 1.4;
+  --leading-input: 1.3;
+  /* aliases */
+  --leading-tight: var(--leading-display);
+  --leading-normal: var(--leading-body);
+
+  /* Tracking — negative on large serif, zero everywhere else. Never positive. */
+  --tracking-hero: -0.04em;
+  --tracking-display: -0.03em;
+  --tracking-h2: -0.02em;
+  --tracking-h3: -0.01em;
+  --tracking-lead: -0.01em;
   --tracking-normal: 0;
-  --tracking-wide: 0.06em;
-  --tracking-widest: 0.18em;
 
+  /* Measures (max line length), in ch of the element's own font. */
+  --measure-display: 14ch;
+  --measure-h2: 18ch;
+  --measure-h3: 28ch;
+  --measure-lead: 34ch;
+  --measure-lg: 58ch;
+  --measure-body: 64ch;
+
+  /* Weights. Serif is always 400; grotesk emphasis is 500; never bold. */
   --weight-regular: 400;
   --weight-medium: 500;
-  --weight-semibold: 600;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --text-body: 1.0625rem;
+  }
 }

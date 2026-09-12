@@ -76,7 +76,8 @@ purple/blue gradients · decorative blobs and floating shapes · predictable
 alternating sections · icon-heavy layouts · drop shadows used as hierarchy ·
 emoji · three-column feature grids · centred everything · "eyebrow label +
 heading + paragraph" repeated for every section · stock photography ·
-AI-generated faces or bodies (also: legally and ethically wrong for a clinic).
+generated people presented as real staff or real patients · any male subject
+(the clinic is for women — see `CLAUDE.md` Hard rule 1).
 
 ---
 
@@ -143,14 +144,18 @@ vertical space without changing anything, the space is padding, not silence.
 
 - Imagery carries the premium feel more than any effect will. **Strong art
   direction on photography beats every shader on this list.**
-- Real photography of the real clinic, real equipment, real light. Texture:
-  skin, glass, water, stone, linen, light falling across a surface.
+- Two imagery classes, one grade. **Campaign imagery** — hyperrealistic,
+  editorial, women 35–60, natural skin texture — may be generated (Higgsfield)
+  under `CLAUDE.md` Hard rule 3. **The team, the rooms, the door** are real
+  photography of the real clinic. Texture: skin, glass, water, light falling
+  across a surface.
 - Consistent treatment — one grade, one grain, one crop logic across the site.
   Inconsistent photography is the fastest way to look cheap.
 - Full-bleed and large. A premium image at 400px wide in a card is not a
   premium image.
-- No stock. No generated people. If the photography does not exist yet, design
-  around its absence honestly and flag it.
+- No stock. No generated person standing in for a real one. Cases at launch are
+  consented real patients or carry the visible label «Визуализация». If the
+  photography does not exist yet, use the labelled `<Placeholder>` and flag it.
 
 ### The hero
 

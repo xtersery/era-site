@@ -1,0 +1,11 @@
+.wall-label {
+  display: flex;
+  gap: 0.25em;
+  color: var(--color-text);
+  padding-top: var(--space-sm);
+  border-top: var(--border-hairline) solid var(--color-line-strong);
+}
+
+.wall-label__index {
+  font-variant-numeric: tabular-nums;
+}

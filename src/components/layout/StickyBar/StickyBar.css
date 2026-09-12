@@ -1,0 +1,42 @@
+.stickybar {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: var(--z-sticky);
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  column-gap: var(--space-md);
+  height: var(--stickybar-height);
+  padding-inline: var(--gutter);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-top: var(--border-hairline) solid var(--color-line);
+  transition:
+    transform var(--dur-base) var(--ease-in-out),
+    visibility 0s linear var(--dur-base);
+}
+
+.stickybar.is-hidden {
+  transform: translateY(100%);
+  visibility: hidden;
+}
+
+.stickybar__primary.btn {
+  min-height: var(--control-height-compact);
+  padding-inline: var(--space-md);
+}
+
+:root {
+  --stickybar-offset: var(--stickybar-height);
+}
+
+@media (min-width: 768px) {
+  .stickybar {
+    display: none;
+  }
+
+  :root {
+    --stickybar-offset: 0px;
+  }
+}

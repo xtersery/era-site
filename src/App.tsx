@@ -1,27 +1,52 @@
+import { ScrollProvider } from '@/animations/scroll';
+import { Footer, Header, StickyBar } from '@/components/layout';
+import { InquiryProvider } from '@/lib/inquiry';
+import { StageCanvas } from '@/three/components/StageCanvas';
+import {
+  Cases,
+  Contact,
+  Founder,
+  Hero,
+  Inquiry,
+  Manifesto,
+  Pricing,
+  Reviews,
+  Services,
+  Specialists,
+} from '@/sections';
+
 /**
- * Application shell.
+ * The page: ten rooms in approved order (CLAUDE.md), fixed header, phone sticky
+ * bar, colophon. Providers: the scroller (Lenis / native by tier) and the
+ * inquiry pre-fill.
  *
- * Deliberately close to empty: the project is initialised, the design is not
- * started. Sections in `src/sections` are structural stubs and are NOT composed
- * here yet — composing them would be a layout decision, and layout decisions
- * come after the visual concept.
- *
- * See `CLAUDE.md` → "Before writing complex visual code".
+ * The stage canvas mounts once, lazily, for live tiers only, and draws nothing
+ * until a set is added (per spike). Rooms stay greyscale.
  */
 export default function App() {
   return (
-    <main className="u-shell u-shell--text" style={{ paddingBlock: 'var(--space-3xl)' }}>
-      <h1
-        style={{
-          font: 'var(--weight-regular) var(--text-2xl)/var(--leading-tight) var(--font-display)',
-        }}
-      >
-        Project initialised
-      </h1>
-      <p style={{ color: 'var(--color-text-muted)', marginTop: 'var(--space-md)' }}>
-        Stack, architecture, design tokens and Claude skills are in place. The visual concept has
-        not been designed yet — see <code>docs/ARCHITECTURE.md</code> and <code>CLAUDE.md</code>.
-      </p>
-    </main>
+    <ScrollProvider>
+      <InquiryProvider>
+        <a className="skip-link" href="#services">
+          Перейти к содержанию
+        </a>
+        <StageCanvas />
+        <Header />
+        <main id="main">
+          <Hero id="hero" />
+          <Manifesto id="manifesto" />
+          <Services id="services" />
+          <Pricing id="pricing" />
+          <Cases id="cases" />
+          <Specialists id="specialists" />
+          <Founder id="founder" />
+          <Reviews id="reviews" />
+          <Contact id="contact" />
+          <Inquiry id="inquiry" />
+        </main>
+        <Footer />
+        <StickyBar />
+      </InquiryProvider>
+    </ScrollProvider>
   );
 }

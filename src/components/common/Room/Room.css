@@ -1,0 +1,53 @@
+.room {
+  position: relative;
+  /* Rooms stack above the fixed stage canvas (z-canvas); glass rooms are transparent. */
+  z-index: var(--z-content);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding-block: var(--space-section);
+  /* Anchors land under the fixed header. */
+  scroll-margin-top: var(--header-height);
+}
+
+.room:focus {
+  outline: none;
+}
+
+.room--tight {
+  padding-block: var(--space-section-tight);
+}
+
+.room__inner {
+  position: relative;
+}
+
+.room__label {
+  margin-bottom: var(--space-xl);
+}
+
+/* The 12-column editorial grid, 4 columns on phone. */
+.room__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--grid-gap);
+  row-gap: var(--space-xl);
+}
+
+@media (min-width: 768px) {
+  .room__grid {
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  }
+}
+
+/* Bleed helpers: let an element run off the viewport edge past the gutter. */
+.bleed-right {
+  margin-right: calc(-1 * var(--gutter));
+}
+
+.bleed-left {
+  margin-left: calc(-1 * var(--gutter));
+}
+
+.bleed-x {
+  margin-inline: calc(-1 * var(--gutter));
+}

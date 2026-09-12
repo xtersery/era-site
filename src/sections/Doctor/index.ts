@@ -1,1 +1,0 @@
-export { Doctor } from './Doctor';

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Premium aesthetic medicine clinic website \u2014 creative front-end (React + Vite + R3F + GSAP).",
+  "description": "ЭРА cosmetology — premium cosmetology clinic website for women. Creative front-end (React + Vite + R3F + GSAP).",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -16,19 +16,28 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,glsl,vert,frag}\" \"*.{ts,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,glsl,vert,frag}\" \"*.{ts,json,md}\"",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
     "refs:sync": "bash scripts/sync-references.sh"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource/prata": "^5.3.0",
     "@gsap/react": "^2.1.2",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
+    "@react-three/postprocessing": "^3.1.1",
     "gsap": "^3.15.0",
+    "lenis": "^1.3.26",
+    "postprocessing": "^6.39.5",
     "react": "~19.2.8",
     "react-dom": "~19.2.8",
     "three": "^0.185.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^22.20.0",
     "@types/react": "~19.2.18",
     "@types/react-dom": "~19.2.7",
@@ -39,6 +48,7 @@
     "eslint-plugin-react-refresh": "^0.5.6",
     "globals": "^17.12.0",
     "prettier": "^3.6.2",
+    "rollup-plugin-visualizer": "^7.1.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.2",
     "vite": "^8.3.0"

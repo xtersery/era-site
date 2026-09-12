@@ -1,0 +1,57 @@
+.ph {
+  position: relative;
+  width: 100%;
+  min-height: 8rem;
+  background: var(--color-placeholder-bg);
+  outline: var(--border-hairline) solid var(--color-placeholder-line);
+  outline-offset: calc(-1 * var(--border-hairline));
+  overflow: hidden;
+}
+
+/* Diagonal — the universal "nothing here yet" mark, drawn with a gradient so it scales. */
+.ph::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.5px),
+    var(--color-placeholder-line) calc(50% - 0.5px),
+    var(--color-placeholder-line) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+  opacity: 0.6;
+}
+
+.ph--lens {
+  border-radius: 50%;
+  aspect-ratio: 1;
+}
+
+.ph--lens::before {
+  display: none;
+}
+
+.ph__caption {
+  position: absolute;
+  left: var(--space-sm);
+  bottom: var(--space-sm);
+  right: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  color: var(--color-text-muted);
+}
+
+.ph--lens .ph__caption {
+  left: 50%;
+  right: auto;
+  bottom: 50%;
+  transform: translate(-50%, 50%);
+  text-align: center;
+  align-items: center;
+}
+
+.ph__kind {
+  color: var(--color-text);
+}

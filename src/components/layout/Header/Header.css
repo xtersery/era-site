@@ -1,0 +1,98 @@
+.header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: var(--z-header);
+  height: var(--header-height);
+  /* Light ink, inverted over whatever ground is beneath. */
+  color: var(--c-neutral-0);
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  height: 100%;
+}
+
+.header__wordmark,
+.header__nav,
+.header__cta {
+  pointer-events: auto;
+}
+
+.header__wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height-compact);
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1;
+  letter-spacing: var(--tracking-h3);
+}
+
+.header__nav {
+  display: none;
+}
+
+.header__index {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.header__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: var(--control-height-compact);
+  opacity: 0.7;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.header__link-label {
+  position: relative;
+}
+
+.header__link-label::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.2em;
+  height: var(--border-hairline);
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.header__link:hover,
+.header__link.is-current {
+  opacity: 1;
+}
+
+.header__link.is-current .header__link-label::after {
+  transform: scaleX(1);
+}
+
+/* The CTA is drawn inside the difference layer too: white fill becomes ink over light rooms. */
+.header__cta .btn {
+  --color-cta: var(--c-neutral-0);
+  --color-cta-text: var(--c-neutral-1000);
+  --color-bg: var(--c-neutral-1000);
+  --color-text: var(--c-neutral-0);
+}
+
+@media (min-width: 1024px) {
+  .header__nav {
+    display: block;
+  }
+}
+
+@media (min-width: 1280px) {
+  .header__index {
+    gap: var(--space-xl);
+  }
+}

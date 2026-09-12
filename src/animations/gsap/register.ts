@@ -13,10 +13,10 @@ let registered = false;
  * more than one module is how plugin-not-registered bugs and duplicated
  * ScrollTrigger instances happen.
  *
- * `ScrollTrigger` and `useGSAP` both ship inside the packages we already
- * depend on — no extra install. Club-only plugins (SplitText, MorphSVG,
- * DrawSVG, CustomEase, Flip, Inertia) are NOT available; do not import them
- * without adding the paid package first.
+ * `ScrollTrigger` and `useGSAP` ship inside the packages we already depend on.
+ * Since GSAP 3.13 the formerly Club plugins (Draggable, InertiaPlugin,
+ * SplitText, Flip, CustomEase, …) are free and included in `gsap` — register
+ * them HERE, only when a feature uses them, never ad hoc in a component.
  */
 export function registerGsap(): void {
   if (registered) return;

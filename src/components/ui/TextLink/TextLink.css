@@ -1,0 +1,59 @@
+.tlink {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5em;
+  white-space: nowrap;
+  min-height: var(--control-height-compact);
+  padding-block: 0.6em;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tlink__label {
+  position: relative;
+}
+
+/* Underline is a hairline that draws left→right on hover. */
+.tlink__label::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.2em;
+  height: var(--border-hairline);
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .tlink:hover .tlink__label::after {
+    transform: scaleX(1);
+  }
+}
+
+.tlink__glyph {
+  font-family: var(--font-mono);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .tlink:hover .tlink__glyph {
+    transform: translateX(0.15em);
+  }
+}
+
+.tlink--placeholder {
+  color: var(--color-text-muted);
+  cursor: help;
+}
+
+.tlink--placeholder .tlink__label {
+  text-decoration: underline dotted;
+  text-underline-offset: 0.25em;
+}

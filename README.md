@@ -1,12 +1,14 @@
-# ERA — premium aesthetic medicine clinic website
+# ЭРА cosmetology — premium cosmetology clinic website
 
-Creative front-end for a high-end aesthetic medicine clinic. React + TypeScript +
-Vite, React Three Fiber for WebGL, GSAP for motion.
+Creative front-end for a high-end cosmetology clinic for women. React +
+TypeScript + Vite, React Three Fiber for WebGL, GSAP for motion. Russian-only
+interface.
 
-> **Status: project initialised, design not started.**
-> Stack, architecture, design tokens and Claude Code skills are in place. No
-> visual concept has been chosen yet. Sections are structural stubs and design
-> tokens are neutral placeholders — see `CLAUDE.md`.
+> **Status: art direction approved (THROUGH GLASS); greyscale typographic
+> prototype built.** All ten rooms are implemented in greyscale with labelled
+> placeholders, no imagery, no final colour, no WebGL. Next phases (colour,
+> imagery, the glass, post-processing, choreography) are gated on approval —
+> see `CLAUDE.md`.
 
 ---
 
@@ -37,6 +39,7 @@ npm run typecheck  # tsc --noEmit
 npm run lint       # eslint
 npm run lint:fix   # eslint --fix
 npm run format     # prettier --write
+npm run test:e2e   # Playwright visual QA (drives the installed Google Chrome)
 npm run refs:sync  # clone/refresh .references/
 ```
 
@@ -46,18 +49,22 @@ npm run refs:sync  # clone/refresh .references/
 
 ## Stack
 
-|                    | Version    | Notes                                                                    |
-| ------------------ | ---------- | ------------------------------------------------------------------------ |
-| React              | `~19.2.8`  | Pinned below 19.3 — see _Compatibility_                                  |
-| TypeScript         | `~5.9.3`   | Strict, with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes` |
-| Vite               | `^8.3.0`   | Rolldown-based                                                           |
-| three.js           | `^0.185.1` | Pinned to match `@types/three` — see _Compatibility_                     |
-| @react-three/fiber | `^9.7.0`   |                                                                          |
-| @react-three/drei  | `^10.7.8`  |                                                                          |
-| GSAP               | `^3.15.0`  | Core + ScrollTrigger (both free)                                         |
-| @gsap/react        | `^2.1.2`   | `useGSAP`                                                                |
+|                                              | Version          | Notes                                                                      |
+| -------------------------------------------- | ---------------- | -------------------------------------------------------------------------- |
+| React                                        | `~19.2.8`        | Pinned below 19.3 — see _Compatibility_                                    |
+| TypeScript                                   | `~5.9.3`         | Strict, with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`   |
+| Vite                                         | `^8.3.0`         | Rolldown-based                                                             |
+| three.js                                     | `^0.185.1`       | Pinned to match `@types/three` — see _Compatibility_                       |
+| @react-three/fiber                           | `^9.7.0`         |                                                                            |
+| @react-three/drei                            | `^10.7.8`        |                                                                            |
+| GSAP                                         | `^3.15.0`        | Core + ScrollTrigger (both free)                                           |
+| @gsap/react                                  | `^2.1.2`         | `useGSAP`                                                                  |
+| lenis                                        | `^1.3.26`        | Eased scroll behind the `SmoothScroll` interface; off under reduced motion |
+| postprocessing + @react-three/postprocessing | `^6.39` / `^3.1` | Installed for the glass phase, not mounted                                 |
+| @fontsource (Prata, Inter, JetBrains Mono)   | `^5.3`           | Free development faces with Cyrillic — see `docs/TYPOGRAPHY.md`            |
 
-Tooling: ESLint 10 + typescript-eslint 8, Prettier 3.
+Dev: ESLint 10 + typescript-eslint 8, Prettier 3, Playwright 1.63,
+rollup-plugin-visualizer (bundle report at `dist/stats.html`).
 
 ### Compatibility decisions
 
@@ -79,11 +86,10 @@ Tooling: ESLint 10 + typescript-eslint 8, Prettier 3.
 - **GLSL needs no plugin.** Shaders are imported with Vite's built-in `?raw`
   suffix. `vite-plugin-glsl` gets added only if `#include` composition becomes
   genuinely painful.
-- **Not installed on purpose:** `postprocessing` /
-  `@react-three/postprocessing` (every pass is a full-screen read — see
-  `src/three/effects/README.md`), and any smooth-scroll library (native
-  scrolling is correct until a scrubbed pinned sequence justifies Lenis — see
-  `src/animations/scroll/smoothScroll.ts`).
+- **Post-processing is installed but not mounted** — see
+  `src/three/effects/README.md` for the narrow approved use.
+- **Lenis is the scroller** for the `full` tier only; reduced motion, low tier
+  and save-data get the native scroller (`src/animations/scroll/`).
 
 ---
 
@@ -91,17 +97,19 @@ Tooling: ESLint 10 + typescript-eslint 8, Prettier 3.
 
 ```
 src/
-  components/   normal React UI — ui / layout / common
-  sections/     Hero, Philosophy, Treatments, Cases, Doctor, Reviews, Contact
-  three/        ALL WebGL — scenes, components, materials, shaders, effects, utils
-  animations/   ALL motion — gsap, scroll, transitions
-  hooks/        media queries, reduced motion, isomorphic layout effect
-  lib/          framework-agnostic helpers, section id constants
-  styles/       tokens (placeholders) → globals → component styles
-  data/         typed content modules (empty — no copy written yet)
-  types/        shared types, GLSL ambient declarations
-  assets/       imported, hashed assets
-public/         served verbatim — images, video, models, textures, fonts
+  components/   ui (Button, TextLink, WallLabel, Placeholder, Field, InquiryLink)
+                common (Room, MetaList, Handoff) · layout (Header, StickyBar, Footer)
+  sections/     the ten rooms: Hero Manifesto Services Pricing Cases Specialists
+                Founder Reviews Contact Inquiry
+  three/        ALL WebGL — scenes (empty until the glass phase), components, materials, shaders, effects, utils
+  animations/   ALL motion — gsap, scroll (Lenis / native, horizontal pin), transitions
+  hooks/        media queries, reduced motion, visual tier, hash params
+  lib/          section constants, inquiry pre-fill, Russian typography helpers, env, math
+  styles/       tokens (type system approved; colour greyscale) → globals → component styles
+  data/         clearly marked placeholder content modules (Russian)
+  types/        shared and content types, GLSL ambient declarations
+e2e/            Playwright visual QA
+public/         served verbatim — images, video, models, textures, production fonts
 ```
 
 Four layers are kept separate on purpose: **UI · WebGL · motion · design
@@ -111,8 +119,9 @@ DOM. Full detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 ### Design tokens
 
 `src/styles/tokens/` holds colour, typography, spacing, layout, breakpoints,
-z-index and motion tokens. **All values are neutral placeholders** — no branding
-decision has been made. `tokens.ts` mirrors the subset motion code needs.
+z-index and motion tokens. The type system is approved (`docs/TYPOGRAPHY.md`);
+colour is deliberately greyscale until the colour phase, with the approved
+palette recorded in `color.css`. `tokens.ts` mirrors the subset motion code needs.
 
 Components consume `var(--token)`, never a raw hex, px or duration.
 
@@ -168,8 +177,12 @@ when two conflict, and exactly what was adapted during import.
 
 ## Documentation
 
-- [`CLAUDE.md`](CLAUDE.md) — quality bar, development principles, and the
+- [`CLAUDE.md`](CLAUDE.md) — the approved direction, hard rules (women only,
+  Russian only, asset policy, placeholders, conversion), and the
   CSS → GSAP → WebGL decision ladder.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — UI, motion, R3F, shader,
-  asset and performance architecture.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — THROUGH GLASS as
+  architecture, UI, motion, R3F, shader, asset and performance architecture,
+  dependency register.
+- [`docs/TYPOGRAPHY.md`](docs/TYPOGRAPHY.md) — the type system and font
+  recommendation.
 - [`docs/SKILLS.md`](docs/SKILLS.md) — the skills and when to use each.

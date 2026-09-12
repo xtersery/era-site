@@ -1,4 +1,5 @@
-/* Token entrypoint. Order matters: raw ramps first, semantics after. */
+/* Token entrypoint. Order matters: fonts and raw ramps first, semantics after. */
+@import './fonts.css';
 @import './color.css';
 @import './typography.css';
 @import './spacing.css';

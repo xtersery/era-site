@@ -1,0 +1,129 @@
+/* The hero owns its vertical rhythm: exactly one viewport, header included. */
+.room--hero {
+  padding-block: calc(var(--header-height) + var(--space-xl)) var(--space-xl);
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-areas:
+    'lens lens lens lens'
+    'word word word word'
+    'intro intro intro intro'
+    'meta meta meta meta';
+  row-gap: var(--space-lg);
+  min-height: calc(100svh - var(--header-height) - var(--space-xl) * 2);
+}
+
+.hero__intro {
+  grid-area: intro;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.hero__label {
+  margin-bottom: var(--space-sm);
+}
+
+.hero__headline {
+  color: var(--color-text);
+}
+
+.hero__cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.hero__lens {
+  grid-area: lens;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 4%;
+  position: relative;
+  z-index: 2;
+}
+
+.hero__lens-ph {
+  width: min(72vw, 40svh);
+}
+
+/* Wordmark: cropped by the left viewport edge — the «э» runs off the page. */
+.hero__wordmark {
+  grid-area: word;
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  margin-left: calc(-1 * var(--gutter) - 0.06em);
+  margin-top: calc(-0.45 * var(--text-hero));
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.hero__meta {
+  grid-area: meta;
+  align-self: end;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      '. . . . . . . intro intro intro intro intro'
+      '. . . . . . . . . . . .'
+      'word word word word word word word word word meta meta meta';
+    column-gap: var(--grid-gap);
+    row-gap: var(--space-xl);
+  }
+
+  .hero__intro {
+    gap: var(--space-xl);
+  }
+
+  .hero__cta {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-lg);
+  }
+
+  /* The lens floats over the composition, overlapping the «а» of the wordmark. */
+  .hero__lens {
+    position: absolute;
+    left: 19%;
+    bottom: 10%;
+    width: min(46svh, 30vw);
+    padding-right: 0;
+    justify-content: flex-end;
+  }
+
+  .hero__lens-ph {
+    width: 100%;
+  }
+
+  .hero__wordmark {
+    margin-top: 0;
+  }
+
+  .hero__meta {
+    text-align: right;
+    padding-bottom: 0.35em;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hero {
+    grid-template-areas:
+      '. . . . . . . . intro intro intro intro'
+      '. . . . . . . . . . . .'
+      'word word word word word word word word word meta meta meta';
+  }
+
+  .hero__lens {
+    left: 21%;
+    bottom: 9%;
+  }
+}

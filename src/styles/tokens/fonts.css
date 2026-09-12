@@ -1,0 +1,49 @@
+/*
+ * Font faces — DEVELOPMENT SET (free, OFL, native Cyrillic).
+ *
+ *   display  Prata                 → production: Kazimir (type.today)
+ *   text     Inter Variable        → production: Suisse Int'l
+ *   mono     JetBrains Mono Var.   → production: Suisse Int'l Mono
+ *
+ * See docs/TYPOGRAPHY.md §2 for the evaluation and §6 for the production swap.
+ * Each @fontsource stylesheet declares per-subset @font-face rules with
+ * `unicode-range`, so only Cyrillic and Latin are actually fetched.
+ */
+@import '@fontsource/prata/cyrillic.css';
+@import '@fontsource/prata/cyrillic-ext.css';
+@import '@fontsource/prata/latin.css';
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+
+/*
+ * Metric-adjusted local fallbacks so the swap from system font to webfont is
+ * not a layout shift. Values are approximations for the development faces and
+ * must be re-measured (e.g. with `fontaine` / capsize) when the production
+ * faces land.
+ */
+@font-face {
+  font-family: 'Prata Fallback';
+  src: local('Georgia'), local('Times New Roman');
+  size-adjust: 108%;
+  ascent-override: 92%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Helvetica Neue'), local('Arial');
+  size-adjust: 100%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Fallback';
+  src: local('Menlo'), local('Consolas'), local('Courier New');
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}

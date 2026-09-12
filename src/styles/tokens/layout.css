@@ -1,9 +1,16 @@
-/* PLACEHOLDER — see _placeholder-notice.md. */
+/* Layout tokens. Grid and gutters are approved (THROUGH GLASS); widths are tuned for 1440. */
 :root {
+  /* Fixed chrome. Read by ScrollProvider for anchor offsets — keep as px. */
+  --header-height: 64px;
+  --stickybar-height: 64px;
+  /* Touch target floor for the audience. */
+  --control-height: 56px;
+  --control-height-compact: 44px;
+
   --width-full: 100%;
   --width-wide: 90rem; /* 1440 */
   --width-content: 75rem; /* 1200 */
-  --width-text: 42rem; /* comfortable measure, ~68ch */
+  --width-text: 40rem; /* comfortable measure, ~64ch at 1.0625rem */
   --width-narrow: 32rem;
 
   --gutter: clamp(1.25rem, 0.9rem + 1.8vw, 3rem);

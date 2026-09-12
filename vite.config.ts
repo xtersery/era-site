@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url';
 
 import react from '@vitejs/plugin-react';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 
 const resolvePath = (segment: string) => fileURLToPath(new URL(segment, import.meta.url));
@@ -11,12 +12,23 @@ const resolvePath = (segment: string) => fileURLToPath(new URL(segment, import.m
  * Notes for future work:
  * - GLSL is imported with Vite's built-in `?raw` suffix (see src/three/shaders/README.md).
  *   No shader plugin is installed — add one only if `#include` preprocessing becomes necessary.
- * - `manualChunks` keeps three.js/R3F out of the initial bundle so the non-WebGL
- *   shell can paint before the renderer is fetched. Scenes must still be
- *   lazy-imported via React.lazy at their usage site.
+ * - `codeSplitting.groups` keeps three.js/R3F/postprocessing out of the initial
+ *   bundle so the non-WebGL shell can paint before the renderer is fetched.
+ *   Scenes must still be lazy-imported via React.lazy at their usage site.
+ * - `rollup-plugin-visualizer` writes `dist/stats.html` on every build — the
+ *   proof that `three` is not in the initial chunk (docs/ARCHITECTURE.md §6).
  */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({
+      filename: 'dist/stats.html',
+      gzipSize: true,
+      brotliSize: true,
+      template: 'treemap',
+      open: false,
+    }),
+  ],
   resolve: {
     alias: {
       '@': resolvePath('./src'),
@@ -46,8 +58,13 @@ export default defineConfig({
           groups: [
             { name: 'react', test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
             { name: 'three', test: /[\\/]node_modules[\\/]three[\\/]/ },
-            { name: 'r3f', test: /[\\/]node_modules[\\/]@react-three[\\/]/ },
+            { name: 'r3f', test: /[\\/]node_modules[\\/]@react-three[\\/](fiber|drei)[\\/]/ },
+            {
+              name: 'postfx',
+              test: /[\\/]node_modules[\\/](postprocessing|@react-three[\\/]postprocessing)[\\/]/,
+            },
             { name: 'gsap', test: /[\\/]node_modules[\\/](gsap|@gsap)[\\/]/ },
+            { name: 'lenis', test: /[\\/]node_modules[\\/]lenis[\\/]/ },
           ],
         },
       },

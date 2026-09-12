@@ -1,0 +1,139 @@
+.specialists {
+  padding-block: var(--space-section) 0;
+  z-index: var(--z-content);
+}
+
+.specialists__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.specialists__head .wall-label {
+  flex: 1;
+}
+
+.specialists__counter {
+  display: none;
+  padding-top: var(--space-sm);
+  border-top: var(--border-hairline) solid var(--color-line-strong);
+  white-space: nowrap;
+}
+
+.specialists__track {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section-tight);
+}
+
+.specialist__inner {
+  align-items: start;
+}
+
+.specialist__portrait {
+  grid-column: 1 / -1;
+}
+
+.specialist__text {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.specialist__name {
+  max-width: none;
+}
+
+.specialist__facts {
+  max-width: 40ch;
+}
+
+.specialist__sentence {
+  max-width: 34ch;
+}
+
+.specialist__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md) var(--space-lg);
+  margin-top: var(--space-sm);
+}
+
+.specialist__credentials {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  padding-top: var(--space-sm);
+  border-top: var(--border-hairline) solid var(--color-line);
+  max-width: 40ch;
+}
+
+.specialists__foot {
+  padding-block: var(--space-2xl) var(--space-section);
+}
+
+@media (min-width: 768px) {
+  .specialist__portrait {
+    grid-column: 1 / 7;
+    margin-top: calc(-1 * var(--space-xl));
+  }
+
+  .specialist__text {
+    grid-column: 8 / -1;
+    padding-top: var(--space-xl);
+  }
+}
+
+/* Pinned horizontal sequence — only when the hook has added `.is-pinned`. */
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .specialists--pinnable.is-pinned {
+    height: 100svh;
+    padding-block: 0;
+    overflow: hidden;
+    display: grid;
+    /* The track is N × 100vw wide; the column must not grow with it. */
+    grid-template-columns: minmax(0, 100%);
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .specialists--pinnable.is-pinned .specialists__head {
+    padding-top: calc(var(--header-height) + var(--space-lg));
+    margin-bottom: 0;
+  }
+
+  .specialists--pinnable.is-pinned .specialists__counter {
+    display: block;
+  }
+
+  .specialists--pinnable.is-pinned .specialists__track {
+    flex-direction: row;
+    gap: 0;
+    align-items: stretch;
+    will-change: transform;
+  }
+
+  .specialists--pinnable.is-pinned .specialist {
+    flex: 0 0 100vw;
+    display: flex;
+    align-items: center;
+  }
+
+  .specialists--pinnable.is-pinned .specialist__inner {
+    width: 100%;
+  }
+
+  .specialists--pinnable.is-pinned .specialist__portrait {
+    max-height: calc(100svh - var(--header-height) - 12rem);
+    aspect-ratio: auto;
+    height: calc(100svh - var(--header-height) - 12rem);
+    margin-top: 0;
+  }
+
+  .specialists--pinnable.is-pinned .specialists__foot {
+    padding-block: var(--space-md) var(--space-lg);
+  }
+}

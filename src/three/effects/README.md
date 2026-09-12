@@ -1,19 +1,20 @@
 # Post-processing effects
 
-Empty on purpose. `postprocessing` / `@react-three/postprocessing` are **not**
-installed.
+`postprocessing` and `@react-three/postprocessing` are **installed** for the
+glass phase and **not mounted** — nothing in this folder runs yet.
 
-Post-processing is a full-screen pass per effect: bloom, DOF and chromatic
-aberration each re-read every pixel. On a mid-range phone that is frequently the
-difference between 60 fps and 30 fps, and it is almost always the first thing to
-cut.
+Post-processing is a full-screen pass per effect: every pass re-reads every
+pixel. On a mid-range phone that is frequently the difference between 60 fps
+and 30 fps, and it is always the first thing to cut.
 
-Install it only when:
+The approved use (docs/ARCHITECTURE.md §3) is narrow:
 
-1. the effect is central to the concept, not a garnish, and
-2. it has been measured on a real mid-range Android, and
-3. there is a tier-gated path that disables it below `detectDeviceTier() === 'high'`.
+- one `<EffectComposer>`, composed here, not inside scenes;
+- film grain so the glass render matches the photography grade;
+- a very subtle bloom on the dispersion edge **only if it earns its place**
+  when measured;
+- tier-gated: the composer is skipped below `detectDeviceTier() === 'high'`,
+  and the `reduced` / `none` states render the designed still instead.
 
-When that happens, add `@react-three/postprocessing` (which brings
-`postprocessing` with it — mind the `three` peer range) and put the composed
-`<EffectComposer>` here, not inside individual scenes.
+Nothing else. No DOF, no chromatic aberration as a pass (dispersion lives in
+the transmission material), no vignette.

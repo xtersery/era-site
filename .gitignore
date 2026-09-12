@@ -54,3 +54,14 @@ public/video/*.mp4
 public/video/*.webm
 public/video/*.mov
 !public/video/.gitkeep
+
+# Playwright output
+e2e/__screenshots__/
+e2e/.results/
+
+# Spike captures
+spikes/**/__captures__/
+
+# Test-only generated portrait (regenerable from docs/spikes/A-hero-portrait-brief.md)
+spikes/**/portrait-test.png
+spikes/**/portrait-test.jpg

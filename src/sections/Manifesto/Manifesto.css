@@ -1,0 +1,24 @@
+.manifesto {
+  min-height: 60svh;
+  align-content: space-between;
+}
+
+.manifesto__text {
+  grid-column: 1 / -1;
+  max-width: 22ch;
+}
+
+.manifesto__image {
+  grid-column: 2 / -1;
+}
+
+@media (min-width: 768px) {
+  .manifesto__text {
+    grid-column: 2 / 10;
+  }
+
+  .manifesto__image {
+    grid-column: 8 / -1;
+    margin-top: var(--space-2xl);
+  }
+}

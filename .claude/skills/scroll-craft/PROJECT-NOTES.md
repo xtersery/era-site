@@ -12,11 +12,12 @@
 
 ## Constraints specific to this project
 
-1. **Asset generation is unavailable.** `scripts/kie.mjs` generates photoreal
-   imagery through kie.ai and needs an API key this project does not have. Do
-   not attempt to run it. Clinic imagery is real photography of a real clinic —
-   generated faces and generated bodies are not acceptable for an aesthetic
-   medicine site, legally or ethically.
+1. **Asset generation via kie.ai is unavailable.** `scripts/kie.mjs` needs an
+   API key this project does not have; do not attempt to run it. Generated
+   campaign imagery for this project is produced with Higgsfield under the
+   asset policy in `CLAUDE.md` (Hard rule 3): women 35–60 only, hyperrealistic,
+   editorial; real team members are always real photography; cases at launch
+   are consented real patients or labelled «Визуализация».
 
 2. **We build in React, not standalone HTML.** The skill's `engine/scrollcraft.js`
    and `references/template.html` assume a hand-written HTML page. Use them as

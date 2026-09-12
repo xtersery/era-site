@@ -1,13 +1,14 @@
 /**
- * Section barrel.
- *
- * Sections are intentionally NOT composed into the app yet — these are
- * structural stubs, and the page composition is a design decision.
+ * Section barrel — the ten rooms of THROUGH GLASS, in approved order.
+ * Composition happens in `App.tsx`; the order is `SECTION_IDS`.
  */
-export { Hero } from './Hero';
-export { Philosophy } from './Philosophy';
-export { Treatments } from './Treatments';
-export { Cases } from './Cases';
-export { Doctor } from './Doctor';
-export { Reviews } from './Reviews';
-export { Contact } from './Contact';
+export { Hero } from './Hero/Hero';
+export { Manifesto } from './Manifesto/Manifesto';
+export { Services } from './Services/Services';
+export { Pricing } from './Pricing/Pricing';
+export { Cases } from './Cases/Cases';
+export { Specialists } from './Specialists/Specialists';
+export { Founder } from './Founder/Founder';
+export { Reviews } from './Reviews/Reviews';
+export { Contact } from './Contact/Contact';
+export { Inquiry } from './Inquiry/Inquiry';

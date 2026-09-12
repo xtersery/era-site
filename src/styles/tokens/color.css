@@ -1,39 +1,99 @@
-/* PLACEHOLDER — see _placeholder-notice.md. Neutral greys only, no brand hues yet. */
+/*
+ * Colour tokens — GREYSCALE PHASE.
+ *
+ * The approved THROUGH GLASS palette is recorded below, commented, and is NOT
+ * active. The greyscale prototype must already feel premium without it.
+ * Activating the palette is a later, approved phase: swap the `--c-*` ramp
+ * values here only — no component changes.
+ *
+ * Approved palette v3 — ERA Mineral Glass (docs/ARCHITECTURE.md §0). Values
+ * sampled from docs/references/era-logo.jpg are DESIGN INTERPRETATIONS, not
+ * brand specifications, until a brand guide confirms them. Do not activate yet.
+ *
+ *   green-deep      #012118   logo field (sampled) — glass attenuation, deepest gradient only
+ *   bg-dark         #08140F   logo green × black — dark rooms, canvas clear colour
+ *   bg-dark-2       #0F1F19
+ *   bg-light        #ECE8DF   bone (the interior's walls)
+ *   bg-light-2      #F4F1EA
+ *   text-on-dark    #EAE6DC   (15.4:1)
+ *   text-on-light   #0D0C0B
+ *   muted-on-dark   #98A39C   (6.6:1)
+ *   muted-on-light  #625D55   (5.6:1)
+ *   line dark/light #1C2A24 / #CFC9BE
+ *   gold (CTA)      #CFAF72   logo mid (sampled) — on dark only (8.4:1); light rooms: 1 px glints
+ *   gold-deep       #AF8B4F   logo shadow (sampled) — glints
+ *   gold-light      #F7E4B1   logo highlight (sampled) — WebGL only
+ *   mineral-teal    #7FB0A4   wall, interpreted — cool dispersion pole, WebGL only
+ *   cobalt-thread   #5B7FA6   wall, interpreted — ≤ 2 % edge threads, WebGL only
+ *   smoke           #8A948C   wall sage, interpreted — depth fog, traces ground
+ */
 :root {
-  /* Raw ramp — the only place literals are allowed. */
+  /* Raw neutral ramp — the only place literals are allowed. */
   --c-neutral-0: #ffffff;
-  --c-neutral-50: #f7f7f6;
-  --c-neutral-100: #eeedeb;
-  --c-neutral-200: #d9d8d4;
-  --c-neutral-300: #b8b6b0;
-  --c-neutral-400: #8d8a84;
-  --c-neutral-500: #6a6762;
-  --c-neutral-600: #4c4945;
-  --c-neutral-700: #34322f;
-  --c-neutral-800: #1f1e1c;
-  --c-neutral-900: #121110;
+  --c-neutral-50: #f4f4f3;
+  --c-neutral-100: #ebebe9;
+  --c-neutral-200: #d4d4d1;
+  --c-neutral-300: #b3b3af;
+  --c-neutral-400: #8c8c88;
+  --c-neutral-500: #66665f;
+  --c-neutral-600: #4a4a46;
+  --c-neutral-700: #32322f;
+  --c-neutral-800: #1d1d1b;
+  --c-neutral-900: #111110;
   --c-neutral-1000: #000000;
 
-  /* TODO(branding): accent ramp. Intentionally left as neutral aliases so that
-     nothing silently ships a placeholder brand colour. */
-  --c-accent-weak: var(--c-neutral-200);
-  --c-accent: var(--c-neutral-700);
-  --c-accent-strong: var(--c-neutral-900);
-
-  /* Semantic layer — components use these, never the raw ramp. */
-  --color-bg: var(--c-neutral-50);
-  --color-bg-elevated: var(--c-neutral-0);
-  --color-bg-inverse: var(--c-neutral-900);
-
+  /* ---- Light room (default document ground) ---- */
+  --color-bg: var(--c-neutral-100);
+  --color-bg-elevated: var(--c-neutral-50);
   --color-text: var(--c-neutral-900);
-  --color-text-muted: var(--c-neutral-500);
-  --color-text-inverse: var(--c-neutral-50);
-
+  --color-text-muted: var(--c-neutral-500); /* 5.9:1 on bg */
   --color-line: var(--c-neutral-200);
   --color-line-strong: var(--c-neutral-400);
-
   --color-focus: var(--c-neutral-900);
+
+  /* CTA. Greyscale: ink on light, paper on dark. Becomes `lamp` on dark later. */
+  --color-cta: var(--c-neutral-900);
+  --color-cta-text: var(--c-neutral-50);
+
+  /* Placeholder frames — deliberately visible, never mistaken for design. */
+  --color-placeholder-bg: var(--c-neutral-200);
+  --color-placeholder-line: var(--c-neutral-400);
 
   /* Used by the WebGL layer so canvas clear colour cannot drift from the page. */
   --color-canvas-clear: var(--color-bg);
+}
+
+/*
+ * Room grounds. A section carries `.room--dark` or `.room--light` and every
+ * component inside it reads the same semantic tokens — so a Button does not
+ * know which room it is in.
+ */
+.room--light {
+  --color-bg: var(--c-neutral-100);
+  --color-bg-elevated: var(--c-neutral-50);
+  --color-text: var(--c-neutral-900);
+  --color-text-muted: var(--c-neutral-500);
+  --color-line: var(--c-neutral-200);
+  --color-line-strong: var(--c-neutral-400);
+  --color-focus: var(--c-neutral-900);
+  --color-cta: var(--c-neutral-900);
+  --color-cta-text: var(--c-neutral-50);
+  --color-placeholder-bg: var(--c-neutral-200);
+  --color-placeholder-line: var(--c-neutral-400);
+  color-scheme: light;
+}
+
+.room--dark {
+  --color-bg: var(--c-neutral-900);
+  --color-bg-elevated: var(--c-neutral-800);
+  --color-text: var(--c-neutral-100);
+  --color-text-muted: var(--c-neutral-300); /* 7.6:1 on bg */
+  --color-line: var(--c-neutral-700);
+  --color-line-strong: var(--c-neutral-500);
+  --color-focus: var(--c-neutral-100);
+  --color-cta: var(--c-neutral-100);
+  --color-cta-text: var(--c-neutral-900);
+  --color-placeholder-bg: var(--c-neutral-800);
+  --color-placeholder-line: var(--c-neutral-500);
+  color-scheme: dark;
 }

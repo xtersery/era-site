@@ -1,0 +1,211 @@
+.cases__head {
+  margin-bottom: var(--space-2xl);
+  align-items: end;
+}
+
+.cases__headline {
+  grid-column: 1 / -1;
+}
+
+.case__frame {
+  cursor: crosshair;
+}
+
+.cases__filter {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: baseline;
+}
+
+.cases__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section-tight);
+}
+
+.case {
+  align-items: start;
+}
+
+.case__figure {
+  grid-column: 1 / -1;
+}
+
+.case__text {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.case__title {
+  max-width: 22ch;
+}
+
+.case__meta {
+  max-width: 36ch;
+}
+
+/* Honesty label: always visible, mono, on a hairline. */
+.case__status {
+  padding-top: var(--space-xs);
+  border-top: var(--border-hairline) solid var(--color-line-strong);
+  color: var(--color-text);
+}
+
+.case__cta {
+  margin-top: var(--space-sm);
+}
+
+/* ---- the «Линза» ---- */
+.case__frame {
+  --lens-r: 130px;
+  --lens-x: 50%;
+  --lens-y: 50%;
+  position: relative;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.case__after,
+.case__before {
+  position: relative;
+}
+
+.case__before {
+  position: absolute;
+  inset: 0;
+  clip-path: circle(0px at var(--lens-x) var(--lens-y));
+  transition: clip-path var(--dur-instant) linear;
+}
+
+.case__frame.is-lensing .case__before {
+  clip-path: circle(var(--lens-r) at var(--lens-x) var(--lens-y));
+}
+
+.case__frame.is-before .case__before {
+  clip-path: none;
+  transition: clip-path var(--dur-base) var(--ease-in-out);
+}
+
+.case__rim {
+  position: absolute;
+  left: var(--lens-x);
+  top: var(--lens-y);
+  width: calc(var(--lens-r) * 2);
+  height: calc(var(--lens-r) * 2);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: var(--border-hairline) solid var(--color-text);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    left var(--dur-instant) linear,
+    top var(--dur-instant) linear;
+}
+
+.case__frame.is-lensing:not(.is-before) .case__rim {
+  opacity: 1;
+}
+
+.case__state {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  color: var(--color-text);
+}
+
+.case__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  margin-top: var(--space-sm);
+}
+
+.case__control {
+  min-height: var(--control-height-compact);
+  color: var(--color-text-muted);
+  border-bottom: var(--border-hairline) solid transparent;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.case__control:hover,
+.case__control[aria-pressed='true'] {
+  color: var(--color-text);
+}
+
+.case__control[aria-pressed='true'] {
+  border-bottom-color: var(--color-text);
+}
+
+/* Diptych */
+.case__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--grid-gap);
+}
+
+.case__half {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.case__half-label {
+  color: var(--color-text);
+}
+
+@media (min-width: 768px) {
+  .cases__headline {
+    grid-column: 1 / 9;
+  }
+
+  .cases__filter {
+    grid-column: 9 / -1;
+    justify-content: flex-end;
+  }
+
+  .case__figure {
+    grid-column: 1 / 7;
+    /* Bleed past the top of the row slightly: the image leads, the text follows. */
+    margin-top: calc(-1 * var(--space-lg));
+  }
+
+  .case__text {
+    grid-column: 7 / -1;
+    padding-top: var(--space-2xl);
+  }
+
+  .case__title {
+    max-width: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .case__figure {
+    grid-column: 1 / 8;
+  }
+
+  .case__text {
+    grid-column: 8 / -1;
+  }
+
+  .case__title {
+    max-width: var(--measure-h3);
+  }
+}
+
+@media (min-width: 1280px) {
+  .case__text {
+    grid-column: 9 / -1;
+  }
+}
+
+.cases__handoff {
+  margin-top: var(--space-section-tight);
+}

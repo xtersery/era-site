@@ -1,0 +1,127 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.field__label {
+  color: var(--color-text-muted);
+}
+
+.field__optional {
+  color: var(--color-text-muted);
+}
+
+/* Large input on a hairline baseline — no box, no radius. */
+.field__control {
+  width: 100%;
+  min-height: var(--control-height);
+  padding: var(--space-xs) 0;
+  background: transparent;
+  border: 0;
+  border-bottom: var(--border-hairline) solid var(--color-line-strong);
+  border-radius: 0;
+  font-family: var(--font-text);
+  font-size: var(--text-input);
+  line-height: var(--leading-input);
+  color: var(--color-text);
+  appearance: none;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.field__control::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.field__control:focus {
+  outline: none;
+  border-bottom-color: var(--color-text);
+}
+
+.field__control:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+}
+
+.field__control--textarea {
+  resize: vertical;
+  min-height: calc(var(--control-height) * 1.5);
+}
+
+.field__select {
+  position: relative;
+}
+
+.field__select .field__control {
+  padding-right: var(--space-xl);
+  cursor: pointer;
+}
+
+.field__select-glyph {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  pointer-events: none;
+}
+
+.field--error .field__control {
+  border-bottom-color: var(--color-text);
+}
+
+/* Errors are quiet: text colour, a hairline — never red, never shaking. */
+.field__error {
+  color: var(--color-text);
+  padding-top: var(--space-3xs);
+  border-top: var(--border-hairline) solid var(--color-cta);
+  align-self: flex-start;
+}
+
+.field--checkbox {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-sm);
+  align-items: start;
+}
+
+.field__checkbox {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.2em;
+  border: var(--border-hairline) solid var(--color-line-strong);
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+}
+
+.field__checkbox::before {
+  content: '';
+  width: 0.6rem;
+  height: 0.6rem;
+  background: var(--color-text);
+  transform: scale(0);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.field__checkbox:checked::before {
+  transform: scale(1);
+}
+
+.field__checkbox:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.field__checkbox-label {
+  cursor: pointer;
+  max-width: 48ch;
+}
+
+.field--checkbox .field__error {
+  grid-column: 1 / -1;
+}

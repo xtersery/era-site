@@ -2,12 +2,15 @@
  * Single stylesheet entrypoint, imported once from `src/main.tsx`.
  *
  * Order is load-bearing:
- *   tokens  → values only, no selectors beyond :root
+ *   tokens  → values only, no selectors beyond :root and room grounds
+ *   vendor  → lenis base styles (tiny; only active under html.lenis)
  *   globals → reset + document defaults + structural utilities
- *   components → per-component stylesheets (co-located imports are fine too)
+ *   components → shared component-layer primitives; components import their own
  */
 @import './tokens/index.css';
+@import 'lenis/dist/lenis.css';
 @import './globals/reset.css';
 @import './globals/base.css';
 @import './globals/layout.css';
+@import './globals/type.css';
 @import './components/index.css';

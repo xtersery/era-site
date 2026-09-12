@@ -1,0 +1,24 @@
+.meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta__item {
+  display: grid;
+  gap: var(--space-3xs);
+  padding-block: var(--space-xs);
+  border-top: var(--border-hairline) solid var(--color-line);
+}
+
+.meta__item:last-child {
+  border-bottom: var(--border-hairline) solid var(--color-line);
+}
+
+.meta--table .meta__item {
+  grid-template-columns: minmax(8ch, 12ch) 1fr;
+  column-gap: var(--space-md);
+}
+
+.meta__value {
+  color: var(--color-text);
+}

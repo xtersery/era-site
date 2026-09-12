@@ -53,14 +53,15 @@ Overriding any of these requires an actual reason written in a comment:
 Plugins are registered once, in `src/animations/gsap/register.ts`, called from
 `src/main.tsx`. Never call `gsap.registerPlugin` anywhere else.
 
-Available: **gsap core**, **ScrollTrigger**, **@gsap/react (`useGSAP`)**.
-All ship in the packages already installed.
-
-**Not available** (GSAP Club / paid): `SplitText`, `CustomEase`, `MorphSVG`,
-`DrawSVG`, `Flip`, `InertiaPlugin`, `ScrollSmoother`. Do not import them. For
-line splitting, write the wrapper markup by hand or split in a small utility —
-and note that hand-splitting breaks text selection and screen-reader flow unless
-you keep an `aria-label` on the parent and `aria-hidden` on the pieces.
+Available: **gsap core**, **ScrollTrigger**, **@gsap/react (`useGSAP`)** — and,
+since GSAP 3.13 made every formerly Club plugin free, **Draggable**,
+**InertiaPlugin**, **SplitText**, **Flip**, **CustomEase**, **DrawSVG**,
+**MorphSVG** all ship inside the installed `gsap` package (`gsap/Draggable`,
+`gsap/InertiaPlugin`, `gsap/SplitText`, …). Register only what a feature
+actually uses, in `src/animations/gsap/register.ts`. `ScrollSmoother` is
+available but **not adopted** — Lenis is the scroller. Use `SplitText` (3.13+)
+for line splitting: it keeps screen-reader flow (`aria-label` on the parent,
+`aria-hidden` on the pieces) without hand-written wrappers.
 
 Durations, easings and staggers come from `src/styles/tokens/tokens.ts`. Do not
 invent a new easing curve per component — a house curve is what makes a site

@@ -1,0 +1,123 @@
+.contact {
+  position: relative;
+}
+
+/* Register marks — the only room that has them. */
+.contact__mark {
+  position: absolute;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-color: var(--color-line-strong);
+  border-style: solid;
+  border-width: 0;
+}
+
+.contact__mark--tl {
+  top: var(--space-md);
+  left: var(--space-md);
+  border-top-width: var(--border-hairline);
+  border-left-width: var(--border-hairline);
+}
+
+.contact__mark--tr {
+  top: var(--space-md);
+  right: var(--space-md);
+  border-top-width: var(--border-hairline);
+  border-right-width: var(--border-hairline);
+}
+
+.contact__mark--bl {
+  bottom: var(--space-md);
+  left: var(--space-md);
+  border-bottom-width: var(--border-hairline);
+  border-left-width: var(--border-hairline);
+}
+
+.contact__mark--br {
+  bottom: var(--space-md);
+  right: var(--space-md);
+  border-bottom-width: var(--border-hairline);
+  border-right-width: var(--border-hairline);
+}
+
+.contact__grid {
+  align-items: start;
+}
+
+.contact__text {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.contact__address {
+  max-width: 24ch;
+}
+
+.contact__facts {
+  max-width: 44ch;
+}
+
+.contact__hours {
+  width: 100%;
+  max-width: 44ch;
+  border-collapse: collapse;
+}
+
+.contact__hours-row th,
+.contact__hours-row td {
+  padding-block: var(--space-xs);
+  text-align: left;
+  font-weight: var(--weight-regular);
+  border-top: var(--border-hairline) solid var(--color-line);
+  color: var(--color-text-muted);
+}
+
+.contact__hours-row:last-child th,
+.contact__hours-row:last-child td {
+  border-bottom: var(--border-hairline) solid var(--color-line);
+}
+
+.contact__hours-row.is-today th,
+.contact__hours-row.is-today td {
+  color: var(--color-text);
+  border-top-color: var(--color-line-strong);
+}
+
+.contact__today {
+  text-align: right;
+}
+
+.contact__channels {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-lg);
+}
+
+.contact__actions {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-lg);
+}
+
+.contact__media {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .contact__text {
+    grid-column: 1 / 6;
+  }
+
+  .contact__media {
+    grid-column: 7 / -1;
+  }
+
+  .contact__door {
+    max-width: 70%;
+  }
+}

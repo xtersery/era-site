@@ -1,0 +1,66 @@
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-height);
+  padding-inline: var(--space-lg);
+  background: var(--color-cta);
+  color: var(--color-cta-text);
+  font-family: var(--font-text);
+  font-size: var(--text-cta);
+  font-weight: var(--weight-medium);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-normal);
+  text-decoration: none;
+  text-align: center;
+  padding-block: var(--space-xs);
+  border: var(--border-hairline) solid var(--color-cta);
+  border-radius: var(--radius-none);
+  overflow: hidden;
+  isolation: isolate;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.btn--compact {
+  min-height: var(--control-height-compact);
+  padding-inline: var(--space-md);
+  font-size: var(--text-sm);
+}
+
+.btn__label {
+  position: relative;
+  z-index: 1;
+}
+
+/* Hover: a hairline of ground grows in from the left edge. Light travels. */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-base) var(--ease-in-out);
+}
+
+@media (hover: hover) {
+  .btn:hover {
+    color: var(--color-text);
+  }
+
+  .btn:hover::before {
+    transform: scaleX(1);
+  }
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.btn[aria-disabled='true'],
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
