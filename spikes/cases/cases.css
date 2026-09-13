@@ -8,8 +8,23 @@
   height: 100svh;
   overflow: hidden;
   background:
+    /* a single soft breath of light where the archive recedes */
+    radial-gradient(58% 44% at 70% 30%, rgba(127, 176, 164, 0.055), transparent 70%),
+    /* smoke lying low and to the left, where the cases pass the viewer */
+    radial-gradient(70% 50% at 14% 86%, rgba(138, 148, 140, 0.05), transparent 72%),
     radial-gradient(120% 90% at 78% 36%, #12261e 0%, #0b1a14 42%, #07110d 100%);
   color: #eae6dc;
+}
+
+/* the grain that keeps the depth from banding — mineral atmosphere, not texture */
+.cases::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .cases__label,
@@ -56,16 +71,23 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* deep planes lose their edges: they dissolve into the ground, never end as a card */
+  /* A deep plane is not a small copy of the active one: it is a FRAGMENT. The
+     mask closes in as it recedes (from the whole frame to a soft core), and it
+     is pulled off-centre, so what survives is a piece of a case standing in the
+     smoke — never a second, complete image. */
   -webkit-mask-image: radial-gradient(
-    115% 115% at 50% 50%,
-    #000 calc(52% - var(--mask, 0) * 42%),
-    transparent calc(100% - var(--mask, 0) * 18%)
+    calc(115% - var(--mask, 0) * 62%) calc(115% - var(--mask, 0) * 52%)
+      at calc(50% + var(--mask, 0) * 16%) calc(50% - var(--mask, 0) * 10%),
+    #000 calc(52% - var(--mask, 0) * 30%),
+    rgba(0, 0, 0, 0.55) calc(76% - var(--mask, 0) * 24%),
+    transparent calc(100% - var(--mask, 0) * 22%)
   );
   mask-image: radial-gradient(
-    115% 115% at 50% 50%,
-    #000 calc(52% - var(--mask, 0) * 42%),
-    transparent calc(100% - var(--mask, 0) * 18%)
+    calc(115% - var(--mask, 0) * 62%) calc(115% - var(--mask, 0) * 52%)
+      at calc(50% + var(--mask, 0) * 16%) calc(50% - var(--mask, 0) * 10%),
+    #000 calc(52% - var(--mask, 0) * 30%),
+    rgba(0, 0, 0, 0.55) calc(76% - var(--mask, 0) * 24%),
+    transparent calc(100% - var(--mask, 0) * 22%)
   );
   touch-action: pan-y;
 }
@@ -76,7 +98,7 @@
   inset: 0;
   z-index: 6;
   pointer-events: none;
-  background: linear-gradient(198deg, rgba(11, 26, 20, 0.72), rgba(7, 17, 13, 0.96));
+  background: linear-gradient(198deg, rgba(13, 30, 23, 0.8), rgba(7, 17, 13, 0.98));
   opacity: var(--fog, 0);
 }
 .field__plate {
@@ -100,57 +122,92 @@
   clip-path: inset(0 0 0 0);
 }
 .field__before[data-windowed] {
-  /* a window of 46 % × 54 % of the frame, centred on the pointer and kept inside it */
-  --w: 0.46;
-  --h: 0.54;
+  /* An OPTICAL reveal, not a crop box: the «до» layer is uncovered by a soft,
+     vertically drawn field, feathered on every side and cut short on the lower
+     left so the edge never closes into a rectangle. Only opacity is touched —
+     the pixels underneath keep the exact geometry of the «после» plate. */
+  --w: 0.52;
+  --h: 0.66;
   --cx: clamp(calc(var(--w) / 2), var(--wx, 0.5), calc(1 - var(--w) / 2));
   --cy: clamp(calc(var(--h) / 2), var(--wy, 0.46), calc(1 - var(--h) / 2));
-  clip-path: inset(
-    calc((var(--cy) - var(--h) / 2) * 100%)
-    calc((1 - var(--cx) - var(--w) / 2) * 100%)
-    calc((1 - var(--cy) - var(--h) / 2) * 100%)
-    calc((var(--cx) - var(--w) / 2) * 100%)
-  );
+  clip-path: none;
+  -webkit-mask-image:
+    radial-gradient(
+      calc(var(--w) * 100%) calc(var(--h) * 100%) at calc(var(--cx) * 100%) calc(var(--cy) * 100%),
+      #000 0 55%,
+      rgba(0, 0, 0, 0.96) 63%,
+      rgba(0, 0, 0, 0.5) 74%,
+      transparent 90%
+    ),
+    linear-gradient(
+      124deg,
+      #000 0 calc(var(--cx) * 100% + 20%),
+      rgba(0, 0, 0, 0.6) calc(var(--cx) * 100% + 34%),
+      transparent calc(var(--cx) * 100% + 48%)
+    );
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(
+      calc(var(--w) * 100%) calc(var(--h) * 100%) at calc(var(--cx) * 100%) calc(var(--cy) * 100%),
+      #000 0 55%,
+      rgba(0, 0, 0, 0.96) 63%,
+      rgba(0, 0, 0, 0.5) 74%,
+      transparent 90%
+    ),
+    linear-gradient(
+      124deg,
+      #000 0 calc(var(--cx) * 100% + 20%),
+      rgba(0, 0, 0, 0.6) calc(var(--cx) * 100% + 34%),
+      transparent calc(var(--cx) * 100% + 48%)
+    );
+  mask-composite: intersect;
 }
 
-/* the material is on the rim only — nothing optical happens inside the window */
+/* The rim is an ARC, not a frame: one ultra-thin gold line along the upper-left
+   of the reveal, fading out before it can close, plus a single mineral glint.
+   Nothing optical happens inside — the material stays on the perimeter. */
 .field__rim {
   position: absolute;
+  inset: 0;
   z-index: 4;
   pointer-events: none;
-  --w: 0.46;
-  --h: 0.54;
+  --w: 0.52;
+  --h: 0.66;
   --cx: clamp(calc(var(--w) / 2), var(--wx, 0.5), calc(1 - var(--w) / 2));
   --cy: clamp(calc(var(--h) / 2), var(--wy, 0.46), calc(1 - var(--h) / 2));
-  left: calc((var(--cx) - var(--w) / 2) * 100%);
-  top: calc((var(--cy) - var(--h) / 2) * 100%);
-  width: calc(var(--w) * 100%);
-  height: calc(var(--h) * 100%);
-  border: 1px solid rgba(207, 175, 114, 0.5);
-  /* the mineral edge stays an EDGE: a 6 px band inside the rim, nothing across the frame */
-  box-shadow:
-    inset 0 0 0 1px rgba(236, 232, 223, 0.06),
-    inset 0 0 7px -2px rgba(127, 176, 164, 0.5),
-    0 0 0 1px rgba(7, 17, 13, 0.4);
+  /* a 1 px ring at the 62 % contour of the reveal field */
+  background: radial-gradient(
+    calc(var(--w) * 100%) calc(var(--h) * 100%) at calc(var(--cx) * 100%) calc(var(--cy) * 100%),
+    transparent 0 62.6%,
+    rgba(207, 175, 114, 0.55) 63.1%,
+    rgba(236, 232, 223, 0.18) 63.8%,
+    transparent 64.8%
+  );
+  /* …of which only a short segment on the upper left is ever lit */
+  -webkit-mask-image: linear-gradient(152deg, #000 0 10%, rgba(0, 0, 0, 0.4) 21%, transparent 34%);
+  mask-image: linear-gradient(152deg, #000 0 10%, rgba(0, 0, 0, 0.4) 21%, transparent 34%);
 }
-/* a single fine optical edge: the mineral light crossing the top-left corner */
+/* the glint: one short mineral highlight sitting on the arc */
 .field__rim::before {
   content: '';
   position: absolute;
-  left: -1px;
-  top: -1px;
-  width: 38%;
+  left: calc((var(--cx) - var(--w) * 0.46) * 100%);
+  top: calc((var(--cy) - var(--h) * 0.5) * 100%);
+  width: 12%;
   height: 1px;
-  background: linear-gradient(90deg, rgba(247, 228, 177, 0.85), rgba(247, 228, 177, 0));
+  background: linear-gradient(90deg, rgba(247, 228, 177, 0), rgba(247, 228, 177, 0.9), rgba(247, 228, 177, 0));
+  transform: rotate(-38deg);
+  transform-origin: 0 50%;
 }
+/* the faintest teal breath on the far side of the reveal — refraction, perimeter only */
 .field__rim::after {
   content: '';
   position: absolute;
-  right: -1px;
-  bottom: -1px;
+  left: calc((var(--cx) + var(--w) * 0.3) * 100%);
+  top: calc((var(--cy) + var(--h) * 0.12) * 100%);
   width: 1px;
-  height: 34%;
-  background: linear-gradient(180deg, rgba(127, 176, 164, 0), rgba(127, 176, 164, 0.7));
+  height: 16%;
+  background: linear-gradient(180deg, rgba(127, 176, 164, 0), rgba(127, 176, 164, 0.5), rgba(127, 176, 164, 0));
 }
 
 .field__stamp,
@@ -369,6 +426,6 @@
     height: 62%;
     background: linear-gradient(180deg, rgba(7, 17, 13, 0) 0%, rgba(7, 17, 13, 0.72) 26%, rgba(7, 17, 13, 0.94) 60%);
   }
-  .field__before[data-windowed] { --w: 0.7; --h: 0.44; }
-  .field__rim { --w: 0.7; --h: 0.44; }
+  .field__before[data-windowed] { --w: 0.74; --h: 0.5; }
+  .field__rim { --w: 0.74; --h: 0.5; }
 }

@@ -84,13 +84,14 @@ function place(d: number, a: Axis) {
   if (d >= 0) {
     const k = 1 - 1 / (1 + 0.52 * d); // 0 … 1 into the room
     return {
-      x: lerp(a.dockX, a.vanX, k),
+      x: lerp(a.dockX, a.vanX, k) + 0.06 * a.fieldW * k, // a small lateral drift off the axis
       y: lerp(a.dockY, a.vanY, k),
-      scale: 1 / (1 + 0.52 * d),
-      blur: 2.6 * d,
-      fog: clamp(1.25 * k, 0, 0.88), // green-black takes the plane
-      opacity: clamp(1 - 0.22 * d, 0, 1),
-      mask: clamp(0.5 * d, 0, 0.9), // deep planes dissolve at their edges
+      scale: 1 / (1 + 0.95 * d), // the next case stands clearly further away, not beside
+      blur: 3.4 * d,
+      fade: clamp(0.74 * d, 0, 0.74), // contrast and colour leave the plane with distance
+      fog: clamp(1.7 * k, 0, 0.92), // green-black takes it
+      opacity: clamp(1 - 0.26 * d, 0, 1),
+      mask: clamp(0.62 * d, 0, 0.95), // and the frame closes to a fragment
       z: Math.round(100 - d * 10),
     };
   }
@@ -100,6 +101,7 @@ function place(d: number, a: Axis) {
     y: lerp(a.dockY, a.nearY, u),
     scale: 1 + 0.72 * -d, // the leaving case is nearer than the docked one — it passes the viewer
     blur: 13 * u,
+    fade: 0.35 * u,
     fog: 0,
     opacity: clamp(1 - 2 * u, 0, 1),
     mask: clamp(0.8 * u, 0, 0.9),
@@ -165,7 +167,10 @@ export function CasesArchive({
       el.style.width = `${w}px`;
       el.style.transform = `translate3d(${s.x - w / 2}px, ${s.y - (w * 1.25) / 2}px, 0) scale(${s.scale})`;
       el.style.opacity = String(s.opacity);
-      el.style.filter = s.blur > 0.05 ? `blur(${s.blur.toFixed(2)}px)` : 'none';
+      el.style.filter =
+        s.blur > 0.05 || s.fade > 0.01
+          ? `blur(${s.blur.toFixed(2)}px) contrast(${(1 - 0.42 * s.fade).toFixed(3)}) saturate(${(1 - 0.55 * s.fade).toFixed(3)}) brightness(${(1 - 0.3 * s.fade).toFixed(3)})`
+          : 'none';
       el.style.zIndex = String(s.z);
       el.style.setProperty('--fog', String(s.fog));
       el.style.setProperty('--mask', String(s.mask));

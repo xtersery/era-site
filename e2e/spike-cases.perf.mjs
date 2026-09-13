@@ -89,8 +89,11 @@ report.phone = await measure('phone 390×844 · DPR 2', { width: 390, height: 84
   const f = await page.evaluate(() => { const r = document.querySelector('.plane[data-active] .field').getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });
   // the window at wx .44 / wy .40 covers 46 % × 54 % of the field
   // inset well past the 7 px mineral edge band so only the image is compared
-  const inner = { x: Math.round(f.x + f.w * (0.44 - 0.23) + 14), y: Math.round(f.y + f.h * (0.4 - 0.27) + 14), width: Math.round(f.w * 0.46) - 28, height: Math.round(f.h * 0.54) - 28 };
-  const outer = { x: Math.round(f.x + 4), y: Math.round(f.y + 4), width: Math.round(f.w * 0.18), height: Math.round(f.h * 0.1) };
+  // the reveal is an ellipse of radii 52 % × 66 % of the field, fully opaque out to
+  // 55 % of those radii — this rectangle sits well inside that core
+  const inner = { x: Math.round(f.x + f.w * (0.44 - 0.17)), y: Math.round(f.y + f.h * (0.4 - 0.22)), width: Math.round(f.w * 0.34), height: Math.round(f.h * 0.44) };
+  // a corner more than a full radius from the reveal centre, where the feather is at zero
+  const outer = { x: Math.round(f.x + f.w * 0.02), y: Math.round(f.y + f.h * 0.87), width: Math.round(f.w * 0.15), height: Math.round(f.h * 0.1) };
   const a = await shot('?c=2&p=0&wx=0.44&wy=0.4', inner); // window interior, compare mode
   const b = await shot('?c=2&p=0&mode=before', inner); // same region, full «до»
   const c = await shot('?c=2&p=0&wx=0.44&wy=0.4', outer); // outside the window, compare mode
@@ -110,8 +113,8 @@ report.phone = await measure('phone 390×844 · DPR 2', { width: 390, height: 84
     return { maxDelta: max, meanDelta: +(sum / n).toFixed(3), differingPct: +((differing / n) * 100).toFixed(3), px: n };
   }, [`data:image/png;base64,${x.toString('base64')}`, `data:image/png;base64,${y.toString('base64')}`]);
   report.proof = {
-    'window interior vs full «до» (identical ⇒ nothing inside the window is scaled or moved)': await diff(a, b),
-    'outside the window vs plain «после» (identical ⇒ the rest of the plate is untouched)': await diff(c, d),
+    'reveal core vs full «до» (identical ⇒ nothing inside the reveal is scaled or moved)': await diff(a, b),
+    'far outside the reveal vs plain «после» (identical ⇒ the rest of the plate is untouched)': await diff(c, d),
     note: 'pixel difference of the same screen regions, 0–255 per channel',
   };
   // css check: both layers are laid out by the same box

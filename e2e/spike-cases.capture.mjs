@@ -24,9 +24,9 @@ const strip = async (page, files, cols, out) => {
   const shot = async (q, name) => { await page.goto(base + q, { waitUntil: 'networkidle' }); await settle(page); await page.screenshot({ path: `${OUT}/${name}.png` }); return `${OUT}/${name}.png`; };
   // 1 active case · 2 depth state (between docks, the archive visible) · 4/5 reveal positions
   await shot('?c=0&p=0&mode=after', 'd1-active');
-  await shot('?c=0&p=0.5', 'd2-depth');
-  await shot('?c=0&p=0&wx=0.5&wy=0.44', 'd4-reveal-centre');
-  await shot('?c=0&p=0&wx=0.9&wy=0.86', 'd5-reveal-edge');
+  await shot('?c=0&p=0.8', 'd2-depth');
+  await shot('?c=0&p=0&wx=0.46&wy=0.42', 'd4-reveal-centre');
+  await shot('?c=0&p=0&wx=0.88&wy=0.84', 'd5-reveal-edge');
   await shot('?c=1&p=0&mode=before', 'd-before-full');
   await shot('?c=2&p=0&wx=0.46&wy=0.4', 'd-case3');
   await shot('?c=3&p=0&wx=0.5&wy=0.45', 'd-case4');
@@ -35,12 +35,17 @@ const strip = async (page, files, cols, out) => {
   for (const [i, p] of [0.5, 0.6, 0.67, 0.73, 0.79, 0.86, 0.93, 1].entries()) frames.push(await shot(`?c=0&p=${p}&mode=after`, `d3-t${i}`));
   await strip(page, frames, 4, `${OUT}/d3-transition.png`);
   // 6 close-up proving no distortion: the window edge across the eye, with and without the grid
-  await page.goto(base + '?c=2&p=0&wx=0.44&wy=0.4', { waitUntil: 'networkidle' }); await settle(page);
+  // the pointer sits right of centre so the reveal's leading edge crosses the cheek
+  await page.goto(base + '?c=2&p=0&wx=0.62&wy=0.5', { waitUntil: 'networkidle' }); await settle(page);
   const box = await page.evaluate(() => { const r = document.querySelector('.plane[data-active] .field').getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; });
-  const clip = { x: Math.round(box.x + box.width * 0.06), y: Math.round(box.y + box.height * 0.08), width: Math.round(box.width * 0.88), height: Math.round(box.height * 0.5) };
+  const clip = { x: Math.round(box.x + box.width * 0.02), y: Math.round(box.y + box.height * 0.14), width: Math.round(box.width * 0.84), height: Math.round(box.height * 0.52) };
   await page.screenshot({ path: `${OUT}/d6-closeup.png`, clip });
-  await page.goto(base + '?c=2&p=0&wx=0.44&wy=0.4&grid=1', { waitUntil: 'networkidle' }); await settle(page);
+  await page.goto(base + '?c=2&p=0&wx=0.62&wy=0.5&grid=1', { waitUntil: 'networkidle' }); await settle(page);
   await page.screenshot({ path: `${OUT}/d6-closeup-grid.png`, clip });
+  // the reveal arc and its glint, very close
+  await page.goto(base + '?c=0&p=0&wx=0.56&wy=0.46', { waitUntil: 'networkidle' }); await settle(page);
+  const b2 = await page.evaluate(() => { const r = document.querySelector('.plane[data-active] .field').getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; });
+  await page.screenshot({ path: `${OUT}/d6-rim.png`, clip: { x: Math.round(b2.x + b2.width * 0.04), y: Math.round(b2.y + b2.height * 0.04), width: Math.round(b2.width * 0.6), height: Math.round(b2.height * 0.38) } });
   await ctx.close();
 }
 {
@@ -67,6 +72,7 @@ const strip = async (page, files, cols, out) => {
   await shot('?c=0&p=0&mode=after', 'm7-active');
   await shot('?c=0&p=0&mode=before', 'm8-before');
   await shot('?c=0&p=0&wx=0.5&wy=0.42', 'm8-window');
+  await shot('?c=0&p=0&wx=0.68&wy=0.5', 'm8-window-edge');
   const mf = [];
   for (const [i, p] of [0.5, 0.68, 0.78, 0.88, 1].entries()) mf.push(await shot(`?c=0&p=${p}&mode=after`, `m9-t${i}`));
   await strip(page, mf, 5, `${OUT}/m9-transition.png`);

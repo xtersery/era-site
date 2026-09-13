@@ -1,7 +1,8 @@
 # Spike C — Cases / до · после
 
-**Status: pass 1 built, AWAITING REVIEW (13.09.2026).** Not productionised; do
-not start Specialists.
+**Status: direction approved in principle (13.09.2026); polish pass 2 built,
+AWAITING REVIEW.** Not productionised; do not start Specialists; do not redesign
+the section, the layout, or the imagery.
 
 Narrative role: Services is the choice, Cases is the proof. The section's laws
 are **DEPTH + FOCUS** with restrained refraction — deliberately not the radial
@@ -32,9 +33,9 @@ case. Page scroll is never intercepted.
 ## The reveal — honest by construction
 
 «После» is the base plate. «До» is a second layer in **the same box, the same
-`object-fit`, no transform**, clipped to a window (46 % × 54 % of the frame;
-70 % × 44 % on a phone) that follows the pointer and is clamped inside the
-frame. Modes «До» · «Сравнить» · «После» are real buttons (44 px+, visible
+`object-fit`, no transform**, uncovered by a mask that follows the pointer and
+is clamped inside the frame. *(Pass 2: the rectangular `clip-path` window read
+as a crop box / selection tool and was replaced — see below.)* Modes «До» · «Сравнить» · «После» are real buttons (44 px+, visible
 focus, `aria-pressed`); on a phone press-and-hold opens the window to the full
 frame — no hover anywhere. The material is on the rim only: 1 px gold border,
 a 6 px mineral band inside it, one warm hairline top-left, one teal hairline
@@ -108,3 +109,44 @@ Not recommended: a thumbnail strip, a second visible case row, or auto-play.
 The rim is CSS, not the ERA Mineral Glass shader; the plates are stand-ins; the
 archive has never been longer than four, so disposal is untested; Cases has not
 been seen next to the real Services room in one continuous scroll.
+
+---
+
+## Polish pass 2 (13.09.2026) — reveal, neighbour depth, atmosphere
+
+Approved brief: one focused pass, no redesign, no new imagery, no typography
+work. Three areas changed; everything else is untouched.
+
+**1 · The reveal is optical, not a crop box.** The hard `clip-path` rectangle is
+gone. «До» is uncovered by a `mask-image`: an ellipse of 52 % × 66 % of the
+plate (74 % × 50 % on a phone), opaque to 55 % of its radii and feathered to
+nothing by 90 %, **intersected** with a 124° linear gradient so the trailing
+side dissolves first — asymmetric, and the edge never closes. The rim is a 1 px
+ring at the 63 % contour, itself masked so only about a third of the arc on the
+upper left is lit and fades out, plus one 12 % mineral glint at −38° and a
+single teal hairline on the far side. The mask changes **opacity only**, which
+is why the reveal can be soft and still be provably exact:
+- reveal core vs the full «до» plate — **max channel delta 0/255** over 50 160 px
+- far outside the reveal vs the plain «после» plate — max 1/255, mean 0.004
+- layout boxes identical, «до» layer transform `none`
+- the 48 px alignment grid runs continuously across the edge (board, item 2b)
+
+**2 · The neighbour is a fragment in depth, not a second picture.** Scale
+1/(1 + 0.95d) (was 0.52d), blur 3.4d px, a new contrast/saturation/brightness
+fall-off of 0.74d, fog 1.7k (was 1.25k), the mask closes the frame to an
+off-centre fragment as it recedes, and the plane drifts 6 % laterally per unit
+of depth.
+
+**3 · Mineral atmosphere.** One faint breath of teal light (5.5 %) where the
+archive recedes, low sage smoke (5 %) where cases pass the viewer, and 3.5 %
+fractal grain over the section to keep the gradients from banding. No veins, no
+marble, no visible gradient edges.
+
+Unchanged: information hierarchy, typography, metadata, «Визуализация» labels,
+CTA placement, dominant active case, spatial gallery concept, before/after
+functionality, placeholder imagery, scroll rhythm. Performance is unchanged —
+60 fps median on both tiers, 0 % of frames over 33 ms, 10/11 composited layers,
+12.9 MB heap.
+
+Board: `docs/spikes/boards/cases-polish.html` (pass-1 board kept at
+`cases-archive.html`; pass-1 frames kept in `spikes/cases/__captures__/pass1/`).
