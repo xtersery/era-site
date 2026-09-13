@@ -1,7 +1,8 @@
 # Spike C — Cases / до · после
 
-**Status: pass 3 — THE PASSAGE — built, AWAITING REVIEW (13.09.2026).** Not
-productionised; do not start Specialists.
+**Status: pass 4 — the threshold opened, AWAITING REVIEW (13.09.2026).** The
+passage concept is approved in principle; do not redesign it. Not productionised;
+do not start Specialists.
 
 Passes 1–2 (`spikes/cases/`, a DOM/CSS spatial archive) are superseded as a
 *direction* by pass 3, but their honesty machinery carries over unchanged. They
@@ -217,3 +218,44 @@ passage seen straight after the approved Services room; real case photography
 (the composition assumes a vertical 4:5 frame, face slightly above centre). The
 plates are still grade-only stand-ins from the one test portrait, «Визуализация»
 on every case.
+
+---
+
+## Pass 4 — APERTURE AND HIERARCHY (13.09.2026)
+
+Review of pass 3: the direction is right, the hierarchy was wrong — the
+threshold obscured too much of the result. **The case is the hero; the threshold
+frames and spatialises it.** Geometry-only refinement; the concept, the
+traversal, the neighbouring thresholds, the museum label, the material language
+and the before/after logic are untouched.
+
+| | pass 3 | pass 4 |
+| --- | --- | --- |
+| aperture radius | 1.78 | **2.5** |
+| clear opening at the dock (1440 × 900) | 38.7 % | **70.1 %** (target 65–75) |
+| glass actually painting the frame | — | 15 % desktop · 18 % phone |
+| blocks per threshold · seams | 7–9 · 0.01–0.06 rad | **5–7** · 0.05–0.27 rad, ~1 in 6 omitted |
+| block reach outward · depth | 1.62 · 0.30–0.92 | **2.6** · 0.34–1.14 (runs past the frame) |
+| gold glints | 2–3 arcs, 0.22–0.72 rad | **1–2** arcs, 0.10–0.32 rad, thinner |
+| case plate height | 3.1 | **4.6**, corner-only fade instead of a circular mask |
+| draw calls · triangles | 11 · 17 504 | **9 · 8 460** |
+
+Also in this pass: the camera steps 0.72 to the left and looks parallel to the
+axis so the object sits right of centre and the museum label keeps its own air
+(a soft mineral gradient gathers the dark on the left); the far thresholds are
+dimmer still; and the **phone has its own walk geometry** — camera 8.6 units
+back, thresholds 11.2 apart, fog scaled to match — because at the desktop
+distance the aperture fell entirely outside a portrait frame.
+
+Openness is reported two ways on purpose: **70.1 %** is the clear opening (the
+share of the frame inside the aperture, computed from the geometry), **15 %** is
+how much of the frame the glass actually paints (lower, because the ring is
+discontinuous and most of its mass is off-frame).
+
+Unchanged and re-verified after the change: 60 fps median on both viewports,
+0 % of frames over 33 ms; «до» vs «после» alignment still best at zero shift
+(1.209 vs 3.473 at 1 px).
+
+Board: `docs/spikes/boards/cases-passage-aperture.html` (pass-3 board kept at
+`cases-passage.html`; pass-3 frames in `spikes/portal/__captures__/pass3/`).
+Spike: `docs/spikes/boards/cases-passage-spike.html`.

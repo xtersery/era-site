@@ -28,10 +28,17 @@ import { createGlintGeometry, createPortalGeometry, PORTAL } from './portalGeome
  * further in are the same glass without the backbuffer, taken by haze anyway.
  */
 
-export const SPACING = 7.4; // world units between thresholds
-export const DOCK = 5.4; // where the camera stands when a case is docked — far enough
-// back that the whole threshold is in frame and still overflows it top and bottom
-const PLATE_H = 3.1;
+/**
+ * Where the visitor stands, and how far apart the thresholds are. The phone is a
+ * different room, not a squeezed one: the camera stands further back so the
+ * threshold still reads as an object in a portrait frame, and the thresholds sit
+ * further apart so the crossing still happens inside one case's scroll.
+ */
+export const WALK = {
+  desktop: { dock: 5.4, spacing: 7.4 },
+  phone: { dock: 8.6, spacing: 11.2 },
+} as const;
+const PLATE_H = 4.6; // the case is a world beyond the threshold, not a plate inside it
 const PLATE_SET_BACK = 1.6; // the case hangs this far behind the threshold plane
 const PLATE_W = PLATE_H * 0.8; // the plates are 4:5
 
@@ -68,7 +75,8 @@ function useCaseTextures(plates: readonly CasePlate[]): Texture[][] {
   }, [plates]);
 }
 
-function Passage({ plates, state, tier, only }: { plates: readonly CasePlate[]; state: React.MutableRefObject<SceneState>; tier: 'high' | 'mid'; only?: string | undefined }) {
+function Passage({ plates, state, tier, only, walk }: { plates: readonly CasePlate[]; state: React.MutableRefObject<SceneState>; tier: 'high' | 'mid'; only?: string | undefined; walk: { dock: number; spacing: number } }) {
+  const { dock: DOCK, spacing: SPACING } = walk;
   const { scene } = useThree();
   const textures = useCaseTextures(plates);
   const n = plates.length;
@@ -85,7 +93,7 @@ function Passage({ plates, state, tier, only }: { plates: readonly CasePlate[]; 
   useEffect(() => {
     scene.environment = env;
     scene.background = null;
-    scene.fog = new FogExp2('#060f0c', 0.115);
+    scene.fog = new FogExp2('#060f0c', 0.115 * (7.4 / SPACING));
     return () => {
       scene.environment = null;
       scene.fog = null;
@@ -95,7 +103,7 @@ function Passage({ plates, state, tier, only }: { plates: readonly CasePlate[]; 
       plateMats.forEach((m) => m.dispose());
       hazeMat.dispose();
     };
-  }, [scene, env, geoms, glints, plateMats, hazeMat]);
+  }, [scene, env, geoms, glints, plateMats, hazeMat, SPACING]);
 
   /** each threshold stands a little off the axis — the passage bends, it is not a tunnel of rings */
   const offsets = useMemo(
@@ -117,9 +125,11 @@ function Passage({ plates, state, tier, only }: { plates: readonly CasePlate[]; 
     camera.position.z = DOCK - pos * SPACING;
     // the camera is guided, never thrown: a hand's width of drift, re-centring at each dock
     const drift = Math.sin(pos * Math.PI) * 0.16;
-    camera.position.x = drift;
+    // a constant step to the left keeps the object right of centre, so the museum
+    // label has its own air; the view stays parallel to the axis (no swing)
+    camera.position.x = drift - 0.72;
     camera.position.y = 0.1 + Math.cos(pos * Math.PI * 0.5) * 0.06;
-    camera.lookAt(drift * 0.35, 0.02, camera.position.z - 6);
+    camera.lookAt(camera.position.x, 0.02, camera.position.z - 6);
 
     (window as unknown as Record<string, unknown>)['__scene'] = { pos, camZ: camera.position.z };
     // dev readout for the technical report
@@ -144,14 +154,14 @@ function Passage({ plates, state, tier, only }: { plates: readonly CasePlate[]; 
       const glass = glassRefs.current[k];
 
       if (glass) {
-        glass.visible = only !== 'plate' && !isActive && ahead > -2.4 && ahead < 34;
+        glass.visible = only !== 'plate' && only !== 'none' && only !== 'hero' && !isActive && ahead > -2.4 && ahead < 34;
         // the thresholds further in give up their light: the mineral dark takes them
         const gm = glass.material as MeshPhysicalMaterial;
-        gm.envMapIntensity = 1.6 * clamp(1 - far * 0.62, 0.05, 1);
-        gm.opacity = clamp(0.92 - far * 0.38, 0.08, 0.92);
+        gm.envMapIntensity = 1.6 * clamp(1 - far * 0.72, 0.04, 1);
+        gm.opacity = clamp(0.88 - far * 0.42, 0.06, 0.88);
       }
       if (plate) {
-        plate.visible = only !== 'glass' && plateAhead > 0.35 && far < 2.6;
+        plate.visible = only !== 'glass' && only !== 'none' && only !== 'hero' && plateAhead > 0.35 && far < 2.6;
         // the result is released as its threshold is crossed
         // the result is let go while the threshold is still ahead — the visitor crosses
         // an opening, she does not fly into a photograph
@@ -167,7 +177,7 @@ function Passage({ plates, state, tier, only }: { plates: readonly CasePlate[]; 
     if (hero) {
       const o = offsets[clamp(active, 0, n - 1)]!;
       hero.position.set(o[0], o[1], -active * SPACING);
-      hero.visible = only !== 'plate' && Math.abs(active - pos) < 0.5;
+      hero.visible = only !== 'plate' && only !== 'none' && Math.abs(active - pos) < 0.5;
     }
     setHeroIndex((prev) => (prev === active ? prev : active)); // one re-render per case
   });
@@ -191,7 +201,7 @@ function Passage({ plates, state, tier, only }: { plates: readonly CasePlate[]; 
               clearcoatRoughness={0.08}
               envMapIntensity={1.35}
               transparent
-              opacity={0.92}
+              opacity={0.88}
             />
           </mesh>
           {/* gold only where a key would catch the edge */}
@@ -203,7 +213,7 @@ function Passage({ plates, state, tier, only }: { plates: readonly CasePlate[]; 
             <planeGeometry args={[PLATE_W, PLATE_H, 1, 1]} />
           </mesh>
           {/* air in the gap behind the threshold */}
-          <mesh position={[0, -0.2, -SPACING * 0.45]} material={hazeMat}>
+          <mesh visible={only !== 'none' && only !== 'hero'} position={[0, -0.2, -SPACING * 0.45]} material={hazeMat}>
             <planeGeometry args={[16, 11, 1, 1]} />
           </mesh>
         </group>
@@ -246,26 +256,28 @@ export function PortalScene({
   tier = 'high',
   dpr = [1, 1.6] as [number, number],
   only,
+  walk = WALK.desktop,
 }: {
   plates: readonly CasePlate[];
   state: React.MutableRefObject<SceneState>;
   tier?: 'high' | 'mid';
   dpr?: [number, number];
-  /** debug isolation: 'glass' | 'plate' */
+  /** debug isolation: 'glass' | 'plate' | 'hero' | 'none' */
   only?: string | undefined;
+  walk?: { dock: number; spacing: number };
 }) {
   return (
     <Canvas
       className="passage__canvas"
       dpr={dpr}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      camera={{ fov: 42, near: 0.1, far: 60, position: [0, 0.1, DOCK] }}
+      camera={{ fov: 42, near: 0.1, far: 80, position: [0, 0.1, walk.dock] }}
       onCreated={({ gl }) => {
         gl.toneMapping = NoToneMapping;
         gl.setClearColor('#060f0c', 0);
       }}
     >
-      <Passage plates={plates} state={state} tier={tier} only={only} />
+      <Passage plates={plates} state={state} tier={tier} only={only} walk={walk} />
     </Canvas>
   );
 }

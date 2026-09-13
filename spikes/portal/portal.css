@@ -14,6 +14,17 @@
     radial-gradient(120% 100% at 62% 42%, #0d1f18 0%, #091510 44%, #050d0a 100%);
   color: #eae6dc;
 }
+/* the mineral dark gathers on the left, where the label stands */
+.passage::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 46%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(5, 13, 10, 0.86) 0%, rgba(5, 13, 10, 0.62) 38%, rgba(5, 13, 10, 0) 100%);
+}
+
 /* the grain that keeps the depth from banding */
 .passage::before {
   content: '';
@@ -278,4 +289,10 @@
   .ladder button[aria-current]::before { width: 26px; }
   .passage__hint { left: var(--gutter); right: var(--gutter); bottom: var(--space-xs); text-align: center; }
   .passage__grid { width: 72vw; }
+  .passage::after {
+    inset: auto 0 0 0;
+    width: auto;
+    height: 56%;
+    background: linear-gradient(180deg, rgba(5, 13, 10, 0) 0%, rgba(5, 13, 10, 0.72) 42%, rgba(5, 13, 10, 0.93) 100%);
+  }
 }

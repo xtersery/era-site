@@ -28,7 +28,7 @@ export function createPlateMaterial(after: Texture, before: Texture): ShaderMate
       uField: { value: new Vector2(0.5, 0.5) }, // pointer, in plate space
       uFieldAmount: { value: 0 }, // how much of the reveal is pointer-driven
       uOpacity: { value: 1 },
-      uAperture: { value: 1.04 }, // where the plate starts to be eaten by the dark
+      uAperture: { value: 1.18 }, // where the plate starts to be eaten by the dark
       uHaze: { value: 0 }, // green-black taking the plate with distance
       uHazeColor: { value: new Color('#0b1a14') },
       uWarm: { value: new Color('#f7e4b1') },

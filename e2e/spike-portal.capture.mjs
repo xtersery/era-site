@@ -27,6 +27,7 @@ const strip = async (page, files, cols, out) => {
   await shot('?c=1&p=0&mode=after', 'd2-dock-case2');
   await shot('?c=0&p=0&mode=before', 'd3-before');
   await shot('?c=0&p=0&fx=0.62&fy=0.44', 'd4-compare');
+  await shot('?c=0&p=0.79&mode=after', 'd8-occlude'); // mid-transition: the threshold takes more of the frame
   await shot('?c=3&p=0&mode=after', 'd5-dock-case4');
   // the walk: dock → approach → cross → release → arrive
   const walk = [];
@@ -34,8 +35,8 @@ const strip = async (page, files, cols, out) => {
   await strip(page, walk, 4, `${OUT}/walk-strip.png`);
   // the threshold's material, close
   await page.goto(base + '?c=0&p=0&mode=after', { waitUntil: 'networkidle' }); await settle(page);
-  await page.screenshot({ path: `${OUT}/d6-material.png`, clip: { x: 900, y: 80, width: 540, height: 620 } });
-  await page.screenshot({ path: `${OUT}/d7-aperture.png`, clip: { x: 430, y: 150, width: 620, height: 600 } });
+  await page.screenshot({ path: `${OUT}/d6-material.png`, clip: { x: 960, y: 40, width: 480, height: 640 } });
+  await page.screenshot({ path: `${OUT}/d7-aperture.png`, clip: { x: 560, y: 120, width: 700, height: 660 } });
   await ctx.close();
 }
 {
@@ -44,6 +45,7 @@ const strip = async (page, files, cols, out) => {
   const shot = async (q, name) => { await page.goto(base + q, { waitUntil: 'networkidle' }); await settle(page); const f = `${OUT}/${name}.png`; await page.screenshot({ path: f }); return f; };
   await shot('?c=0&p=0&mode=after', 'm1-dock');
   await shot('?c=0&p=0&mode=before', 'm2-before');
+  await shot('?c=0&p=0.84&mode=after', 'm4-occlude');
   const mw = [];
   for (const [i, f] of [0.52, 0.78, 0.87, 0.94, 1].entries()) mw.push(await shot(`?c=0&p=${f}&mode=after`, `mw-${i}`));
   await strip(page, mw, 5, `${OUT}/m3-walk.png`);

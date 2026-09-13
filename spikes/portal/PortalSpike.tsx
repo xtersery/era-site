@@ -15,7 +15,7 @@ import c3a from '../cases/assets/case-3-after.jpg';
 import c3b from '../cases/assets/case-3-before.jpg';
 import c4a from '../cases/assets/case-4-after.jpg';
 import c4b from '../cases/assets/case-4-before.jpg';
-import { clamp, PortalScene, smooth, type CasePlate, type SceneState } from './scene/PortalScene';
+import { clamp, PortalScene, smooth, WALK, type CasePlate, type SceneState } from './scene/PortalScene';
 
 /**
  * Cases — the passage (Spike C, pass 3).
@@ -173,7 +173,7 @@ export function CasesPassage({
         onPointerUp={onUp}
         onPointerCancel={onUp}
       >
-        <PortalScene plates={PLATES} state={state} tier={phone ? 'mid' : 'high'} dpr={phone ? [1, 2] : [1, 1.6]} only={only} />
+        <PortalScene plates={PLATES} state={state} tier={phone ? 'mid' : 'high'} dpr={phone ? [1, 2] : [1, 1.6]} only={only} walk={phone ? WALK.phone : WALK.desktop} />
         {grid && <div className="passage__grid" aria-hidden="true" />}
       </div>
 

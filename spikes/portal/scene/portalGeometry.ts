@@ -61,27 +61,35 @@ export interface PortalSpec {
   squash: number;
 }
 
-export const PORTAL: PortalSpec = { aperture: 1.78, reach: 1.62, squash: 1.07 };
+/**
+ * The opening is the point of the object: at the docked distance this aperture
+ * leaves ~70 % of the frame clear, and the glass sits at the perimeter, running
+ * off the top and bottom edges. The result is a world beyond the threshold, not
+ * a texture trapped in a hole.
+ */
+export const PORTAL: PortalSpec = { aperture: 2.5, reach: 2.6, squash: 1.07 };
 
 /**
  * The threshold's glass. `seed` authors one portal: segment count, where it is
  * thick, where the gaps fall.
  */
 export function createPortalGeometry(seed: number, spec: PortalSpec = PORTAL): BufferGeometry {
-  const count = 7 + Math.floor(rand(seed, 1) * 3); // 7…9 blocks
+  const count = 5 + Math.floor(rand(seed, 1) * 3); // 5…7 blocks
   const parts: BufferGeometry[] = [];
   let a = rand(seed, 2) * Math.PI * 2;
   for (let i = 0; i < count; i++) {
     const share = (Math.PI * 2) / count;
-    const gap = 0.012 + rand(seed, i * 3 + 4) * 0.05; // the seams between blocks
+    const gap = 0.05 + rand(seed, i * 3 + 4) * 0.22; // the seams between blocks — wide enough to see the dark through them
     const a0 = a + gap * 0.5;
     const a1 = a + share - gap * 0.5;
     a += share;
-    // thickness varies around the ring: two blocks carry the weight, the rest thin out
+    // the ring is never continuous: roughly one block in four is simply not there,
+    // so the object reads as remains of a threshold rather than a tunnel
     const heavy = rand(seed, i * 5 + 7);
+    if (rand(seed, i * 19 + 23) < 0.16) continue;
     const rIn = spec.aperture * (0.985 + rand(seed, i * 7 + 11) * 0.05);
-    const rOut = rIn + spec.reach * (0.42 + heavy * 0.72);
-    const depth = 0.3 + heavy * 0.62;
+    const rOut = rIn + spec.reach * (0.5 + heavy * 0.9); // the mass goes outward, past the frame
+    const depth = 0.34 + heavy * 0.8;
     const g = segment(a0, a1, rIn, rOut, depth, 0.05 + heavy * 0.05);
     // each block sits slightly differently in its own plane — nothing is flush
     g.translate(0, 0, -depth * 0.5 + (rand(seed, i * 11 + 13) - 0.5) * 0.22);
@@ -103,12 +111,12 @@ export function createPortalGeometry(seed: number, spec: PortalSpec = PORTAL): B
  */
 export function createGlintGeometry(seed: number, spec: PortalSpec = PORTAL): BufferGeometry {
   const parts: BufferGeometry[] = [];
-  const n = 2 + Math.floor(rand(seed, 23) * 2);
+  const n = 1 + Math.floor(rand(seed, 23) * 2); // one or two glints, never a rim of them
   for (let i = 0; i < n; i++) {
-    const arc = 0.22 + rand(seed, i * 3 + 29) * 0.5;
+    const arc = 0.1 + rand(seed, i * 3 + 29) * 0.22;
     const start = rand(seed, i * 5 + 31) * Math.PI * 2;
     const r = spec.aperture * (1.005 + rand(seed, i * 7 + 37) * 0.02);
-    const g = new TorusGeometry(r, 0.008 + rand(seed, i * 11 + 41) * 0.006, 6, 64, arc);
+    const g = new TorusGeometry(r, 0.006 + rand(seed, i * 11 + 41) * 0.005, 6, 64, arc);
     g.rotateZ(start);
     g.translate(0, 0, (rand(seed, i * 13 + 43) - 0.5) * 0.3);
     parts.push(g);
