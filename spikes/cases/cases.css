@@ -1,0 +1,374 @@
+/*
+ * Cases — spatial archive. Concept-board colours (green-black depth, graphite
+ * recession, bone text, gold as a hairline of light). Not production tokens.
+ */
+.cases {
+  position: relative;
+  width: 100vw;
+  height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 78% 36%, #12261e 0%, #0b1a14 42%, #07110d 100%);
+  color: #eae6dc;
+}
+
+.cases__label,
+.cases__hint {
+  position: absolute;
+  z-index: 200;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #7c8a82;
+}
+.cases__label {
+  top: var(--space-md);
+  left: var(--gutter);
+  right: var(--gutter);
+  display: flex;
+  justify-content: space-between;
+}
+.cases__hint {
+  left: var(--gutter);
+  bottom: var(--space-md);
+}
+
+/* ---- the depth axis --------------------------------------------------- */
+.depth {
+  position: absolute;
+  inset: 0;
+}
+.plane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  aspect-ratio: 4 / 5;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity, filter;
+  backface-visibility: hidden;
+}
+.plane:not([data-active]) {
+  cursor: pointer;
+}
+
+.field {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* deep planes lose their edges: they dissolve into the ground, never end as a card */
+  -webkit-mask-image: radial-gradient(
+    115% 115% at 50% 50%,
+    #000 calc(52% - var(--mask, 0) * 42%),
+    transparent calc(100% - var(--mask, 0) * 18%)
+  );
+  mask-image: radial-gradient(
+    115% 115% at 50% 50%,
+    #000 calc(52% - var(--mask, 0) * 42%),
+    transparent calc(100% - var(--mask, 0) * 18%)
+  );
+  touch-action: pan-y;
+}
+/* the graphite / green-black that takes a plane as it recedes */
+.field::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  background: linear-gradient(198deg, rgba(11, 26, 20, 0.72), rgba(7, 17, 13, 0.96));
+  opacity: var(--fog, 0);
+}
+.field__plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 42%;
+  user-select: none;
+}
+
+/* «до» — the same plate, the same box: only the clip changes */
+.field__before {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  clip-path: inset(100% 100% 100% 100%);
+}
+.field__before[data-full] {
+  clip-path: inset(0 0 0 0);
+}
+.field__before[data-windowed] {
+  /* a window of 46 % × 54 % of the frame, centred on the pointer and kept inside it */
+  --w: 0.46;
+  --h: 0.54;
+  --cx: clamp(calc(var(--w) / 2), var(--wx, 0.5), calc(1 - var(--w) / 2));
+  --cy: clamp(calc(var(--h) / 2), var(--wy, 0.46), calc(1 - var(--h) / 2));
+  clip-path: inset(
+    calc((var(--cy) - var(--h) / 2) * 100%)
+    calc((1 - var(--cx) - var(--w) / 2) * 100%)
+    calc((1 - var(--cy) - var(--h) / 2) * 100%)
+    calc((var(--cx) - var(--w) / 2) * 100%)
+  );
+}
+
+/* the material is on the rim only — nothing optical happens inside the window */
+.field__rim {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  --w: 0.46;
+  --h: 0.54;
+  --cx: clamp(calc(var(--w) / 2), var(--wx, 0.5), calc(1 - var(--w) / 2));
+  --cy: clamp(calc(var(--h) / 2), var(--wy, 0.46), calc(1 - var(--h) / 2));
+  left: calc((var(--cx) - var(--w) / 2) * 100%);
+  top: calc((var(--cy) - var(--h) / 2) * 100%);
+  width: calc(var(--w) * 100%);
+  height: calc(var(--h) * 100%);
+  border: 1px solid rgba(207, 175, 114, 0.5);
+  /* the mineral edge stays an EDGE: a 6 px band inside the rim, nothing across the frame */
+  box-shadow:
+    inset 0 0 0 1px rgba(236, 232, 223, 0.06),
+    inset 0 0 7px -2px rgba(127, 176, 164, 0.5),
+    0 0 0 1px rgba(7, 17, 13, 0.4);
+}
+/* a single fine optical edge: the mineral light crossing the top-left corner */
+.field__rim::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  width: 38%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(247, 228, 177, 0.85), rgba(247, 228, 177, 0));
+}
+.field__rim::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 1px;
+  height: 34%;
+  background: linear-gradient(180deg, rgba(127, 176, 164, 0), rgba(127, 176, 164, 0.7));
+}
+
+.field__stamp,
+.field__state {
+  position: absolute;
+  z-index: 8;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.04em;
+}
+/* the honesty label is part of the image, never hidden for tidiness */
+.field__stamp {
+  left: 0;
+  bottom: 0;
+  padding: 7px 12px;
+  background: rgba(7, 17, 13, 0.72);
+  color: #f0ece2;
+}
+.field__state {
+  right: 0;
+  bottom: 0;
+  padding: 7px 12px;
+  color: #a9b0a8;
+  background: rgba(7, 17, 13, 0.42);
+}
+
+/* alignment proof: a fine grid over BOTH layers — the lines stay continuous
+   across the window edge, so nothing inside it is scaled or displaced */
+.field__grid {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(247, 228, 177, 0.45) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(180deg, rgba(247, 228, 177, 0.45) 0 1px, transparent 1px 48px);
+}
+
+/* ---- the dossier: docked, still, readable ----------------------------- */
+/* the archive recedes into smoke behind the reading column — the text is never
+   fighting an image for contrast, and the depth keeps going past it */
+.cases__scrim {
+  position: absolute;
+  z-index: 140;
+  inset: 0 0 0 auto;
+  width: 48%;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(7, 17, 13, 0) 0%, rgba(7, 17, 13, 0.74) 34%, rgba(7, 17, 13, 0.93) 62%, rgba(7, 17, 13, 0.96) 100%);
+}
+
+.dossier {
+  position: absolute;
+  z-index: 150;
+  right: var(--gutter);
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(30rem, 34vw);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.dossier__no {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #9aa79f;
+}
+.dossier__no span { color: #6c7a72; }
+.dossier__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 2.9vw, 3.1rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.dossier__service {
+  margin: 0;
+  font-size: 1.0625rem;
+  color: #c3cac4;
+}
+.dossier__meta {
+  display: grid;
+  grid-template-columns: 12ch 1fr;
+  row-gap: 5px;
+  margin: var(--space-xs) 0 0;
+  padding-top: var(--space-sm);
+  border-top: 1px solid rgba(234, 230, 220, 0.18);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+}
+.dossier__meta dt { color: #8d9a92; }
+.dossier__meta dd { margin: 0; color: #e4e0d6; }
+.dossier__note {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #b9c0ba;
+  max-width: 42ch;
+}
+.dossier__honesty {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  color: #cfaf72;
+  max-width: 44ch;
+}
+.dossier__controls {
+  display: flex;
+  gap: 1px;
+  margin-top: var(--space-xs);
+  background: rgba(234, 230, 220, 0.18);
+  align-self: start;
+}
+.dossier__btn {
+  appearance: none;
+  border: 0;
+  background: #0b1a14;
+  color: #b9c0ba;
+  font: inherit;
+  font-size: 0.9375rem;
+  padding: 12px 22px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.dossier__btn[aria-pressed='true'] {
+  background: #ece8df;
+  color: #0d0c0b;
+}
+.dossier__btn:focus-visible { outline: 1px solid #cfaf72; outline-offset: 2px; }
+.dossier__cta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+.dossier__primary {
+  display: inline-grid;
+  place-items: center;
+  min-height: 56px;
+  padding: 0 30px;
+  background: #cfaf72;
+  color: #08140f;
+  text-decoration: none;
+  font-size: 0.9375rem;
+}
+.dossier__link {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #cfc7ba;
+  text-decoration: none;
+}
+.dossier__primary:focus-visible,
+.dossier__link:focus-visible { outline: 1px solid #cfaf72; outline-offset: 4px; }
+
+/* ---- stubs and readout ------------------------------------------------ */
+.stub {
+  background: #ece8df;
+  color: #625d55;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: var(--space-md) var(--gutter);
+}
+.stub--bar {
+  grid-template-columns: 1fr auto;
+  place-items: center start;
+  background: #08140f;
+  color: #eae6dc;
+  padding-block: var(--space-sm);
+}
+.stub__mark { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: -0.02em; }
+.stub__cta { border: 1px solid #cfaf72; color: #f7e4b1; padding: 8px 16px; font-family: var(--font-body); }
+.stub--before { min-height: 46svh; }
+.stub--after { min-height: 160svh; }
+.hud {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 400;
+  font: 11px/1.4 var(--font-mono);
+  color: #98a39c;
+  background: rgba(8, 20, 15, 0.85);
+  padding: 4px 8px;
+}
+
+/* ---- phone: the plate above, the dossier below, the archive still in depth ---- */
+@media (max-width: 1023.98px) {
+  .dossier {
+    right: var(--gutter);
+    left: var(--gutter);
+    top: auto;
+    bottom: calc(var(--space-lg) + 1.2rem);
+    transform: none;
+    width: auto;
+    gap: var(--space-xs);
+  }
+  .dossier__title { font-size: 1.75rem; }
+  .dossier__service { font-size: 1rem; }
+  .dossier__note,
+  .dossier__meta { display: none; }
+  .dossier__honesty { font-size: 0.66rem; max-width: none; }
+  .dossier__controls { margin-top: 2px; }
+  .dossier__btn { padding: 11px 16px; font-size: 0.875rem; }
+  .dossier__cta { margin-top: 4px; gap: var(--space-sm); }
+  .dossier__primary { min-height: 52px; padding: 0 22px; }
+  .cases__hint { left: var(--gutter); right: var(--gutter); bottom: var(--space-sm); text-align: center; }
+  .cases__scrim {
+    inset: auto 0 0 0;
+    width: auto;
+    height: 62%;
+    background: linear-gradient(180deg, rgba(7, 17, 13, 0) 0%, rgba(7, 17, 13, 0.72) 26%, rgba(7, 17, 13, 0.94) 60%);
+  }
+  .field__before[data-windowed] { --w: 0.7; --h: 0.44; }
+  .field__rim { --w: 0.7; --h: 0.44; }
+}

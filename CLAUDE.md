@@ -17,7 +17,7 @@ editorial system, the full state as one unit, pinned page scroll as the primary
 driver at 85 vh per state with snap, secondary controls, no scroll interception,
 and the current visual direction are **locked** (`docs/spikes/B-services.md`,
 reference implementation `spikes/radial/`). Do not redesign Services.
-Spike C (cases) is open. See
+Spike C (cases) — pass 1 built as a spatial archive (`spikes/cases/`), awaiting review; see `docs/spikes/C-cases.md`. See
 `docs/spikes/B-services.md`.** The concept phase is closed. Do
 not propose alternative art directions, reorder sections, change the colour
 system or typography philosophy, or remove the glass metaphor. The greyscale

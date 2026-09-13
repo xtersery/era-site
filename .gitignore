@@ -69,3 +69,4 @@ spikes/**/portrait-test.jpg
 # Review boards (self-contained HTML with embedded captures, ~3 MB each; artifact URLs are in docs/spikes/*.md)
 docs/spikes/boards/
 dist-spike/
+spikes/cases/assets/
