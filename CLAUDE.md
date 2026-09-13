@@ -17,7 +17,7 @@ editorial system, the full state as one unit, pinned page scroll as the primary
 driver at 85 vh per state with snap, secondary controls, no scroll interception,
 and the current visual direction are **locked** (`docs/spikes/B-services.md`,
 reference implementation `spikes/radial/`). Do not redesign Services.
-Spike C (cases) — pass 5 THE ARCHIVE ON A RAIL (`spikes/gallery/`): curved case sheets orbiting a vertical rail (ThreeUI gallery element as the base), scroll walks the rail, a chosen sheet flies forward and unrolls into an editorial case; awaiting review. Earlier passes kept: `spikes/portal/` (passage), `spikes/cases/` (CSS archive). See `docs/spikes/C-cases.md`. See
+Spike C (cases) — pass 6 THE ARCHIVE ON A RAIL, restaged (`spikes/gallery/`): curved case sheets orbiting a vertical rail (ThreeUI gallery element as the base), scroll walks the rail, a chosen sheet flies forward and unrolls into an editorial case; awaiting review. Earlier passes kept: `spikes/portal/` (passage), `spikes/cases/` (CSS archive). See `docs/spikes/C-cases.md`. See
 `docs/spikes/B-services.md`.** The concept phase is closed. Do
 not propose alternative art directions, reorder sections, change the colour
 system or typography philosophy, or remove the glass metaphor. The greyscale

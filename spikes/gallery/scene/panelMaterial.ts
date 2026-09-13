@@ -1,4 +1,4 @@
-import { Color, DoubleSide, ShaderMaterial, Vector2, type Texture } from 'three';
+import { Color, DoubleSide, ShaderMaterial, Vector2, Vector4, type Texture } from 'three';
 
 /**
  * One case panel on the rail.
@@ -16,6 +16,9 @@ import { Color, DoubleSide, ShaderMaterial, Vector2, type Texture } from 'three'
 export function createPanelMaterial(after: Texture, before: Texture): ShaderMaterial {
   return new ShaderMaterial({
     transparent: true,
+    // transparent sheets are sorted back to front by the renderer; writing depth
+    // as well is what makes them cut into each other, so they do not
+    depthWrite: false,
     side: DoubleSide,
     uniforms: {
       uAfter: { value: after },
@@ -28,12 +31,18 @@ export function createPanelMaterial(after: Texture, before: Texture): ShaderMate
       /** 1 = wrapped around the rail, 0 = flat (focused) */
       uBend: { value: 1 },
       /** the rail's radius — the curvature the sheet is wrapped to */
-      uRadius: { value: 3.2 },
+      uRadius: { value: 7.5 }, // the helix radius the sheet is wrapped to
       uOpacity: { value: 1 },
       /** the archive stepping back while one case is read */
       uDim: { value: 0 },
       /** pointer-over affordance, 0…1 */
       uHover: { value: 0 },
+      /** 0 = the whole editorial plate · 1 = a clipped fragment of it */
+      uFragment: { value: 0 },
+      /** the fragment's window in the plate: centre x, centre y, half width, half height */
+      uFragmentRect: { value: new Vector4(0.5, 0.5, 0.5, 0.5) },
+      /** contrast and colour leaving the sheet with distance */
+      uFlat: { value: 0 },
       uDark: { value: new Color('#07120e') },
       uWarm: { value: new Color('#f7e4b1') },
       uGold: { value: new Color('#cfaf72') },
@@ -67,6 +76,9 @@ export function createPanelMaterial(after: Texture, before: Texture): ShaderMate
       uniform float uOpacity;
       uniform float uDim;
       uniform float uHover;
+      uniform float uFragment;
+      uniform vec4 uFragmentRect;
+      uniform float uFlat;
       uniform vec3 uDark;
       uniform vec3 uWarm;
       uniform vec3 uGold;
@@ -91,7 +103,18 @@ export function createPanelMaterial(after: Texture, before: Texture): ShaderMate
 
         // the sheet keeps its image: only a narrow mineral edge is given to the dark
         vec2 e = abs(uv - 0.5) * 2.0;
-        float edge = (1.0 - smoothstep(0.9, 1.0, e.x)) * (1.0 - smoothstep(0.93, 1.0, e.y));
+        float full = (1.0 - smoothstep(0.9, 1.0, e.x)) * (1.0 - smoothstep(0.93, 1.0, e.y));
+
+        // a case standing back in the archive is not a small copy of the active one:
+        // it shows a clipped fragment of its plate, with soft mineral edges
+        vec2 fd = abs(uv - uFragmentRect.xy) - uFragmentRect.zw;
+        float fragment =
+          (1.0 - smoothstep(-0.06, 0.01, fd.x)) * (1.0 - smoothstep(-0.06, 0.01, fd.y));
+        float edge = mix(full, fragment * full, uFragment);
+
+        // and it loses contrast and colour as it goes back
+        float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
+        col = mix(col, mix(vec3(l), uDark, 0.42), uFlat * 0.72);
 
         // the archive steps back while one case is being read
         col = mix(col, uDark, uDim * 0.82);

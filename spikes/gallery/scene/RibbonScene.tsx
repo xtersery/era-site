@@ -8,6 +8,7 @@ import {
   TextureLoader,
   Vector2,
   Vector3,
+  Vector4,
   type Mesh,
   type ShaderMaterial,
   type Texture,
@@ -30,15 +31,34 @@ import { createPanelMaterial, createRailMaterial } from './panelMaterial';
  * rail with a glint where the visitor is standing.
  */
 
+/**
+ * The staging. One active case, large gaps, deep neighbours.
+ *
+ * The helix is wide (radius 7.5) and the camera rides just outside it, so the
+ * case the visitor has arrived at stands 4.2 units away — about half the
+ * viewport wide — while the next one is nearly twice as far and reads at about
+ * half that size. The gaps are spatial: bigger radius, bigger angle, bigger
+ * drop. Nothing is solved with opacity.
+ */
 export const RAIL = {
-  /** radius of the rail the sheets are wrapped to */
-  radius: 3.2,
-  /** angle between two cases around the rail */
-  step: (38 * Math.PI) / 180,
+  /** radius of the helix the sheets are wrapped to */
+  radius: 7.5,
+  /** angle between two cases around the helix */
+  step: (25 * Math.PI) / 180,
   /** how far one case sits below the previous one */
-  drop: 1.85,
+  drop: 1.7,
+  /** how far the visitor stands from the case she has arrived at */
+  dock: 4.55,
   panel: { w: 2.4, h: 3.0 },
 } as const;
+
+/** each case away from the focus shows a different clipped fragment of its plate */
+const FRAGMENTS: readonly (readonly [number, number, number, number])[] = [
+  [0.5, 0.42, 0.2, 0.46], // a tall slice through the face
+  [0.56, 0.3, 0.34, 0.22], // a band across the eyes
+  [0.4, 0.6, 0.24, 0.3], // cheek and jaw
+  [0.6, 0.5, 0.18, 0.4],
+];
 
 export interface CasePlate {
   after: string;
@@ -66,9 +86,12 @@ const smooth = (t: number) => { const s = clamp(t, 0, 1); return s * s * (3 - 2 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 /** where case k sits on the rail */
+/** the phone frame is narrow, so the cases are spread further apart around the helix */
+export const stepOf = (phone: boolean) => RAIL.step * (phone ? 1.45 : 1);
+
 export function slot(k: number, phone: boolean): { x: number; y: number; z: number; yaw: number } {
-  const a = k * RAIL.step;
-  const r = phone ? RAIL.radius * 0.92 : RAIL.radius;
+  const a = k * stepOf(phone);
+  const r = phone ? RAIL.radius * 0.86 : RAIL.radius;
   return { x: Math.sin(a) * r, y: -k * RAIL.drop, z: Math.cos(a) * r, yaw: a };
 }
 
@@ -102,7 +125,14 @@ function Ribbon({
   const { scene, size, camera } = useThree();
   const textures = useCaseTextures(plates);
   const n = plates.length;
-  const mats = useMemo(() => textures.map(([a, b]) => createPanelMaterial(a!, b!)), [textures]);
+  const mats = useMemo(() => {
+    const made = textures.map(([a, b]) => createPanelMaterial(a!, b!));
+    made.forEach((mat, k) => {
+      const f = FRAGMENTS[k % FRAGMENTS.length]!;
+      (mat.uniforms['uFragmentRect']!.value as Vector4).set(f[0], f[1], f[2], f[3]);
+    });
+    return made;
+  }, [textures]);
   const railMat = useMemo(() => createRailMaterial(), []);
   const env = useMemo(() => createEraEnvironment(512, 256), []);
   const meshes = useRef<(Mesh | null)[]>([]);
@@ -126,9 +156,15 @@ function Ribbon({
     const u = smooth(s.unfold);
 
     // --- the camera walks the rail, and steps closer when a case is chosen ---
-    const camA = s.pos * RAIL.step + drift * 0.4;
-    const camR = phone ? 10.6 : 11.5; // far enough out that several sheets are in the air at once
-    const camY = -s.pos * RAIL.drop + (phone ? 0.15 : 0.35);
+    const camA = s.pos * stepOf(phone) + drift * 0.25;
+    // the visitor rides just outside the helix: the case she has arrived at is
+    // always RAIL.dock away and frontal, everything else falls back in space
+    // the phone is a different room: the visitor stands further back so the sheet
+    // is about four fifths of a portrait frame wide, and it sits above the words
+    const dock = phone ? 7.6 : RAIL.dock;
+    const camR = (phone ? RAIL.radius * 0.86 : RAIL.radius) + dock;
+    const camY = -s.pos * RAIL.drop + (phone ? 0.06 : 0.1);
+    const lift = phone ? 0.95 : 0.1; // how far the docked sheet rides above the view axis
     const browseX = Math.sin(camA) * camR;
     const browseZ = Math.cos(camA) * camR;
     // stepping in a little as a case opens, never enough to lose the archive
@@ -137,10 +173,18 @@ function Ribbon({
       lerp(camY, camY + 0.15, u),
       lerp(browseZ, Math.cos(camA) * (camR - 2.2), u),
     );
-    tmp.v.set(Math.sin(camA) * 0.4, camY - (phone ? 0.3 : 0.45) * (1 - u), Math.cos(camA) * 0.4);
+    // look at the case she has arrived at, with a little look-ahead down the helix
+    // so the case coming next keeps a foot in the frame
+    const lookR = phone ? RAIL.radius * 0.86 : RAIL.radius;
+    const lookA = camA + stepOf(phone) * (phone ? 0.06 : 0.2);
+    tmp.v.set(
+      Math.sin(lookA) * lookR,
+      camY - lift, // the docked case rides above the view axis
+      Math.cos(lookA) * lookR,
+    );
     // slide the whole view to the left so the ribbon hangs right of centre and the
     // words keep their own air — a translation, not a swing
-    const side = phone ? 0 : 1.85;
+    const side = phone ? 0 : 1.15;
     tmp.a.set(camera.position.x - tmp.v.x, 0, camera.position.z - tmp.v.z).normalize();
     tmp.b.set(-tmp.a.z, 0, tmp.a.x).multiplyScalar(side); // the camera's right vector, flattened
     camera.position.add(tmp.b);
@@ -169,7 +213,7 @@ function Ribbon({
         // The chosen case leaves the rail, comes forward and unrolls flat.
         // The travel is interpolated in CAMERA space, so the sheet approaches the
         // viewer monotonically instead of swinging past her and coming back.
-        const dist = phone ? 8.4 : 7.4; // the sheet stands about 70 % of the frame tall
+        const dist = phone ? 7.2 : 6.0; // the open sheet stands about 70 % of the frame tall
         tmp.c.set(sl.x, sl.y, sl.z);
         camera.worldToLocal(tmp.c); // where it hangs now, seen from the visitor
         tmp.a.set(phone ? 0 : 1.25, phone ? 0.62 : 0.12, -dist); // where it will stand
@@ -186,6 +230,8 @@ function Ribbon({
         mat.uniforms['uFieldAmount']!.value = s.field.amount;
         (mat.uniforms['uField']!.value as Vector2).set(s.field.x, s.field.y);
         mat.uniforms['uHover']!.value = 0;
+        mat.uniforms['uFragment']!.value = 0;
+        mat.uniforms['uFlat']!.value = 0;
         // hand the DOM the sheet's screen box so the editorial block can sit beside it
         if (u > 0.9) {
           const w = RAIL.panel.w * mesh.scale.x * 0.5;
@@ -200,13 +246,19 @@ function Ribbon({
           };
         }
       } else {
+        const ad = Math.abs(d);
+        const nearFocus = clamp(1 - ad, 0, 1); // 1 at the dock, 0 one case away
         mesh.position.set(sl.x, sl.y, sl.z);
         mesh.rotation.set(0, sl.yaw, 0);
-        // the case the visitor has arrived at stands a little proud of the rest
-        mesh.scale.setScalar(1 + 0.09 * clamp(1 - Math.abs(d), 0, 1));
+        // the hierarchy is spatial first: the dock is close and large, the rest
+        // are far; scale only sharpens what distance already did
+        mesh.scale.setScalar(0.72 + 0.28 * nearFocus);
         mat.uniforms['uBend']!.value = 1;
-        mat.uniforms['uDim']!.value = clamp(u * 0.95 + Math.max(0, Math.abs(d) - 0.8) * 0.26, 0, 0.95);
-        mat.uniforms['uOpacity']!.value = clamp(1 - Math.max(0, Math.abs(d) - 2.2) * 0.7, 0, 1) * (1 - u * 0.78);
+        mat.uniforms['uDim']!.value = clamp(u * 0.95 + (1 - nearFocus) * 0.3 + Math.max(0, ad - 1.4) * 0.3, 0, 0.95);
+        mat.uniforms['uOpacity']!.value = clamp(1 - Math.max(0, ad - 2.4) * 0.8, 0, 1) * (1 - u * 0.78);
+        // away from the dock a case becomes a clipped fragment, flatter and cooler
+        mat.uniforms['uFragment']!.value = 1 - nearFocus;
+        mat.uniforms['uFlat']!.value = clamp((1 - nearFocus) * 0.9, 0, 0.9);
         mat.uniforms['uReveal']!.value = 0;
         mat.uniforms['uFieldAmount']!.value = 0;
         mat.uniforms['uHover']!.value = s.hover === k ? 1 : 0;
@@ -214,6 +266,28 @@ function Ribbon({
       mesh.visible = Math.abs(d) < 3.4 || focused;
     }
     if (s.unfold < 0.05) s.focusBox = null;
+
+    // dev probe: where each sheet lands on screen, and how big it is
+    const probe: { k: number; x: number; y: number; w: number; h: number; dist: number }[] = [];
+    for (let k = 0; k < n; k++) {
+      const mesh = meshes.current[k];
+      if (!mesh || !mesh.visible) continue;
+      const w = RAIL.panel.w * mesh.scale.x * 0.5;
+      const h = RAIL.panel.h * mesh.scale.y * 0.5;
+      tmp.a.set(-w, h, 0).applyQuaternion(mesh.quaternion).add(mesh.position);
+      const dist = tmp.a.distanceTo(camera.position);
+      tmp.a.project(camera);
+      tmp.b.set(w, -h, 0).applyQuaternion(mesh.quaternion).add(mesh.position).project(camera);
+      probe.push({
+        k,
+        x: Math.round(((tmp.a.x + 1) / 2) * size.width),
+        y: Math.round(((1 - tmp.a.y) / 2) * size.height),
+        w: Math.round(((tmp.b.x - tmp.a.x) / 2) * size.width),
+        h: Math.round(((tmp.a.y - tmp.b.y) / 2) * size.height),
+        dist: Math.round(dist * 100) / 100,
+      });
+    }
+    (window as unknown as Record<string, unknown>)['__sheets'] = probe;
   });
 
   return (
@@ -260,7 +334,7 @@ export function RibbonScene({
       className="ribbon__canvas"
       dpr={dpr}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      camera={{ fov: phone ? 46 : 40, near: 0.1, far: 70, position: [0, 0.35, 13.5] }}
+      camera={{ fov: phone ? 46 : 40, near: 0.1, far: 80, position: [0, 0.25, RAIL.radius + RAIL.dock] }}
       onCreated={({ gl }) => {
         gl.toneMapping = NoToneMapping;
         gl.setClearColor('#060f0c', 0);

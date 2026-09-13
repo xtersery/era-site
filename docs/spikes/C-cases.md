@@ -1,7 +1,8 @@
 # Spike C — Cases / до · после
 
-**Status: pass 5 — THE ARCHIVE ON A RAIL, built on the ThreeUI gallery element,
-AWAITING REVIEW (13.09.2026).** Not productionised; do not start Specialists.
+**Status: pass 6 — the archive restaged, AWAITING REVIEW (13.09.2026).** The
+spiral concept is approved in principle; pass 6 is a staging / spacing /
+hierarchy correction, not a redesign. Not productionised; do not start Specialists.
 Passes 3–4 (the portal passage, `spikes/portal/`) stay in the repo; pass 5 is the
 current candidate for the final Cases direction.
 
@@ -321,3 +322,42 @@ Recommendation: take this as the Cases direction and treat the portal passage as
 closed. Then, in order: 8–12 cases on the rail and re-judge the browse state; a
 decision on the affordance; a real device test; a reduced-motion path that skips
 the travel and opens the case in place.
+
+---
+
+## Pass 6 — STAGING CORRECTION (13.09.2026)
+
+Review of pass 5: the concept holds, the staging did not — equal rectangles on
+the same small radius, colliding silhouettes, z-order glitches, and a
+composition squeezed into the middle of the frame. Rule for this pass: **one
+active case + large spatial gaps + deep neighbours**, solved spatially rather
+than with opacity.
+
+| | pass 5 | pass 6 |
+| --- | --- | --- |
+| helix radius | 3.2 | **7.5** |
+| angle between cases · drop | 38° · 1.85 | **25° · 1.7** (× 1.45 on a phone) |
+| where the visitor stands | fixed 11.5 from the axis — every sheet about the same distance | **just outside the helix**: the docked case is always 4.55 away (7.6 on a phone) |
+| active case width on screen | ~28 % | **45 %** (target 45–60) |
+| neighbour depth | 1.05–1.2× the active distance | **1.27–2.25×**, and scaled 0.72 on top |
+| neighbour form | the same rectangle, smaller | **a clipped fragment** of its own plate — a slice, a band, a cheek — flattened and cooled (`uFragment`, `uFragmentRect`, `uFlat`) |
+| overlap | silhouettes collided; transparent sheets cut into each other | **324 px and 236 px of clear air** between silhouettes at the dock; sheets no longer write depth, so no z-fighting |
+| cost | 5 draw calls · 770 triangles | 4–5 draw calls · 578–770 triangles |
+
+The measurements come from the running scene: the spike exposes every sheet's
+projected box on `window.__sheets`, and the board's annotated figure draws those
+boxes, not hand-drawn ones.
+
+Unchanged and re-verified: 60 fps median browsing and open on both viewports,
+0 % of frames over 33 ms; the before/after alignment on the open sheet is still
+best at zero shift (1.537 vs 3.105 at 1 px); the full interaction path (scroll,
+click, open, До/После, back, index, Escape, phone tap/hold) still passes.
+
+Board: `docs/spikes/boards/cases-ribbon-staging.html` (pass-5 board kept at
+`cases-ribbon.html`). Spike: `docs/spikes/boards/cases-ribbon-spike.html`.
+
+**Still open:** the archive is four cases long, so the "one distant hint" is
+usually off-frame — the staging is built for 8–16 and should be re-judged with
+them; and the affordance is still carried by «Открыть кейс» and the index rather
+than by the sheet, which matters more now that neighbours are fragments (decide
+whether a fragment is clickable at all, or only the docked case).
