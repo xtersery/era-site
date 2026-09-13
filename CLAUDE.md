@@ -12,10 +12,12 @@ NOT final; Spike B (services) — the wheel, three alternative directions, the
 chamber-in-a-field and the literal 3D room were rejected; what survived is the
 information model (a service state = the entire editorial composition, moving as
 one unit). The direction — 2D RADIAL EDITORIAL SYSTEM — is approved in principle: the wheel
-is a hidden navigation engine, never shown as an object. `spikes/radial/` is the
-working section prototype (pass 7: normal page scroll pins the section and
-drives the engine, snap per service; labels / keys / swipe secondary), awaiting
-review. See
+is a hidden navigation engine, never shown as an object. **Spike B is CLOSED — APPROVED**: the 2D radial
+editorial system, the full state as one unit, pinned page scroll as the primary
+driver at 85 vh per state with snap, secondary controls, no scroll interception,
+and the current visual direction are **locked** (`docs/spikes/B-services.md`,
+reference implementation `spikes/radial/`). Do not redesign Services.
+Spike C (cases) is open. See
 `docs/spikes/B-services.md`.** The concept phase is closed. Do
 not propose alternative art directions, reorder sections, change the colour
 system or typography philosophy, or remove the glass metaphor. The greyscale

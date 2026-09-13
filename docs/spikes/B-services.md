@@ -204,7 +204,7 @@ control. Primary driver must be normal vertical page scroll (pin + ScrollTrigger
 no wheel interception, no scroll-jacking); labels / keyboard / swipe stay
 secondary; drag optional. Test scrubbed vs snap-per-service, 70–100 vh per state.
 
-## Pass 7 — SCROLL-DRIVEN, PINNED: AWAITING REVIEW (13.09.2026)
+## Pass 7 — SCROLL-DRIVEN, PINNED (13.09.2026)
 
 `spikes/radial/` now defaults to `drive=snap`: the section pins (`ScrollTrigger`,
 `start: 'top top'`, `end: '+=' + 6 × 85 vh`), a paused `turn: 0 → 6` tween is
@@ -241,3 +241,40 @@ Open: production will drive ScrollTrigger from Lenis (`SmoothScroll`) and the
 `none` tier keeps the greyscale list; the snap's own scroll adjustment is
 ScrollTrigger's, not ours — if it ever reads as scroll-jacking, `scrub` without
 snap is the fallback.
+
+---
+
+# SPIKE B — CLOSED. APPROVED 13.09.2026.
+
+The client approved the Services 2D Radial Editorial System. These decisions are
+**locked**; do not redesign Services, do not reopen the interaction model, and do
+not propose alternative directions for this section.
+
+1. **2D radial editorial system.** Flat. No 3D room, no perspective walls, no
+   camera. The wheel is a hidden navigation engine — the visitor never sees it
+   as an object (no ring of pages, no plan, no diagram in the UI).
+2. **A service state is the entire editorial composition** — number, name,
+   title, promise, description, metadata, imagery and its framing, CTA, optical
+   details — and it **transitions as one unit**. Never an image-only carousel.
+3. **Pinned vertical page scroll is the primary driver.** `ScrollTrigger` pin,
+   `start: 'top top'`, native document scroll progress turns the wheel
+   02.1 → … → 02.7; past the last state the section unpins, above the first it
+   releases upward.
+4. **85 vh of scroll per service state** (6 × 85 vh of pinned distance).
+5. **Snap behaviour as implemented:** scrubbed (`scrub: 1`) with
+   `snap: { snapTo: 1/6, duration: 0.5–1.4 s, delay: 0.05, ease: mineral,
+   inertia: false, directional: false }` — it always settles on a service and
+   never skips one.
+6. **Secondary controls stay:** click / Enter on a name on the arc, keyboard
+   ← →, phone swipe, drag on the arc. In scroll mode each of them moves the
+   *page* to that state's scroll position — one source of truth.
+7. **Normal page scroll is never manually intercepted.** No wheel handlers, no
+   scroll-jacking; ↑ ↓ and the wheel stay native throughout.
+8. **The current visual direction is approved** — the dial arc, the active name
+   on the content line, the neighbour hints, the ghost of the next title, the
+   state composition and its typography.
+
+Reference implementation: `spikes/radial/` (`ServicesRadial`). Production work
+on Services starts from it (tokens, `useGSAP`, `lib/stage`, ScrollTrigger driven
+by Lenis, the `none` tier keeping the greyscale list) and is a separate,
+approval-gated step.
