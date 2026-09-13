@@ -1,8 +1,9 @@
 # Spike C — Cases / до · после
 
-**Status: pass 4 — the threshold opened, AWAITING REVIEW (13.09.2026).** The
-passage concept is approved in principle; do not redesign it. Not productionised;
-do not start Specialists.
+**Status: pass 5 — THE ARCHIVE ON A RAIL, built on the ThreeUI gallery element,
+AWAITING REVIEW (13.09.2026).** Not productionised; do not start Specialists.
+Passes 3–4 (the portal passage, `spikes/portal/`) stay in the repo; pass 5 is the
+current candidate for the final Cases direction.
 
 Passes 1–2 (`spikes/cases/`, a DOM/CSS spatial archive) are superseded as a
 *direction* by pass 3, but their honesty machinery carries over unchanged. They
@@ -259,3 +260,64 @@ Unchanged and re-verified after the change: 60 fps median on both viewports,
 Board: `docs/spikes/boards/cases-passage-aperture.html` (pass-3 board kept at
 `cases-passage.html`; pass-3 frames in `spikes/portal/__captures__/pass3/`).
 Spike: `docs/spikes/boards/cases-passage-spike.html`.
+
+---
+
+## Pass 5 — THE ARCHIVE ON A RAIL (13.09.2026)
+
+Direction correction: stop inventing a gallery system from scratch; take the
+**ThreeUI `Gallery` element** (https://threeui.com/ui-elements/gallery) as the
+mechanical base and extend it into an ERA Cases experience with a focus state
+and an unfold state. Not literal portals, not a ring, not a cover flow.
+
+**Inherited from the element** — its own description is "sixteen curved
+editorial panels orbiting a vertical cylindrical rail on a quiet paper grid":
+the arrangement (curved panels around a vertical rail, each at its own angle and
+height), the slow continuous drift as the idle state, and the panel as a *bent
+sheet* rather than a flat card. The element itself is decorative — autoplay,
+props for speed/scale/opacity/hue, no selection and no detail state.
+
+**What is ours.** The rail is walked by the page's own scroll (pinned, ~95 vh
+per case) instead of autoplay; sheets are pickable (click on a sheet, «Открыть
+кейс», the index, keyboard); the curvature became a **uniform** so a chosen
+sheet can *unroll*; the two case states live on the sheet, sampled with the same
+uv and mixed by opacity only; the archive dims to about a fifth while one case
+is read; the ground is ERA's mineral dark with grain instead of a paper grid;
+gold is one glint on the rail marking where the visitor stands; every word is
+DOM.
+
+**The hero interaction.** One `unfold` value, 0 → 1, tweened 1.25 s on the
+mineral ease. The sheet's position is interpolated **in camera space** from its
+rail slot to a dock 7.4 units in front of the visitor (8.4 on a phone) — so it
+approaches monotonically instead of swinging past her — its quaternion slerps to
+the camera's, scale → 1.25, and `uBend` 1 → 0 flattens the wrap. The scene
+projects the sheet's screen box back to the DOM and the editorial block fades in
+beside it. «Назад в архив» / Esc / the back control runs the same value to 0 in
+1.05 s and the sheet re-wraps onto the rail.
+
+**Measured.** Browsing and open both hold 60 fps median (p95 16.8 ms, 0 % of
+frames over 33 ms) on 1440 × 900 and on a 390 × 844 viewport; **5 draw calls,
+770 triangles, 2 programs, 8 textures**, 31 MB JS heap, 80 DOM nodes — a
+fraction of the portal scene. Before/after alignment re-proved on the open
+sheet: zero shift is the best by 2.4× (1.689 vs 4.116 at 1 px).
+
+**Real vs stand-in.** Real: the mechanic, the scroll driver, picking, the
+unfold, the return, the before/after logic, the DOM editorial block, keyboard
+and touch paths, the Russian placeholder copy. Stand-in: the four case images
+(crops of the one test portrait; «до» is a colour grade of «после», no
+retouching, no simulated outcome), «Визуализация» on every open case.
+
+**Main risk.** With four cases the ribbon is an archive *fragment*; it wants
+8–16 sheets to read as an archive — a content question. Second: the affordance —
+a sheet is clickable but nothing shouts it, so the spike leans on «Открыть кейс»
+and the index to teach the gesture.
+
+Board: `docs/spikes/boards/cases-ribbon.html`
+Spike (single file): `docs/spikes/boards/cases-ribbon-spike.html`
+or `npm run dev` → `/spikes/gallery/` (`?c=&p=` browse still · `?focus=&u=`
+unfold still · `?mode=` · `?fx=&fy=` · `?hud=1`).
+
+Recommendation: take this as the Cases direction and treat the portal passage as
+closed. Then, in order: 8–12 cases on the rail and re-judge the browse state; a
+decision on the affordance; a real device test; a reduced-motion path that skips
+the travel and opens the case in place.
