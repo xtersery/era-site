@@ -1,8 +1,11 @@
 # Spike C — Cases / до · после
 
-**Status: direction approved in principle (13.09.2026); polish pass 2 built,
-AWAITING REVIEW.** Not productionised; do not start Specialists; do not redesign
-the section, the layout, or the imagery.
+**Status: pass 3 — THE PASSAGE — built, AWAITING REVIEW (13.09.2026).** Not
+productionised; do not start Specialists.
+
+Passes 1–2 (`spikes/cases/`, a DOM/CSS spatial archive) are superseded as a
+*direction* by pass 3, but their honesty machinery carries over unchanged. They
+stay in the repo as the fallback for the `none`/reduced tiers.
 
 Narrative role: Services is the choice, Cases is the proof. The section's laws
 are **DEPTH + FOCUS** with restrained refraction — deliberately not the radial
@@ -150,3 +153,67 @@ functionality, placeholder imagery, scroll rhythm. Performance is unchanged —
 
 Board: `docs/spikes/boards/cases-polish.html` (pass-1 board kept at
 `cases-archive.html`; pass-1 frames kept in `spikes/cases/__captures__/pass1/`).
+
+---
+
+## Pass 3 — THE PASSAGE OF THRESHOLDS (13.09.2026)
+
+Creative-director note: Cases is no longer a gallery but an **immersive art
+passage** — monumental optical thresholds in depth, entering / approaching /
+crossing / arriving / revealing. References given: `docs/references/noomo-labs.png`
+(scale, editorial-tech immersion, objects cropped by the frame, mono labels at the
+margins) and `docs/references/igloo-portals.png` (segmented monumental ring,
+threshold logic, haze). Used as direction only, never copied.
+
+**The object.** `spikes/portal/scene/portalGeometry.ts` authors each threshold
+deterministically from its case index: 7–9 annular blocks, each with its own
+inner/outer radius, depth (0.3–0.92), bevel and seam, each nudged in z and tilted
+so nothing is flush; merged into ONE geometry, scaled 1.07 in x so the ring is
+slightly elliptical. Two or three short torus arcs of polished gold lie on the
+aperture edge — gold as light, not decoration. No neon, no glow, no perfect ring.
+
+**The material.** ERA Mineral Glass from Spike A: transmission, ior 1.45,
+attenuation `#3D6B58` over 4.5 units (thick reads green-black, thin reads clear),
+clearcoat, the ERA environment (gold key upper left, teal fill right),
+`NoToneMapping`. Only the threshold the visitor is standing at gets true
+transmission (one pass); the others use the same glass without the backbuffer and
+give up their light to the haze.
+
+**The scene.** Four thresholds on one axis, each offset off it (±1.05 x, ±0.58 y)
+so the passage is a corridor of objects rather than a bullseye tunnel. `FogExp2`
+`#060f0c` at 0.115, one warm key, a second dim warm source behind the shoulder so
+the inner bevels read, a teal fill, green-black ambient. The case plate hangs 1.6
+units *behind* the threshold plane; its edges are eaten by an elliptical aperture
+mask so it belongs to the opening.
+
+**The walk.** Pinned, scrubbed, 110 vh per threshold with a 52 % dwell. Camera:
+forward on one axis, a hand's width of drift, re-centring at each dock; it passes
+through the threshold plane at `DOCK/SPACING` of the interval. The case is
+released while its threshold is still ahead (fade from 4.3 to 2.1 units in front)
+— the visitor crosses an opening, she does not fly into a photograph.
+
+**Before / after as depth.** Arriving, the visitor sees the state the case came
+from; it resolves into the result during the first half of the dwell. The pointer
+pushes back into it as a soft elliptical field; «До» · «Сравнить» · «После» are
+real buttons; a phone press-and-hold does the same. Both states are **one plane,
+one uv set, mixed by opacity** — no transform anywhere, so the face cannot move.
+Proof (`e2e/spike-portal.perf.mjs`): edge-structure alignment searched over ±3 px
+— zero shift is the best by 3.7× (0.643 vs 2.395 at 1 px, 2.841 at 2 px).
+
+**Measured** (Chrome, full scroll pass): 60 fps median on both viewports, p95
+16.7 / 16.8 ms, **0 %** of frames over 33 ms, **11 draw calls**, 17 504 triangles,
+23 programs, 27 geometries, 14 textures, 61 MB JS heap, 75 DOM nodes in the
+section. These come from a desktop GPU driving a phone-sized viewport — they say
+the scene is cheap, not that a mid-range Android holds 60 fps.
+
+Board: `docs/spikes/boards/cases-passage.html`
+Running spike (single file): `docs/spikes/boards/cases-passage-spike.html`
+or `npm run dev` → `/spikes/portal/` (`?c=&p=&mode=&fx=&fy=&only=&hud=1`).
+
+**Open / not proved:** a real device test (and a phone tier that drops the
+transmission pass entirely); the reduced-motion path (must land on a docked
+threshold and let the ladder do the walking); disposal past four cases; the
+passage seen straight after the approved Services room; real case photography
+(the composition assumes a vertical 4:5 frame, face slightly above centre). The
+plates are still grade-only stand-ins from the one test portrait, «Визуализация»
+on every case.

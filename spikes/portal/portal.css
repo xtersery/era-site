@@ -1,0 +1,281 @@
+/*
+ * Cases — the passage. The scene is WebGL and fills the room; the words are DOM
+ * and stand at the margins, the way a label stands beside a monumental object.
+ * Concept-board colours, not production tokens.
+ */
+.passage {
+  position: relative;
+  width: 100vw;
+  height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(62% 46% at 66% 34%, rgba(127, 176, 164, 0.05), transparent 72%),
+    radial-gradient(80% 54% at 12% 88%, rgba(138, 148, 140, 0.045), transparent 74%),
+    radial-gradient(120% 100% at 62% 42%, #0d1f18 0%, #091510 44%, #050d0a 100%);
+  color: #eae6dc;
+}
+/* the grain that keeps the depth from banding */
+.passage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.passage__stage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  touch-action: pan-y;
+}
+.passage__canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+/* alignment proof only: a grid over the plate, both states underneath it */
+.passage__grid {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34vw;
+  aspect-ratio: 4 / 5;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(247, 228, 177, 0.4) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(180deg, rgba(247, 228, 177, 0.4) 0 1px, transparent 1px 44px);
+}
+
+.passage__label,
+.passage__hint {
+  position: absolute;
+  z-index: 6;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #7e8c84;
+}
+.passage__label {
+  top: var(--space-md);
+  left: var(--gutter);
+  right: var(--gutter);
+  display: flex;
+  justify-content: space-between;
+}
+.passage__hint {
+  left: var(--gutter);
+  bottom: var(--space-md);
+}
+
+/* ---- the museum label -------------------------------------------------- */
+.wall {
+  position: absolute;
+  z-index: 5;
+  left: var(--gutter);
+  bottom: calc(var(--space-lg) + 1.6rem);
+  width: min(25rem, 27vw);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* it sits in its own air, not on a panel */
+  text-shadow: 0 1px 22px rgba(5, 13, 10, 0.85);
+}
+.wall__no {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #9aa79f;
+}
+.wall__no span { color: #67746c; }
+.wall__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 2vw, 2.2rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.wall__service {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #b9c2bb;
+}
+.wall__meta {
+  display: grid;
+  grid-template-columns: 11ch 1fr;
+  row-gap: 4px;
+  margin: 4px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(234, 230, 220, 0.16);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+}
+.wall__meta dt { color: #8b988f; }
+.wall__meta dd { margin: 0; color: #ded9cf; }
+.wall__note {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #aeb6af;
+  max-width: 38ch;
+}
+.wall__honesty {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  color: #cfaf72;
+  max-width: 40ch;
+}
+.wall__controls {
+  display: flex;
+  gap: 1px;
+  margin-top: 6px;
+  background: rgba(234, 230, 220, 0.16);
+  align-self: start;
+}
+.wall__btn {
+  appearance: none;
+  border: 0;
+  background: rgba(9, 21, 16, 0.86);
+  color: #b9c2bb;
+  font: inherit;
+  font-size: 0.9375rem;
+  padding: 11px 20px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.wall__btn[aria-pressed='true'] { background: #ece8df; color: #0d0c0b; }
+.wall__btn:focus-visible { outline: 1px solid #cfaf72; outline-offset: 2px; }
+.wall__cta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: 8px;
+}
+.wall__primary {
+  display: inline-grid;
+  place-items: center;
+  min-height: 56px;
+  padding: 0 28px;
+  background: #cfaf72;
+  color: #08140f;
+  text-decoration: none;
+  font-size: 0.9375rem;
+}
+.wall__link {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #cfc7ba;
+  text-decoration: none;
+}
+.wall__primary:focus-visible,
+.wall__link:focus-visible { outline: 1px solid #cfaf72; outline-offset: 4px; }
+
+/* ---- the ladder: where the visitor is in the passage ------------------- */
+.ladder {
+  position: absolute;
+  z-index: 6;
+  right: var(--gutter);
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ladder ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-end;
+}
+.ladder button {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 6px 2px 6px 18px;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #6f7d75;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ladder button::before {
+  content: '';
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+.ladder button[aria-current] { color: #f0ece2; }
+.ladder button[aria-current]::before { width: 40px; background: #cfaf72; opacity: 1; }
+.ladder button:focus-visible { outline: 1px solid #cfaf72; outline-offset: 2px; }
+
+/* ---- stubs and readout ------------------------------------------------- */
+.stub {
+  background: #ece8df;
+  color: #625d55;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: var(--space-md) var(--gutter);
+}
+.stub--bar {
+  grid-template-columns: 1fr auto;
+  place-items: center start;
+  background: #08140f;
+  color: #eae6dc;
+  padding-block: var(--space-sm);
+}
+.stub__mark { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: -0.02em; }
+.stub__cta { border: 1px solid #cfaf72; color: #f7e4b1; padding: 8px 16px; font-family: var(--font-body); }
+.stub--before { min-height: 46svh; }
+.stub--after { min-height: 160svh; }
+.hud {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 40;
+  font: 11px/1.4 var(--font-mono);
+  color: #98a39c;
+  background: rgba(6, 15, 12, 0.85);
+  padding: 4px 8px;
+}
+
+/* ---- phone: the object keeps the frame, the label sits under it -------- */
+@media (max-width: 1023.98px) {
+  .wall {
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: calc(var(--space-md) + 1.4rem);
+    width: auto;
+    gap: 6px;
+  }
+  .wall__title { font-size: 1.5rem; }
+  .wall__note,
+  .wall__meta { display: none; }
+  .wall__honesty { font-size: 0.66rem; max-width: none; }
+  .wall__btn { padding: 10px 15px; font-size: 0.875rem; }
+  .wall__primary { min-height: 52px; padding: 0 22px; }
+  .ladder {
+    right: auto;
+    left: var(--gutter);
+    top: calc(var(--space-lg) + 1.2rem);
+    transform: none;
+  }
+  .ladder ol { flex-direction: row; gap: 10px; align-items: center; }
+  .ladder button { padding: 6px; flex-direction: column; gap: 6px; }
+  .ladder button::before { width: 16px; }
+  .ladder button[aria-current]::before { width: 26px; }
+  .passage__hint { left: var(--gutter); right: var(--gutter); bottom: var(--space-xs); text-align: center; }
+  .passage__grid { width: 72vw; }
+}
