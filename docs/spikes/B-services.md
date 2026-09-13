@@ -156,7 +156,7 @@ composition call for the next pass.
 
 ## Next steps (blocked on approval)
 
-1. Review pass 6 in the working spike (not the board) and return notes.
+1. Review pass 7 in the working spike (scroll-driven) and return notes.
 2. Then: productionise Services from `spikes/radial/` into `src/sections/services`
    (tokens, `useGSAP`, `lib/stage` grips, the `none` tier = the greyscale
    prototype's list; the real Mineral Glass strip when the WebGL phase opens).
@@ -169,7 +169,7 @@ top-down plan are internal explanation only, never the user-facing solution; the
 visitor must never look at the whole wheel as an object. Next: a real section
 prototype, not a board.
 
-## Pass 6 — THE RADIAL SECTION, working spike: AWAITING REVIEW (13.09.2026)
+## Pass 6 — THE RADIAL SECTION, working spike (13.09.2026)
 
 `spikes/radial/` is now the working section logic (`ServicesRadial`): the wheel
 is a hidden navigation engine. One active spread; the dial arc enters from the
@@ -198,3 +198,46 @@ swipe, tap, reduced motion — all pass).
 Not yet: the glass strip is a CSS stand-in; images are the Spike A stand-ins;
 the phone mid-turn is sparse by geometry; the header/neighbour sections are
 stubs. No production code.
+
+**Review of pass 6:** drag-to-rotate is not intuitive enough as the main
+control. Primary driver must be normal vertical page scroll (pin + ScrollTrigger,
+no wheel interception, no scroll-jacking); labels / keyboard / swipe stay
+secondary; drag optional. Test scrubbed vs snap-per-service, 70–100 vh per state.
+
+## Pass 7 — SCROLL-DRIVEN, PINNED: AWAITING REVIEW (13.09.2026)
+
+`spikes/radial/` now defaults to `drive=snap`: the section pins (`ScrollTrigger`,
+`start: 'top top'`, `end: '+=' + 6 × 85 vh`), a paused `turn: 0 → 6` tween is
+scrubbed from document scroll (`scrub: 1`), and `snap` settles to the nearest
+state (`directional: false`, 0.5–1.4 s on the mineral ease). In scroll modes the
+wheel is a line 02.1 … 02.7 (no wrap; nothing beyond either end), secondary
+controls move the PAGE to the state's scroll position (one source of truth):
+names → `scrollTo`, ← → step (↑ ↓ stay native), phone swipe → step, the arc drag
+scrolls the page. `?drive=drag|scrub|snap|step` and `?d=<vh>` keep the models
+comparable; `?t=` stills are unpinned.
+
+Measured (`e2e/spike-radial.scroll.mjs`, Chrome, wheel 100 px / 60 ms; flick
+1 200 px; touch on 390 × 844):
+- scrub: order kept, exits both ends, but rests between states after a flick
+  (turn 1.57 at 85 vh) — fluid, unresolved.
+- snap (chosen): order kept at 70 / 85 / 100 vh, 3.1 / 3.7 / 4.4 s for a calm
+  pass through seven states, always rests on a state (a flick from 02.1 rests on
+  02.3 passing through 02.2 at 85 vh; on 02.2 at 100 vh), exits both ends,
+  phone touch scroll 02.1 → … → 02.7 in order.
+- step (tween per state): order kept but the picture lags the scroll by 1–2 s
+  and a calm pass takes ≈ 12 s — disconnected.
+- drag (A): precise but hidden — scrolling does nothing to the section.
+**Recommendation: B · snap · 85 vh.** Comparison table on the board.
+
+Fixed on the way: the phone dial had been positioned off-screen since pass 6
+(the grip region had replaced the dial's section-relative box) — the grip is now
+a separate `.dial__grip`; the pass-6 mobile stills on the board were wrong and
+are replaced.
+
+Spike (interactive, v2): https://claude.ai/code/artifact/f5dd8b8f-4a3b-495c-97cb-803aa7c58cbb
+Board (v2): https://claude.ai/code/artifact/652ec34b-820b-4860-81e4-5b88875d106e
+
+Open: production will drive ScrollTrigger from Lenis (`SmoothScroll`) and the
+`none` tier keeps the greyscale list; the snap's own scroll adjustment is
+ScrollTrigger's, not ours — if it ever reads as scroll-jacking, `scrub` without
+snap is the fallback.

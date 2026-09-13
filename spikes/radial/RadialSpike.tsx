@@ -1,5 +1,6 @@
 import gsap from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { services } from '@/data/services';
@@ -17,17 +18,27 @@ import skin from '../hero/assets/skin-plate.jpg';
  * centre at the same angular speed, so a state and its name travel together; a
  * state's own rotation is damped so it stays flat and resolves horizontal.
  *
- * Interaction (all DOM, no scroll hijack, the mouse wheel does nothing here):
- *   · click / Enter on a name on the dial → the wheel turns to that state
- *   · drag the dial (angle about the wheel centre) → the wheel follows, snaps
- *   · phone: horizontal swipe on the state → next / previous
- *   · keyboard on the section: ← ↑ previous · → ↓ next
- *   · prefers-reduced-motion: the wheel lands on the state without a tween
+ * PRIMARY DRIVER — normal vertical page scroll (`drive` ≠ 'drag'): the section
+ * pins with ScrollTrigger and native document scroll progress turns the wheel,
+ * 02.1 → … → 02.7 over `dist` vh per state; past the last state the section
+ * unpins and the page flows on; before the first it releases upward. No wheel
+ * events are intercepted, no scroll-jacking — ScrollTrigger reads scrollY.
+ *   · scrub — turn follows scroll continuously (smoothed 1 s); rests anywhere
+ *   · snap  — scrub + ScrollTrigger snap to the nearest state when scrolling stops
+ *   · step  — scroll position selects the state; the engine tweens to it on
+ *             the mineral ease (never rests between states)
+ *   · drag  — the earlier model (A): the dial is the primary control, no pin
  *
- * Stills for the storyboard: `?a=0..6&t=0..1` (progress a → a+1 on the real
- * ease, no tween). `?hud=0` hides the corner readout.
+ * Secondary controls in every mode: click / Enter on a name, keyboard ← →
+ * (↑ ↓ stay native page scroll), phone swipe, and the dial drag as an optional
+ * enhancement — in scroll modes they all move the page to the state's scroll
+ * position, so scroll and state can never disagree.
+ *
+ * Stills for the storyboard: `?a=0..6&t=0..1` (no ScrollTrigger). `?hud=1`
+ * shows the corner readout. `?drive=` and `?d=` select the model and distance.
  */
-gsap.registerPlugin(CustomEase);
+gsap.registerPlugin(CustomEase, ScrollTrigger);
+export type Drive = 'drag' | 'scrub' | 'snap' | 'step';
 // heavy and calm: a slow, weighted departure and a long settle
 const MINERAL = CustomEase.create('mineral', 'M0,0 C0.52,0 0.18,1 1,1');
 
@@ -71,14 +82,18 @@ function layout(w: number, h: number): Wheel {
 function readParams() {
   const q = new URLSearchParams(location.search);
   const t = q.get('t');
+  const drive = q.get('drive');
   return {
     a: Math.min(N - 1, Math.max(0, Number(q.get('a') ?? 0))),
     t: t === null ? null : Math.min(1, Math.max(0, Number(t))),
     hud: q.get('hud') === '1',
+    drive: (drive === 'drag' || drive === 'scrub' || drive === 'snap' || drive === 'step' ? drive : 'snap') as Drive,
+    dist: Math.min(140, Math.max(40, Number(q.get('d') ?? 85))),
   };
 }
 
-export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: number; still?: number | null; onTurn?: (turn: number) => void }) {
+export function ServicesRadial({ start = 0, still = null, drive = 'snap', dist = 85, onTurn }: { start?: number; still?: number | null; drive?: Drive; dist?: number; onTurn?: (turn: number) => void }) {
+  const scrollDriven = drive !== 'drag' && still === null;
   const sectionRef = useRef<HTMLElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
   const tickRefs = useRef<(SVGLineElement | null)[]>([]);
@@ -87,6 +102,7 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
   const wheel = useRef({ turn: still === null ? start : start + MINERAL(still) });
   const L = useRef<Wheel>(layout(window.innerWidth, window.innerHeight));
   const tween = useRef<gsap.core.Tween | null>(null);
+  const trigger = useRef<ScrollTrigger | null>(null);
   const [active, setActive] = useState(() => mod(Math.round(wheel.current.turn), N));
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
 
@@ -98,7 +114,7 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
     ringRef.current?.setAttribute('cy', String(l.cy));
     ringRef.current?.setAttribute('r', String(l.rDial));
     for (let k = 0; k < N; k++) {
-      const rel = shortest(turn, k); // −3.5 … 3.5 states from the focus
+      const rel = scrollDriven ? k - turn : shortest(turn, k); // scroll: a line 02.1 … 02.7, no wrap; drag: a ring
       const th = l.base + rel * STEP;
       const c = Math.cos(rad(th));
       const s = Math.sin(rad(th));
@@ -139,7 +155,7 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
     const k = mod(Math.round(turn), N);
     setActive((prev) => (prev === k ? prev : k));
     onTurn?.(turn);
-  }, [onTurn]);
+  }, [onTurn, scrollDriven]);
 
   useEffect(() => {
     const onResize = () => {
@@ -151,11 +167,68 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
     return () => window.removeEventListener('resize', onResize);
   }, [apply]);
 
-  /** turn the wheel to state k by the shortest way */
-  const goTo = useCallback(
-    (k: number, opts: { snapOnly?: boolean } = {}) => {
+  /** scroll-driven modes: pin the section; document scroll progress owns `turn` */
+  useEffect(() => {
+    if (!scrollDriven || !sectionRef.current) return;
+    const section = sectionRef.current;
+    const px = () => (dist / 100) * window.innerHeight;
+    const common = {
+      trigger: section,
+      start: 'top top',
+      end: () => `+=${(N - 1) * px()}`,
+      pin: true,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+    };
+    let st: ScrollTrigger;
+    if (drive === 'step') {
+      // the scroll position selects the state; the engine tweens to it — calm, never between states
+      let current = Math.round(wheel.current.turn);
+      st = ScrollTrigger.create({
+        ...common,
+        onUpdate: (self) => {
+          // hysteresis: a state changes only once scroll is clearly past the midpoint (±0.1 state), so a hand resting near a threshold cannot flutter
+          const p = self.progress * (N - 1);
+          let target = current;
+          while (p > target + 0.6 && target < N - 1) target += 1;
+          while (p < target - 0.6 && target > 0) target -= 1;
+          if (target !== current) {
+            current = target;
+            tweenTo(target);
+          }
+        },
+      });
+    } else {
+      const anim = gsap.to(wheel.current, { turn: N - 1, ease: 'none', duration: 1, paused: true, onUpdate: apply });
+      st = ScrollTrigger.create({
+        ...common,
+        animation: anim,
+        scrub: 1, // one second of smoothing behind the finger / wheel
+        ...(drive === 'snap'
+          ? { snap: { snapTo: 1 / (N - 1), duration: { min: 0.5, max: 1.4 }, delay: 0.05, ease: MINERAL, inertia: false, directional: false } }
+          : {}),
+      });
+    }
+    trigger.current = st;
+    return () => {
+      st.kill();
+      trigger.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollDriven, drive, dist]);
+
+  /** scroll-driven: the document position of state k */
+  const scrollYOf = useCallback((k: number) => {
+    const st = trigger.current;
+    if (!st) return null;
+    return st.start + ((st.end - st.start) * k) / (N - 1);
+  }, []);
+
+  /** tween the engine to state k (engine-only; scroll modes call this from ScrollTrigger) */
+  const tweenTo = useCallback(
+    (k: number, opts: { snapOnly?: boolean; wrap?: boolean } = {}) => {
       const from = wheel.current.turn;
-      const target = from + shortest(from, k);
+      const target = opts.wrap ? from + shortest(from, k) : k;
       const dist = Math.abs(target - from);
       if (dist < 1e-4) return;
       tween.current?.kill();
@@ -170,14 +243,34 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
         ease: MINERAL,
         onUpdate: apply,
         onComplete: () => {
-          wheel.current.turn = mod(wheel.current.turn, N);
+          if (opts.wrap) wheel.current.turn = mod(wheel.current.turn, N);
           apply();
         },
       });
     },
     [apply, reduced],
   );
-  const step = useCallback((dir: 1 | -1) => goTo(mod(Math.round(wheel.current.turn) + dir, N)), [goTo]);
+
+  /** turn the wheel to state k by the shortest way */
+  const goTo = useCallback(
+    (k: number, opts: { snapOnly?: boolean } = {}) => {
+      if (scrollDriven) {
+        // secondary controls move the PAGE; ScrollTrigger then turns the wheel — one source of truth
+        const y = scrollYOf(k);
+        if (y !== null) window.scrollTo({ top: y, behavior: reduced ? 'instant' : 'smooth' });
+        return;
+      }
+      tweenTo(k, { ...opts, wrap: true });
+    },
+    [scrollDriven, scrollYOf, reduced, tweenTo],
+  );
+  const step = useCallback(
+    (dir: 1 | -1) => {
+      const k = Math.round(wheel.current.turn) + dir;
+      goTo(scrollDriven ? Math.max(0, Math.min(N - 1, k)) : mod(k, N));
+    },
+    [goTo, scrollDriven],
+  );
 
   /* ---- drag on the dial (angle about the centre) and swipe on the state ---- */
   const drag = useRef<{ id: number; mode: 'dial' | 'swipe'; lastA: number; lastX: number; lastT: number; v: number; moved: number; startTurn: number } | null>(null);
@@ -210,6 +303,17 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
     const dt = Math.max(1, now - d.lastT);
     d.v = 0.6 * d.v + 0.4 * (dTurn / dt) * 1000; // states per second, smoothed
     d.lastT = now;
+    if (scrollDriven) {
+      if (d.mode === 'swipe') return; // decided on release: one state per swipe
+      // optional enhancement: the dial drag scrolls the page; the wheel follows the page
+      const y = scrollYOf(0);
+      if (y !== null) {
+        const per = (trigger.current!.end - trigger.current!.start) / (N - 1);
+        d.startTurn = Math.max(0, Math.min(N - 1, d.startTurn + dTurn));
+        window.scrollTo({ top: y + d.startTurn * per, behavior: 'instant' });
+      }
+      return;
+    }
     wheel.current.turn += dTurn;
     apply();
   };
@@ -217,6 +321,11 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
     const d = drag.current;
     if (!d || d.id !== e.pointerId) return;
     drag.current = null;
+    if (scrollDriven) {
+      if (d.mode === 'swipe' && d.moved > 0.12) step(d.v > 0 ? 1 : -1); // a swipe is a page: next / previous
+      else if (d.mode === 'dial') goTo(Math.round(d.startTurn)); // settle the page on the nearest state
+      return;
+    }
     const { turn } = wheel.current;
     let target = Math.round(turn);
     if (Math.abs(d.v) > 0.45 && d.moved > 0.03) target = d.v > 0 ? Math.ceil(turn) : Math.floor(turn); // a flick carries to the next
@@ -226,8 +335,8 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
   const wasDrag = () => (drag.current ? drag.current.moved > 0.02 : false);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); step(1); }
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); step(-1); }
+    if (e.key === 'ArrowRight' || (!scrollDriven && e.key === 'ArrowDown')) { e.preventDefault(); step(1); }
+    if (e.key === 'ArrowLeft' || (!scrollDriven && e.key === 'ArrowUp')) { e.preventDefault(); step(-1); }
   };
 
   const activeService = services[active]!;
@@ -238,6 +347,7 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
 
       {/* the dial — the one visible trace of the wheel; also the drag grip */}
       <div className="dial" onPointerDown={onPointerDown('dial')} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
+        <div className="dial__grip" aria-hidden="true" />
         <svg className="radial__ring" aria-hidden="true">
           <circle ref={ringRef} />
           {services.map((s, k) => <line key={s.id} ref={(el) => { tickRefs.current[k] = el; }} />)}
@@ -306,7 +416,7 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
         })}
       </div>
 
-      <p className="radial__keys" aria-hidden="true">{L.current.phone ? 'свайп — следующее направление' : '↑ ↓ — направления · дугу можно тянуть'}</p>
+      <p className="radial__keys" aria-hidden="true">{scrollDriven ? (L.current.phone ? 'листайте — направления сменяются' : 'прокрутка — направления · ← → — по одному') : L.current.phone ? 'свайп — следующее направление' : '↑ ↓ — направления · дугу можно тянуть'}</p>
       <p className="sr-only" aria-live="polite">Услуга {subIndex('02', active + 1)} — {activeService.name}</p>
     </section>
   );
@@ -314,7 +424,7 @@ export function ServicesRadial({ start = 0, still = null, onTurn }: { start?: nu
 
 /** the spike page: the section between two honest stubs, so page scroll is visibly untouched */
 export function RadialSpike() {
-  const { a, t, hud } = useMemo(readParams, []);
+  const { a, t, hud, drive, dist } = useMemo(readParams, []);
   const [turn, setTurn] = useState(a);
   return (
     <>
@@ -324,11 +434,11 @@ export function RadialSpike() {
           <section className="stub stub--before" aria-label="Заглушка предыдущей секции"><p>01 — Манифест · [заглушка соседней секции — прокрутка страницы не перехватывается]</p></section>
         </>
       )}
-      <ServicesRadial start={a} still={t} onTurn={setTurn} />
+      <ServicesRadial start={a} still={t} drive={drive} dist={dist} onTurn={setTurn} />
       {t === null && <section className="stub stub--after" aria-label="Заглушка следующей секции"><p>03 — Стоимость · [заглушка соседней секции]</p></section>}
       {hud && t === null && (
         <div className="hud" aria-hidden="true">
-          2D radial · turn {turn.toFixed(3)} · active {subIndex('02', mod(Math.round(turn), N) + 1)}
+          2D radial · {drive} · {dist}vh/state · turn {turn.toFixed(3)} · active {subIndex('02', mod(Math.round(turn), N) + 1)}
         </div>
       )}
     </>

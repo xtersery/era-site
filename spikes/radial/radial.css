@@ -14,17 +14,25 @@
   outline-offset: 6px;
 }
 
-/* the dial is also the drag grip: the left third on desktop */
+/* the dial spans the section (its geometry is section-relative); only the grip
+   region and the names take pointer events */
 .dial {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  user-select: none;
+}
+.dial__grip {
   position: absolute;
   inset: 0 auto 0 0;
   width: 38%;
-  z-index: 3;
+  pointer-events: auto;
   cursor: grab;
   touch-action: none;
-  user-select: none;
 }
-.dial:active { cursor: grabbing; }
+.dial__grip:active { cursor: grabbing; }
+.dial__name { pointer-events: auto; }
 .radial__states {
   position: absolute;
   inset: 0;
@@ -278,7 +286,7 @@
 .stub__mark { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: -0.02em; }
 .stub__cta { border: 1px solid #cfaf72; color: #f7e4b1; padding: 8px 16px; font-family: var(--font-body); }
 .stub--before { min-height: 46svh; }
-.stub--after { min-height: 60svh; }
+.stub--after { min-height: 160svh; }
 
 .hud {
   position: fixed;
@@ -293,10 +301,10 @@
 
 /* --- phone: the frame sits above the centre; the dial is a bottom arc ------ */
 @media (max-width: 1023.98px) {
-  .dial {
+  .dial__grip {
     inset: auto 0 0 0;
     width: auto;
-    height: 26%;
+    height: 24%;
   }
   .radial__states { touch-action: pan-y; }
   .radial__keys { bottom: var(--space-sm); left: 50%; transform: translateX(-50%); white-space: nowrap; }
