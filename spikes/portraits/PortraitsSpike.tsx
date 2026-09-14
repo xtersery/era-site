@@ -8,6 +8,7 @@ import { cta } from '@/data/copy';
 import { subIndex } from '@/lib/utils';
 
 import { PLACEHOLDER_LABEL, sitters } from './people';
+import { ShardScene, type ShardState } from './scene/ShardScene';
 
 /**
  * Specialists — «Сеанс», the pinned portrait gallery (Spike D, pass 1).
@@ -16,10 +17,11 @@ import { PLACEHOLDER_LABEL, sitters } from './people';
  * person. The visitor never browses a staff list; she meets a specialist and
  * reads her label. At rest a calibration hairline — the FOCAL LINE — runs from
  * the typeset name across the wall to the eyes of the woman in the portrait.
- * Between specialists a SHARD of mineral glass — translucent, uncut at the
- * edges, catching gold and mineral green — turns slowly across the frame and
- * carries the next portrait in: the incoming portrait is seen refracted inside
- * the shard, and lies clear behind it where it has passed. Right to left, the
+ * Between specialists a SHARD of ERA Mineral Glass — a real body: extruded,
+ * roughened, refracting — turns slowly across the frame and carries the next
+ * portrait in: the incoming portrait is seen refracted through the stone's
+ * volume, and lies clear behind it where it has passed. The WebGL shard is the
+ * object; the CSS shard of pass 3 stays as the no-WebGL fallback. Right to left, the
  * direction the light has in every room of this site; the words leave and
  * arrive the same way. Nothing slides, nothing fades, nothing is a card.
  *
@@ -88,12 +90,15 @@ export function Sitting({
   const labels = useRef<(HTMLElement | null)[]>([]);
   const names = useRef<(HTMLElement | null)[]>([]);
   const shard = useRef<HTMLDivElement>(null);
+  const [live, setLive] = useState(false);
+  const shardState = useRef<ShardState>({ on: false, seam: 112, rotY: -20, rotZ: -7, rise: 1.5, next: 1, anchorY: 0.28 });
   const shardThrough = useRef<HTMLImageElement>(null);
   const shardGlint = useRef<SVGPathElement>(null);
   const focal = useRef<HTMLDivElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
   const phone = useMemo(() => window.innerWidth < 1024, []);
+  const portraitUrls = useMemo(() => sitters.map((s) => (phone ? s.portraitPhone : s.portrait)), [phone]);
   const [current, setCurrent] = useState(frozen?.k ?? 0);
   const trigger = useRef<ScrollTrigger | null>(null);
   const eyes = useRef<{ x: number; y: number }[]>([]);
@@ -201,9 +206,13 @@ export function Sitting({
       const left = ((seam - half) * fw) / 100;
       // it pivots on its own axis — turned toward the visitor as it enters,
       // away as it leaves — and hangs at a slight tilt, like a shard held up
-      const rotY = lerp(-20, 22, f);
+      const rotY = lerp(-15, 16, f);
       const rotZ = lerp(-7, -4, f);
       const rise = lerp(1.5, -1.5, f); // it drifts down a little as it turns
+      // the same pose for the body of glass
+      const nextImg = plates.current[next]?.querySelector('img');
+      const anchorY = nextImg ? parseFloat(nextImg.style.objectPosition.split(' ')[1] ?? '28') / 100 : 0.28;
+      shardState.current = { on, seam, rotY, rotZ, rise, next, anchorY };
       shard.current.style.transform = `translate3d(${left.toFixed(1)}px, ${((rise * fh) / 100).toFixed(1)}px, 0) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg)`;
       shard.current.style.width = `${w.toFixed(1)}px`;
       // through it, the incoming portrait — aligned to the frame, then bent:
@@ -286,7 +295,7 @@ export function Sitting({
   }, [reduced]);
 
   return (
-    <section ref={sectionRef} className="sitting" id="specialists" aria-labelledby="specialists-title">
+    <section ref={sectionRef} className="sitting" id="specialists" aria-labelledby="specialists-title" data-live={live || undefined}>
       <h2 id="specialists-title" className="sr-only">Специалисты</h2>
 
       {/* the wall: the light surface the label is set on */}
@@ -362,8 +371,9 @@ export function Sitting({
             />
           </figure>
         ))}
-        {/* the shard: the incoming portrait seen through mineral glass with an uncut edge */}
-        <div ref={shard} className="shard" aria-hidden="true">
+        {/* the shard as a body of ERA Mineral Glass; the CSS shard below is the no-WebGL fallback */}
+        {!reduced && <ShardScene portraits={portraitUrls} state={shardState} phone={phone} onReady={() => setLive(true)} />}
+        <div ref={shard} className="shard" aria-hidden="true" hidden={live}>
           <div className="shard__stone">
           <div className="shard__back" />
           <div className="shard__body">

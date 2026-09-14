@@ -199,6 +199,14 @@
   user-select: none;
 }
 /* ---- the shard: a suspended plate of mineral glass ------------------------ */
+.frame__canvas {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 3;
+}
+.shard[hidden] { display: none; }
 .frame { perspective: 1400px; perspective-origin: 60% 45%; }
 .shard {
   position: absolute;

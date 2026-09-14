@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 3 — «СЕАНС», the sitting, with the MINERAL SHARD as the transition object — AWAITING REVIEW (14.09.2026).** Pass 2 review: the line transition was too literal and UI-like; replace it with a translucent, uncut mineral form that turns and carries the next portrait in. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
+**Status: pass 4 — «СЕАНС», the sitting, with the shard as a REAL BODY OF ERA MINERAL GLASS (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 3 review: the CSS/SVG shard read as a flat glass mask; a true 3D object with volume, thickness and real refraction was required — no more filters. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -227,3 +227,70 @@ through-image at the shard's width, so the first build showed a dark slab;
 
 Board: sections B1 (ten frames), B2 (the object close at three moments) and
 the material table.
+
+
+---
+
+## Pass 4 — THE SHARD AS A BODY OF ERA MINERAL GLASS (14.09.2026)
+
+Review of pass 3: the direction (a torn translucent transition) is right; the
+CSS/SVG implementation reads as a flat glass mask, not a material object.
+Required: a true 3D mineral-glass object — Three.js / R3F — with actual
+volume, irregular raw edges, subtle internal structure, visible thickness,
+realistic refraction, soft reflections, slight imperfections; museum object +
+mineral glass + luxury architecture; not fantasy crystal, not a hologram, not
+glowing. Layout unchanged; only the transition material replaced.
+
+**The layer.** A WebGL canvas over the frame only (`spikes/portraits/scene/`),
+`pointer-events: none`, alpha, `NoToneMapping`; mounted when motion is not
+reduced; the section sets `data-live` when the scene has rendered and the CSS
+shard of pass 3 is hidden — it remains the no-WebGL fallback. A 30° camera at
+the distance where a 10-unit-tall plane exactly fills the view, so frame
+pixels map to world units directly.
+
+**The body** (`shardGeometry.ts`). The same 13-point uncut outline as a
+`Shape`, extruded to 0.5 world units (≈ 45 px at 1440 × 900; 0.38 on the
+phone) with a 3-segment bevel; vertices welded (`mergeVertices`) so normals
+are smooth across the bevel; then roughened in the geometry: a value-noise
+fbm wobble of 0.11 along the walls at chip scale, a 0.018 grain on the walls
+where the stone was broken, a 0.07 undulation across the faces (a poured slab
+is never flat); normals recomputed; centred on its thickness so it turns
+about its own middle.
+
+**The material** — ERA Mineral Glass, path A, exactly as approved in Spike A
+(`spikes/hero/scene/materials.tsx`): drei `MeshTransmissionMaterial`,
+transmission 1, thickness 0.6, ior 1.45, chromatic aberration 0.035,
+anisotropic blur 0.05, roughness 0.11, attenuation `#3d6b58` (the lifted
+derivative, never the logo green) at distance 6, colour `#f8f6f1`, the vein
+normal map from the real entrance wall at 0.05 (planar UVs from the extrude,
+repeat 0.3), clearcoat 1 / 0.06, env intensity 1.7, 6 samples at 1024
+(phone: 2 at 512). The ERA environment (gold key upper left, teal fill) as
+`scene.environment`; one warm directional key from the upper left.
+
+**What it refracts.** The incoming portrait, and nothing else: a plane on
+layer 1 (which the visible camera never draws), cover-fitted and anchored
+exactly as its DOM plate (the crop anchor is read from the plate's
+`object-position`), is rendered each frame with the same camera into a 1024²
+buffer and handed to the material's `buffer` prop — drei then skips its own
+scene capture and samples the buffer in NDC through the glass volume. Outside
+the stone the canvas is clear and the DOM portraits show; where the stone has
+passed the DOM reveals the incoming plate (mask edge trailing inside the
+stone, as before). The first attempt at attenuation distance 2.6 turned the
+refracted skin olive — Spike A's finding again — and was lifted to 6; the
+turn was narrowed to −15° → +16° because at ±20° the grazing path through
+the thickness went near-opaque against the dark studio environment.
+
+**Pose.** From the same `apply(k, f)`: centre from 112 % to −14 % on the eased
+seam, rotateY −15° → +16°, rotateZ −7° → −4°, 3 % drift down, z 1.1 in front
+of the backdrop plane. The words, the focal line's withdrawal, the snap, the
+row, reduced motion: unchanged.
+
+**Cost.** 60 fps median, p95 16.7 ms, 0.4 % of frames over 33 ms while
+scrubbing on 1440 × 900 (real Chrome, Metal). The phone is emulated: the
+transmission pass is exactly the cost Spike A flagged for phones; on-device
+measurement remains the gate, and the CSS shard is the demote step.
+
+**Verdict (self-judged):** it is now a body — volume, a wall, refraction of
+real content, green in the thickness, gold as reflected key, a broken edge —
+and reads as a museum slab of glass, not a crystal, not a hologram, nothing
+glows. Judge in motion on the spike. Board: sections B1 / B2 and the table.

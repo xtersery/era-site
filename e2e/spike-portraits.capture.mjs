@@ -5,7 +5,7 @@ const OUT = 'spikes/portraits/__captures__';
 mkdirSync(OUT, { recursive: true });
 const base = 'http://localhost:5173/spikes/portraits/';
 const browser = await chromium.launch({ channel: 'chrome' });
-const settle = async (page) => { await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(1200); };
+const settle = async (page) => { await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(2200); };
 const strip = async (page, files, cols, out) => {
   const data = await page.evaluate(async ({ srcs, cols }) => {
     const load = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = s; });
