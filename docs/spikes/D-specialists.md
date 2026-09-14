@@ -569,3 +569,39 @@ field remains — the reported symptom.
 
 Verified here: full = 5 draw calls, body-only = 3, both the stone; the
 bundle diag `STONE_WEBGL`, no errors. 60 fps median.
+
+
+---
+
+## ROOT CAUSE FOUND — the artifact packaging, not the shader (14.09.2026)
+
+The reviewer's screenshot (`src/assets/log.png`): `THREE.WebGLProgram: Shader
+Error … Material Type: MeshPhysicalMaterial … Fragment shader is not
+compiled … ERROR: 0:1459: 'include' : invalid directive`.
+
+**Cause.** Every artifact copy was prepared by an ad-hoc step that stripped
+the page head's `<meta …>` tags with the pattern `<meta[^>]*>` over the whole
+head — and the head contains the inlined three.js source, where that pattern
+also matches **`<metalnessmap_fragment>`** and
+**`<metalnessmap_pars_fragment>`**. The chunk names were deleted from every
+physical/standard material's `#include`, leaving `#include ` with nothing:
+line 1459 of `meshphysical_frag` is exactly `#include <metalnessmap_fragment>`.
+The composite field is a bare `ShaderMaterial` with no metalness include, so
+it compiled — hence the field without the stone. The board came from the dev
+server; my earlier bundle test served the *unstripped* `dist-spike/` file —
+which is why neither reproduced it. Passes 4–10 all failed on the reviewer's
+machine for this one reason; drei, three's transmission pass and the GPU were
+never at fault.
+
+**Proof.** Serving the published copy locally reproduces the identical error;
+`grep` shows `#include <metalnessmap_fragment>` present once in the built
+bundle and absent in the published copy.
+
+**Fix.** `scripts/artifact-copy.mjs`: removes `<meta\b…>` tags only from the
+head markup *before* the first `<style>`/`<script>`, and asserts that the
+count of `#include <…>` occurrences is unchanged (716 in this bundle). All
+artifact copies go through it from now on. Republished: the served copy
+reports `STONE_WEBGL`, 5 draw calls, no errors.
+
+Pass 11's two-layer stone (a body that needs no transmission pass) stays —
+it is the right robustness regardless — but it was not the cure.

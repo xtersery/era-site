@@ -368,7 +368,13 @@ npm run refs:sync  # clone/refresh .references (git-ignored, ~300 MB)
   Device tier never reads `navigator.deviceMemory`; measured FPS is the
   authority (§0.6).
 - Spikes live in `spikes/<name>/` (dev-only Vite pages, type-checked, not
-  built for production) and never touch the prototype's rooms.
+  built for production) and never touch the prototype's rooms. A spike or
+  board published as an artifact goes through `scripts/artifact-copy.mjs`
+  (`SPIKE=<name> npx vite build --config vite.spike.config.ts` →
+  `node scripts/inline-spike.mjs <name>` → `node scripts/artifact-copy.mjs`);
+  never strip tags from a built page by hand — a `<meta[^>]*>` regex once
+  deleted `<metalnessmap_fragment>` from the inlined three.js and broke every
+  physical material's shader in the published page only.
 - Decision records and review-board links live in `docs/spikes/*.md`
   (`A-hero.md` closed; `B-services.md` open). Read them before touching the
   hero or services rooms.
