@@ -1,5 +1,5 @@
-import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
-import { useEffect, useMemo, useRef } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CanvasTexture,
   Group,
@@ -63,11 +63,24 @@ export interface ShardState {
   anchorNext: number;
 }
 
+export interface SceneDiag {
+  canvasCreated?: boolean;
+  renderer?: string;
+  webgl2?: boolean;
+  quartz?: 'loading' | 'ok' | string;
+  stoneMounted?: boolean;
+  firstFrame?: boolean;
+  stoneVisible?: boolean;
+  drawCalls?: number;
+  error?: string;
+}
+
 interface Props {
   portraits: readonly string[];
   state: React.MutableRefObject<ShardState>;
   phone: boolean;
   onReady?: () => void;
+  onDiag?: (d: SceneDiag) => void;
 }
 
 const WORLD_H = 10;
@@ -166,11 +179,32 @@ function fit(frameAspect: number, anchorY: number) {
   return { repeat: new Vector2(vx, vy), offset: new Vector2((1 - vx) * 0.5, 1 - vy - anchorY * (1 - vy)) };
 }
 
-function Quartz({ portraits, state, phone, onReady }: Props) {
-  const { scene, size } = useThree();
+/** loads the reference explicitly — success and failure are both reported, nothing suspends */
+function useQuartzPhoto(onDiag?: (d: SceneDiag) => void): Texture | null {
+  const [photo, setPhoto] = useState<Texture | null>(null);
+  useEffect(() => {
+    onDiag?.({ quartz: 'loading' });
+    const loader = new TextureLoader();
+    loader.load(
+      quartzUrl,
+      (t) => { setPhoto(t); onDiag?.({ quartz: 'ok' }); },
+      undefined,
+      (e) => { onDiag?.({ quartz: `error: ${(e as ErrorEvent)?.message ?? 'image failed to load'}` }); },
+    );
+  }, [onDiag]);
+  return photo;
+}
+
+function Quartz({ portraits, state, phone, onReady, onDiag }: Props) {
+  const photo = useQuartzPhoto(onDiag);
+  if (!photo) return null;
+  return <QuartzBody portraits={portraits} state={state} phone={phone} onReady={onReady} onDiag={onDiag} photo={photo} />;
+}
+
+function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props & { photo: Texture }) {
+  const { scene, size, gl } = useThree();
   const textures = usePortraitTextures(portraits);
   const env = useMemo(() => createEraEnvironment(1024, 512), []);
-  const photo = useLoader(TextureLoader, quartzUrl);
   const maps = useMemo(() => createQuartzMaps(photo, trace.box), [photo]);
   const profile = useMemo(() => createEdgeProfile(), []);
   const worldW = (WORLD_H * size.width) / size.height;
@@ -235,6 +269,7 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
   const ready = useRef(false);
 
   useEffect(() => {
+    onDiag?.({ stoneMounted: true });
     scene.environment = env;
     scene.add(composite);
     scene.add(shadow);
@@ -259,10 +294,9 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     mesh.visible = s.on;
     composite.visible = s.on;
     shadow.visible = s.on;
-    if (!s.on) {
-      if (!ready.current) { ready.current = true; onReady?.(); }
-      return;
-    }
+    if (!ready.current) { ready.current = true; onReady?.(); onDiag?.({ firstFrame: true }); }
+    onDiag?.({ stoneVisible: s.on, drawCalls: gl.info.render.calls });
+    if (!s.on) return;
     const texIn = textures[s.next];
     const texOut = textures[s.from];
     const fIn = fit(frameAspect, s.anchorNext);
@@ -304,8 +338,6 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     u['uSettle']!.value = Math.max(0, (s.f - 0.86) / 0.14);
     composite.scale.set(worldW, WORLD_H, 1);
     composite.position.set(0, 0, 0);
-
-    if (!ready.current) { ready.current = true; onReady?.(); }
   });
 
   return (
@@ -322,7 +354,7 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
   );
 }
 
-export function ShardScene({ portraits, state, phone, onReady }: Props) {
+export function ShardScene({ portraits, state, phone, onReady, onDiag }: Props) {
   return (
     <Canvas
       className="frame__canvas"
@@ -333,9 +365,13 @@ export function ShardScene({ portraits, state, phone, onReady }: Props) {
       onCreated={({ gl }) => {
         gl.toneMapping = NoToneMapping;
         gl.setClearColor('#000000', 0);
+        const ctx = gl.getContext();
+        const info = ctx.getExtension('WEBGL_debug_renderer_info');
+        const renderer = info ? String(ctx.getParameter(info.UNMASKED_RENDERER_WEBGL)) : 'masked';
+        onDiag?.({ canvasCreated: true, webgl2: ctx instanceof WebGL2RenderingContext, renderer });
       }}
     >
-      <Quartz portraits={portraits} state={state} phone={phone} onReady={onReady} />
+      <Quartz portraits={portraits} state={state} phone={phone} onReady={onReady} onDiag={onDiag} />
     </Canvas>
   );
 }

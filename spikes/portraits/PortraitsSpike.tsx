@@ -10,7 +10,21 @@ import { subIndex } from '@/lib/utils';
 import quartzUrl from '../../src/assets/smoky-quartz.png';
 import { PLACEHOLDER_LABEL, sitters } from './people';
 import { QUARTZ_ASPECT } from './scene/quartzGeometry';
-import { ShardScene, type ShardState } from './scene/ShardScene';
+import { ShardScene, type SceneDiag, type ShardState } from './scene/ShardScene';
+
+/** what a visitor's browser can do, probed once */
+function probeWebGL(): { webgl2: boolean; webgl: boolean; renderer: string } {
+  try {
+    const c = document.createElement('canvas');
+    const gl2 = c.getContext('webgl2');
+    const gl = gl2 ?? c.getContext('webgl');
+    if (!gl) return { webgl2: false, webgl: false, renderer: 'none' };
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    return { webgl2: !!gl2, webgl: true, renderer: info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : 'masked' };
+  } catch (e) {
+    return { webgl2: false, webgl: false, renderer: `error: ${String(e)}` };
+  }
+}
 
 /**
  * Specialists — «Сеанс», the pinned portrait gallery (Spike D, pass 1).
@@ -88,6 +102,26 @@ export function Sitting({
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
   const phone = useMemo(() => window.innerWidth < 1024, []);
   const portraitUrls = useMemo(() => sitters.map((s) => (phone ? s.portraitPhone : s.portrait)), [phone]);
+  const probe = useMemo(probeWebGL, []);
+  const [diag, setDiag] = useState<SceneDiag & { errors: string[] }>({ errors: [] });
+  const onDiag = useCallback((d: SceneDiag) => setDiag((prev) => ({ ...prev, ...d })), []);
+  // three reports shader failures through console.error: keep the first few
+  useEffect(() => {
+    const orig = console.error;
+    console.error = (...args: unknown[]) => {
+      const text = args.map((a) => (a instanceof Error ? a.message : String(a))).join(' ').slice(0, 220);
+      setDiag((prev) => (prev.errors.length >= 4 ? prev : { ...prev, errors: [...prev.errors, text] }));
+      orig.apply(console, args);
+    };
+    return () => { console.error = orig; };
+  }, []);
+  // a scene that never reports its first frame is a fallback with a reason
+  const [stale, setStale] = useState(false);
+  useEffect(() => {
+    if (reduced || !probe.webgl) return;
+    const t = window.setTimeout(() => setStale(true), 6000);
+    return () => window.clearTimeout(t);
+  }, [reduced, probe.webgl]);
   const [current, setCurrent] = useState(frozen?.k ?? 0);
   const trigger = useRef<ScrollTrigger | null>(null);
   const eyes = useRef<{ x: number; y: number }[]>([]);
@@ -364,7 +398,7 @@ export function Sitting({
           </figure>
         ))}
         {/* the shard as a body of ERA Mineral Glass; the CSS shard below is the no-WebGL fallback */}
-        {!reduced && <ShardScene portraits={portraitUrls} state={shardState} phone={phone} onReady={() => setLive(true)} />}
+        {!reduced && probe.webgl && <ShardScene portraits={portraitUrls} state={shardState} phone={phone} onReady={() => setLive(true)} onDiag={onDiag} />}
         <div ref={shard} className="shard shard--photo" aria-hidden="true" hidden={live}>
           <div className="shard__stone">
           <div className="shard__body" style={{ maskImage: `url(${quartzUrl})`, WebkitMaskImage: `url(${quartzUrl})` }}>
@@ -381,6 +415,41 @@ export function Sitting({
       <div ref={focal} className="focal" aria-hidden="true" />
 
       <p className="sr-only" aria-live="polite">{`Специалист ${current + 1} из ${N} — ${sitters[current]!.person.name}`}</p>
+
+      {/* DIAGNOSTIC — which render path is active, and why (review build only) */}
+      {(() => {
+        const path = reduced ? 'REDUCED_MOTION' : !probe.webgl ? 'NO_WEBGL' : live ? 'STONE_WEBGL' : 'CSS_FALLBACK';
+        const why = reduced
+          ? 'prefers-reduced-motion: reduce — the scene is not mounted by design'
+          : !probe.webgl
+            ? `no WebGL context (${probe.renderer})`
+            : live
+              ? 'the WebGL stone rendered its first frame'
+              : diag.quartz?.startsWith('error')
+                ? `quartz texture failed: ${diag.quartz}`
+                : diag.errors.length
+                  ? `error: ${diag.errors[0]}`
+                  : !diag.canvasCreated
+                    ? 'canvas not created yet'
+                    : !diag.stoneMounted
+                      ? `stone not mounted (quartz: ${diag.quartz ?? 'not started'})`
+                      : stale
+                        ? 'stone mounted but no frame reported in 6 s'
+                        : 'waiting for the first frame';
+        (window as unknown as Record<string, unknown>)['__diag'] = { path, why, ...diag, probe, live, reduced, phone };
+        return (
+          <pre className="diag" aria-hidden="true">
+            {`ACTIVE RENDER PATH: ${path}
+why: ${why}
+quartz model loaded: ${diag.quartz ?? 'not started'}
+WebGL stone mounted: ${diag.stoneMounted ? 'yes' : 'no'} · canvas: ${diag.canvasCreated ? 'yes' : 'no'} · first frame: ${diag.firstFrame ? 'yes' : 'no'}
+fallback triggered: ${path === 'CSS_FALLBACK' || path === 'NO_WEBGL' ? 'yes' : 'no'}
+gpu: ${diag.renderer ?? probe.renderer} · webgl2: ${probe.webgl2 ? 'yes' : 'no'} · reduced: ${reduced ? 'yes' : 'no'} · phone layout: ${phone ? 'yes' : 'no'}
+stone visible now: ${diag.stoneVisible ? 'yes' : 'no'} · draw calls: ${diag.drawCalls ?? '—'}
+errors: ${diag.errors.length ? diag.errors.join(' | ') : 'none'}`}
+          </pre>
+        );
+      })()}
     </section>
   );
 }

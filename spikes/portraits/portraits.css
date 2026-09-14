@@ -348,6 +348,25 @@
   background: transparent;
 }
 
+/* the diagnostic indicator (review build only) */
+.diag {
+  position: absolute;
+  z-index: 40;
+  top: var(--space-md);
+  right: var(--space-md);
+  margin: 0;
+  padding: 8px 10px;
+  max-width: min(46vw, 560px);
+  font: 10.5px/1.5 var(--font-mono);
+  color: #f3dfae;
+  background: rgba(6, 15, 12, 0.86);
+  white-space: pre-wrap;
+  pointer-events: none;
+}
+@media (max-width: 1023.98px) {
+  .diag { top: auto; bottom: 30%; left: var(--gutter); right: var(--gutter); max-width: none; font-size: 9.5px; }
+}
+
 /* ---- stubs and readout ------------------------------------------------- */
 .stub {
   background: #0b1611;
