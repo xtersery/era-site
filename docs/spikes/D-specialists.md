@@ -701,3 +701,78 @@ own edge.
 
 **Measured.** 60 fps median, p95 16.8 ms, 1.3 % over 33 ms (1440 × 900);
 10 draw calls. Published via `scripts/artifact-copy.mjs`.
+
+## Pass 14 — SMOKY QUARTZ → THE ERA MARBLE WALL (15.09.2026)
+
+**Brief.** The transition out of Specialists into the next section as a
+material evolution: not a CGI morph, not a texture dissolve, not a motion
+demo — a quiet, believable settling of material character, object → field →
+architectural surface, ending in the clinic's real wall
+(`docs/references/era-marble-wall.jpg`), on which the next section stands.
+
+**Mechanism.** The pin is extended by `EXIT = 100` vh after the last state;
+that scroll is `e` (0 → 1), painted by `exit(e)` in the section and read by
+the scene as `state.exit`. No snap inside the exit. `?k=3&e=` freezes a
+stage. Five stages on the board: rest · early (0.25) · mid (0.55) · marble
+(0.8) · settled (1).
+
+- **The light leaves the room from the stone.** A section-wide plane in
+  `MultiplyBlending` (`scene/marble.frag`, pass 0) draws the wall's veining
+  (luminance of the real slab) as shading in whatever is there — plaster and
+  portrait alike — plus a dimming, both spreading out of the stone's centre
+  (reach `(e − 0.04) × 2.3`, edge ± 0.35; vein 0.06 → 0.16, dim 0.03 → 0.13).
+  Structure before colour: plaster over stone.
+- **The picture recedes into the wall.** `composite.frag` gets `uVeil`
+  (`smooth((e − 0.05) / 0.55)`): colour goes first, then light, to a faint
+  print in the wall's tone `#e9ebe6` — never black, never white.
+- **The slab unfolds out of the stone.** The same plane again with normal
+  blending (pass 1): the sheet itself, a second, later front (reach
+  `(e − 0.35) × 2.2`, edge −0.3 / +0.4), its edge running ahead along the
+  veins (`dist += (0.5 − vein) × 0.34`) so it is never a radial wipe; the room's
+  key light from the upper left as a soft gradient. Covers by ≈ 0.85. The plane
+  sits at z 0.9 and is scaled by `1 / (CAM_Z / (CAM_Z − 0.9))` so it covers
+  the viewport exactly and the sheet continues pixel for pixel into 06.
+- **The stone becomes the wall.** Glass 1 → 0 by 0.4 (transmission goes
+  first: glass → mineral). Body 0.86 → 0 over 0.3 → 0.8. Under it a `fill`
+  mesh — the same geometry, `MeshBasicMaterial` (unlit, so it is the wall's
+  colour exactly) with the sheet as its map, `repeat/offset` aligned to where
+  the stone is *seen* (its projected box at its z, `m = CAM_Z / (CAM_Z − z)`)
+  — 0 → 1 over 0.32 → 0.72: the veins run through the stone as through the
+  wall. Then a `relief` pass (`relief.vert/frag`, `MultiplyBlending`): the
+  facets' lambert shading (`0.56 + 0.62 · n·L`, L from the upper left) faded
+  in by `uK` 0 → 1 over 0.35 → 0.8 — a carved form reads by its shadows.
+  Pose to rest (rotations × `1 − settle`), z 1.5 → 0.96, depth × 0.4; the
+  shadow lifts by 0.5; the fragments sink (+0.6 z) and are hidden once their
+  opacity is < 0.01 (they used to punch holes in the field through depth).
+- **The reference, translated.** `e2e/spike-portraits.marble.mjs`: the
+  panel right of the screen (x 1110, y 305, 330 × 530 — two tiles high,
+  seams at y ≈ 305 / 565 / 835) de-foreshortened to square tiles and
+  book-matched 2 × 2 into `assets/marble.jpg` 1536² (+ `marble-luma.jpg`,
+  grayscale, contrast 1.15). **No grade**: colour, tone, seams and light are
+  the photograph's; average `#7c7f7b`. Laid on the section's width on
+  desktop (`uSheetW` 1), on twice it, centred, on the phone (0.5);
+  `uSheetV = (H / W) · uSheetW`, top-aligned.
+- **The next section.** `.founder-opening` stub: the same sheet at
+  `100vw auto` from `0 −100svh` (`200vw` / `−50vw −100svh` on the phone),
+  darkening into `#08140f` — the founder's room on the real marble.
+- **No WebGL / reduced motion.** `.sitting__marble` — the sheet as a CSS
+  layer over the section, `--exit-marble` 0 → 1 over 0.3 → 0.8; reduced
+  motion lands on whole states (the wall arrives as a cut).
+
+**Bugs on the way.** The frame went black and the stone vanished at every
+state after the exit code landed: `apply()` rebuilt `state.current = {k, f}`
+and `shardState.current = {…}` without `e`/`exit`, and the frozen prop
+omitted `e` — `NaN` in every lerp. Three one-line fixes. GLSL `smoothstep`
+with descending edges was suspected and rewritten ascending (harmless).
+`MultiplyBlending` requires `premultipliedAlpha: true` on the material.
+A lit `MeshPhysicalMaterial` for the slab on the stone came out darker and
+warmer than the unlit field → unlit fill + a separate relief pass.
+
+**Measured.** 60 fps median, p95 16.8 ms, 0 % over 33 ms while scrubbing
+(1440 × 900); 11 draw calls. Published via `scripts/artifact-copy.mjs`
+(717 shader includes intact); the published file tested at `?k=3&e=0.55`.
+
+**Open for review.** Whether the settled wall should already be dimmer than
+the reception's light (the darkening is currently the next section's
+gradient); the diamond's scale on desktop (one book-matched pair across the
+width, as on the wall) — to be judged in motion.

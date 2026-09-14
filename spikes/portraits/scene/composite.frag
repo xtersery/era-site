@@ -23,6 +23,8 @@ uniform float uAmount;       // how hard it pulls, in frame uv
 uniform float uAspect;       // frame width / height
 uniform float uFront;        // 0 at the stone's edge … 1 past the far edges
 uniform float uSettle;       // 0 → 1 as the transition ends: the field lets go
+uniform float uVeil;         // the exit: the portrait recedes into the wall
+uniform vec3 uWallTone;      // the wall the picture recedes into
 varying vec2 vUv;
 
 vec3 sampleSoft(sampler2D t, vec2 uv, float soft) {
@@ -77,6 +79,11 @@ void main() {
     vec2 uv = vUv + vec2(dir * w * uAmount, 0.0);
     col = sampleSoft(uIn, uv * uInRepeat + uInOffset, w * 0.02);
   }
+  // leaving the section: the picture recedes into the wall — its colour goes
+  // first, then its light, until only a faint print of it is left in the plaster
+  float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
+  vec3 print = uWallTone * (0.8 + 0.2 * (lum - 0.5) * 2.0);
+  col = mix(col, mix(vec3(lum), print, uVeil), uVeil);
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
 }

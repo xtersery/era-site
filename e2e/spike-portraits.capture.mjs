@@ -37,6 +37,23 @@ const strip = async (page, files, cols, out) => {
   const det = [];
   for (const [i, f] of [0, 0.3, 0.55].entries()) det.push(await shot(`?k=1&f=${f}`, `det-${i}`, { x: 300, y: 60, width: 640, height: 780 }));
   await strip(page, det, 3, `${OUT}/d6-shard.png`);
+  // the exit: smoky quartz → the clinic's marble wall, in five stages
+  const ex = [];
+  for (const [i, e] of [0, 0.25, 0.55, 0.8, 1].entries()) ex.push(await shot(`?k=3&e=${e}`, `ex-${i}`));
+  await strip(page, ex.slice(1, 5), 2, `${OUT}/d7-exit-grid.png`);
+  const exd = [];
+  for (const [i, e] of [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1].entries()) exd.push(await shot(`?k=3&e=${e}`, `exd-${i}`, { x: 300, y: 60, width: 640, height: 780 }));
+  await strip(page, exd, 4, `${OUT}/d8-exit-stone.png`);
+  // the entry into the next section: the live page scrolled past the pin
+  await page.goto(base + q('?'), { waitUntil: 'networkidle' }); await settle(page);
+  const founderTop = await page.evaluate(() => document.querySelector('.founder-opening').getBoundingClientRect().top + scrollY);
+  const en = [];
+  for (const [i, dy] of [-900, -560, -200, 120, 700].entries()) {
+    await page.evaluate((y) => window.scrollTo(0, y), founderTop + dy);
+    await page.waitForTimeout(1500);
+    const f = `${OUT}/en-${i}.png`; await page.screenshot({ path: f }); en.push(f);
+  }
+  await strip(page, en, 5, `${OUT}/d9-entry.png`);
   await ctx.close();
 }
 {
@@ -49,6 +66,9 @@ const strip = async (page, files, cols, out) => {
   const mt = [];
   for (const [i, f] of [0, 0.3, 0.5, 0.7, 0.85, 1].entries()) mt.push(await shot(`?k=2&f=${f}`, `mt-${i}`));
   await strip(page, mt, 6, `${OUT}/m4-transition.png`);
+  const me = [];
+  for (const [i, e] of [0, 0.3, 0.55, 0.8, 1].entries()) me.push(await shot(`?k=2&e=${e}`, `me-${i}`));
+  await strip(page, me, 5, `${OUT}/m5-exit.png`);
   await m.close();
 }
 await browser.close();

@@ -61,6 +61,7 @@ const MINERAL = CustomEase.create('mineral', 'M0,0 C0.52,0 0.18,1 1,1');
 const INDEX = '05';
 const N = sitters.length;
 const PER = 100; // vh of scroll per transition
+const EXIT = 100; // vh of scroll for the settling into the wall
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const smooth = (t: number) => { const s = clamp(t, 0, 1); return s * s * (3 - 2 * s); };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -69,9 +70,11 @@ function readParams() {
   const q = new URLSearchParams(location.search);
   const k = q.get('k');
   const f = q.get('f');
+  const e = q.get('e');
   return {
     k: k === null ? null : clamp(Number(k), 0, N - 1),
     f: f === null ? 0 : clamp(Number(f), 0, 1),
+    e: e === null ? 0 : clamp(Number(e), 0, 1),
     hud: q.get('hud') === '1',
   };
 }
@@ -90,8 +93,8 @@ export function Sitting({
   frozen = null,
   onState,
 }: {
-  frozen?: { k: number; f: number } | null;
-  onState?: (s: { k: number; f: number }) => void;
+  frozen?: { k: number; f: number; e: number } | null;
+  onState?: (s: { k: number; f: number; e: number }) => void;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const wallRef = useRef<HTMLDivElement>(null);
@@ -101,7 +104,8 @@ export function Sitting({
   const names = useRef<(HTMLElement | null)[]>([]);
   const shard = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState(false);
-  const shardState = useRef<ShardState>({ on: false, f: 0, from: 0, next: 1, anchorFrom: 0.28, anchorNext: 0.28, current: frozen?.k ?? 0, anchorCurrent: 0.28 });
+  const shardState = useRef<ShardState>({ on: false, f: 0, from: 0, next: 1, anchorFrom: 0.28, anchorNext: 0.28, current: frozen?.k ?? 0, anchorCurrent: 0.28, exit: frozen?.e ?? 0 });
+  const exitRef = useRef<HTMLDivElement>(null);
   const focal = useRef<HTMLDivElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
@@ -131,7 +135,7 @@ export function Sitting({
   const trigger = useRef<ScrollTrigger | null>(null);
   const eyes = useRef<{ x: number; y: number }[]>([]);
   const nameEnds = useRef<number[]>([]);
-  const state = useRef({ k: frozen?.k ?? 0, f: frozen?.f ?? 0 });
+  const state = useRef({ k: frozen?.k ?? 0, f: frozen?.f ?? 0, e: frozen?.e ?? 0 });
 
   /** the focal datum: a fixed line of the grid, 30 % down the frame on desktop */
   const DATUM = 0.3;
@@ -170,9 +174,36 @@ export function Sitting({
     });
   }, [phone]);
 
+  /**
+   * paints the exit: the section settles into the wall. The words lift away
+   * (the same masked lines as a change), the wall label and the row fade, the
+   * focal line withdraws; the scene grows the marble out of the stone.
+   */
+  const exit = useCallback((e: number) => {
+    state.current.e = e;
+    shardState.current.exit = e;
+    const lift = clamp((e - 0.05) / 0.4, 0, 1);
+    const [lo, hi] = phone ? [0, 100] : [10, 80];
+    const edge = hi - lift * (hi - lo);
+    const mask = lift >= 1 ? 'linear-gradient(#000 0, #000 0)' : `linear-gradient(180deg, #000 ${(edge - 8).toFixed(2)}%, transparent ${edge.toFixed(2)}%)`;
+    labels.current.forEach((el) => {
+      if (!el || el.hidden) return;
+      el.style.maskImage = lift > 0 ? mask : '';
+      (el.style as unknown as Record<string, string>)['webkitMaskImage'] = lift > 0 ? mask : '';
+      el.style.opacity = lift >= 1 ? '0' : '1';
+    });
+    const fade = 1 - clamp((e - 0.15) / 0.45, 0, 1);
+    if (exitRef.current) {
+      exitRef.current.style.setProperty('--exit-fade', fade.toFixed(3));
+      exitRef.current.style.setProperty('--exit-marble', smooth((e - 0.3) / 0.5).toFixed(3));
+    }
+    if (focal.current) focal.current.style.opacity = String(fade);
+    onState?.({ ...state.current });
+  }, [onState, phone]);
+
   /** paints one position on the row: k is met, f is the way to k + 1 */
   const apply = useCallback((k: number, f: number) => {
-    state.current = { k, f };
+    state.current = { k, f, e: state.current.e };
     const next = Math.min(N - 1, k + 1);
     // the words are masked lines: the label she is leaving lifts away from the
     // foot up to the name in the first fifth of the travel, and the next label
@@ -233,7 +264,7 @@ export function Sitting({
       return img ? parseFloat(img.style.objectPosition.split(' ')[1] ?? '28') / 100 : 0.28;
     };
     const on = f > 0.001 && f < 0.999;
-    shardState.current = { on, f, from: k, next, anchorFrom: anchorOf(k), anchorNext: anchorOf(next), current: f < 0.5 ? k : next, anchorCurrent: anchorOf(f < 0.5 ? k : next) };
+    shardState.current = { on, f, from: k, next, anchorFrom: anchorOf(k), anchorNext: anchorOf(next), current: f < 0.5 ? k : next, anchorCurrent: anchorOf(f < 0.5 ? k : next), exit: shardState.current.exit };
     // the no-WebGL stone: the photograph, resident at the same place
     if (shard.current && sectionRef.current) {
       const sw = sectionRef.current.clientWidth, sh = sectionRef.current.clientHeight;
@@ -267,50 +298,62 @@ export function Sitting({
     const shown = f < 0.21 ? k : next;
     if (counter.current) counter.current.textContent = `${subIndex(INDEX, shown + 1)} / ${String(N).padStart(2, '0')}`;
     setCurrent((prev) => (prev === shown ? prev : shown));
-    onState?.({ k, f });
+    onState?.({ k, f, e: state.current.e });
   }, [onState, phone]);
 
   useEffect(() => {
     measure();
     apply(state.current.k, state.current.f);
-    const onResize = () => { measure(); apply(state.current.k, state.current.f); };
+    exit(state.current.e);
+    const onResize = () => { measure(); apply(state.current.k, state.current.f); exit(state.current.e); };
     window.addEventListener('resize', onResize);
     // fonts change the name's width; re-measure when they land
     document.fonts?.ready.then(onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [measure, apply]);
+  }, [measure, apply, exit]);
 
   /** the page's own scroll walks the row; snap lands on whole states */
   useEffect(() => {
     if (frozen || !sectionRef.current) return;
+    // the pin holds the row of specialists, then one more viewport in which the
+    // section settles into the wall; the states snap, the settling is scrubbed
+    const rowSpan = (N - 1) * PER;
+    const total = rowSpan + EXIT;
+    const rowEnd = rowSpan / total;
     const st = ScrollTrigger.create({
       trigger: sectionRef.current,
       start: 'top top',
-      end: () => `+=${(N - 1) * (PER / 100) * window.innerHeight}`,
+      end: () => `+=${(total / 100) * window.innerHeight}`,
       pin: true,
       anticipatePin: 1,
       invalidateOnRefresh: true,
-      snap: reduced ? undefined : { snapTo: 1 / (N - 1), duration: { min: 0.35, max: 0.9 }, delay: 0.05, ease: MINERAL },
+      snap: reduced
+        ? undefined
+        : { snapTo: (v) => (v <= rowEnd + 1e-6 ? Math.round((v / rowEnd) * (N - 1)) / (N - 1) * rowEnd : v), duration: { min: 0.35, max: 0.9 }, delay: 0.05, ease: MINERAL },
       onUpdate: (self) => {
-        const t = clamp(self.progress * (N - 1), 0, N - 1 - 1e-6);
-        if (reduced) { apply(Math.round(t), 0); return; } // reduced motion: states, no travel
+        const p = self.progress;
+        const t = clamp((Math.min(p, rowEnd) / rowEnd) * (N - 1), 0, N - 1 - 1e-6);
+        const e = clamp((p - rowEnd) / (1 - rowEnd), 0, 1);
+        if (reduced) { apply(Math.round(t), 0); exit(e > 0.5 ? 1 : 0); return; } // reduced motion: states, no travel
         apply(Math.floor(t), t - Math.floor(t));
+        exit(e);
       },
     });
     trigger.current = st;
     return () => { st.kill(); trigger.current = null; };
-  }, [frozen, reduced, apply]);
+  }, [frozen, reduced, apply, exit]);
 
   const goTo = useCallback((k: number) => {
     const st = trigger.current;
     if (!st) return;
-    const y = st.start + (st.end - st.start) * (k / (N - 1));
+    const rowEnd = ((N - 1) * PER) / ((N - 1) * PER + EXIT);
+    const y = st.start + (st.end - st.start) * rowEnd * (k / (N - 1));
     if (reduced) { window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior }); return; }
     gsap.to(window, { scrollTo: y, duration: 0.9, ease: MINERAL, overwrite: true });
   }, [reduced]);
 
   return (
-    <section ref={sectionRef} className="sitting" id="specialists" aria-labelledby="specialists-title" data-live={live || undefined}>
+    <section ref={(el) => { (sectionRef as React.MutableRefObject<HTMLElement | null>).current = el; (exitRef as React.MutableRefObject<HTMLDivElement | null>).current = el as HTMLDivElement | null; }} className="sitting" id="specialists" aria-labelledby="specialists-title" data-live={live || undefined}>
       <h2 id="specialists-title" className="sr-only">Специалисты</h2>
 
       {/* the wall: the light surface the label is set on */}
@@ -386,6 +429,8 @@ export function Sitting({
       <div ref={shard} className="shard shard--photo" aria-hidden="true" hidden={live}>
         <img className="shard__photo" src={quartzUrl} alt="" draggable={false} />
       </div>
+      {/* the no-WebGL exit: the wall arrives as a surface — the same sheet, no field */}
+      <div className="sitting__marble" aria-hidden="true" hidden={live} />
 
       {/* the frame: one portrait at a time, at the scale of a person */}
       <div ref={frameRef} className="frame">
@@ -454,8 +499,8 @@ errors: ${diag.errors.length ? diag.errors.join(' | ') : 'none'}`}
 }
 
 export function PortraitsSpike() {
-  const { k, f, hud } = useMemo(readParams, []);
-  const [s, setS] = useState({ k: k ?? 0, f });
+  const { k, f, e, hud } = useMemo(readParams, []);
+  const [s, setS] = useState({ k: k ?? 0, f, e });
   const frozen = k !== null;
   return (
     <>
@@ -465,9 +510,16 @@ export function PortraitsSpike() {
           <section className="stub stub--before" aria-label="Заглушка предыдущей секции"><p>04 — Кейсы · [заглушка соседней секции — прокрутка страницы не перехватывается]</p></section>
         </>
       )}
-      <Sitting frozen={frozen ? { k: k!, f } : null} onState={setS} />
-      {!frozen && <section className="stub stub--after" aria-label="Заглушка следующей секции"><p>06 — Основатель · [заглушка соседней секции]</p></section>}
-      {hud && <div className="hud" aria-hidden="true">sitting · k {s.k} · f {s.f.toFixed(2)}</div>}
+      <Sitting frozen={frozen ? { k: k!, f, e } : null} onState={setS} />
+      {/* the next room begins on the wall the section settled into: the founder's room opens on the clinic's marble */}
+      {!frozen && (
+        <section className="founder-opening" aria-label="Заглушка следующей секции — Основатель">
+          <div className="founder-opening__wall" aria-hidden="true" />
+          <p className="founder-opening__label">06 — Основатель</p>
+          <p className="founder-opening__line">[заглушка соседней секции — комната основателя открывается на настоящей стене клиники]</p>
+        </section>
+      )}
+      {hud && <div className="hud" aria-hidden="true">sitting · k {s.k} · f {s.f.toFixed(2)} · e {s.e.toFixed(2)}</div>}
     </>
   );
 }

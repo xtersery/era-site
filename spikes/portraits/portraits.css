@@ -281,6 +281,69 @@
   .diag { top: auto; bottom: 30%; left: var(--gutter); right: var(--gutter); max-width: none; font-size: 9.5px; }
 }
 
+/* ---- the exit: the words give way as the section settles into the wall ---- */
+.sitting { --exit-fade: 1; --exit-marble: 0; }
+.wall__label, .wall__foot, .frame__caption { opacity: var(--exit-fade); }
+/* without the scene the wall still arrives: the sheet itself, laid as the scene lays it */
+.sitting__marble {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: var(--exit-marble);
+  background: url('./assets/marble.jpg') 0 0 / 100vw auto repeat-y;
+}
+.sitting__marble[hidden] { display: none; }
+@media (width < 1024px) {
+  .sitting__marble { background-size: 200vw auto; background-position: -50vw 0; }
+}
+
+/* ---- the next room: the founder's, opening on the clinic's wall ----------- */
+.founder-opening {
+  position: relative;
+  min-height: 160svh;
+  overflow: hidden;
+  color: #eae6dc;
+  background: #08140f;
+}
+.founder-opening__wall {
+  position: absolute;
+  inset: 0;
+  /* the same sheet, laid on the same width, continuing straight down from the section above */
+  background-image: linear-gradient(180deg, rgba(8, 20, 15, 0) 0%, rgba(8, 20, 15, 0) 34%, rgba(8, 20, 15, 0.55) 62%, rgba(8, 20, 15, 0.96) 88%, #08140f 100%), url('./assets/marble.jpg');
+  background-size: 100% auto, 100vw auto;
+  background-position: 0 0, 0 -100svh;
+  background-repeat: no-repeat, repeat-y;
+}
+@media (width < 1024px) {
+  .founder-opening__wall {
+    /* the phone lays the sheet on twice its width, centred — as the section does */
+    background-size: 100% auto, 200vw auto;
+    background-position: 0 0, -50vw -100svh;
+  }
+}
+.founder-opening__label {
+  position: absolute;
+  top: var(--space-md);
+  left: var(--gutter);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: rgba(234, 230, 220, 0.82);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+}
+.founder-opening__line {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: var(--space-lg);
+  margin: 0;
+  max-width: 44ch;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #98a39c;
+}
+
 /* ---- stubs and readout ------------------------------------------------- */
 .stub {
   background: #0b1611;
