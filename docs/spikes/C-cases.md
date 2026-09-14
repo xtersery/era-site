@@ -3,13 +3,13 @@
 **Status: DIRECTION APPROVED — THE ARCHIVE ON A RAIL (pass 6 PASS, 14.09.2026).
 Pass 7 (experience refinement) was reviewed: direction approved in principle,
 geometry sent back — cases drifted too deep, the spiral did not read, the
-composition was sparse. Pass 7b (spiral geometry) and pass 7c (the opened case
-as an isolated scene, «×», return to the same position) are built and
-AWAITING REVIEW.** The portal passage and all other concepts are closed; do
+composition was sparse. Passes 7b (spiral geometry), 7c (the opened case as an
+isolated scene, «×», return to the same position) and 7d (04.1 as the frontal
+anchor the spiral unwinds from) are built and AWAITING REVIEW.** The portal passage and all other concepts are closed; do
 not go back to them. Not productionised; do not start Specialists.
 
-Board (pass 7b–7c): https://claude.ai/code/artifact/6044c33b-3b46-4102-b0e7-08aa7ff9ce38
-Spike (interactive, pass 7c): https://claude.ai/code/artifact/193e5716-b73f-4668-af01-d7ed547f3059
+Board (pass 7b–7d): https://claude.ai/code/artifact/6044c33b-3b46-4102-b0e7-08aa7ff9ce38
+Spike (interactive, pass 7d): https://claude.ai/code/artifact/193e5716-b73f-4668-af01-d7ed547f3059
 Board (pass 7, superseded): https://claude.ai/code/artifact/bd4cd872-3e09-4aaa-a8c0-f037002cc537
 
 Passes 1–2 (`spikes/cases/`, a DOM/CSS spatial archive) are superseded as a
@@ -580,3 +580,33 @@ max 10 / 12 px per frame (desktop open / return), 7 / 8 px (phone), monotonic,
 60 fps.
 
 Board: `docs/spikes/boards/cases-ribbon-turn.html` (sections 3–4 updated).
+
+
+---
+
+## Pass 7d — THE ANCHOR (14.09.2026)
+
+Review note on 7c: the spiral seemed to begin by drifting away, so the first
+impression was an archive already receding. Required: 04.1 as a clear
+front-facing anchor, the rest unwinding behind it.
+
+**The cause was motion, not the pose.** The "never quite still" drift was a
+monotonic rotation of the whole ring (`t × 0.035 × 0.25` rad/s ≈ 0.5°/s). On
+the old wide ring (20° steps) it was imperceptible; on the tight ring (44°)
+it meant that by the time a visitor had scrolled down to Cases, 04.1 had
+already turned 15–30° away from her. The drift is now a breath —
+`sin(t × 0.18) × 0.03` rad, ±1.7° with a 35 s period — around the exact pose,
+so the case the visitor arrives at is always presented to her. Measured 20 s
+and 32 s after load: the docked sheet's x 559 → 568 px.
+
+**The rail begins at the anchor.** It used to run 1.2 cases *before* 04.1 as
+a full landing into nothing, which read as the spiral continuing up and away
+from the first card; it now starts 0.32 before 04.1 (a short lead) and ends
+0.32 after 04.8.
+
+The entry pose: 04.1 frontal (the 0.45 side offset gives it a slight
+obliqueness, "almost directly"), lit, labelled, the rail beginning at its top
+edge; 04.2 turned away behind-left, 04.3 edge-on, the slates beyond. Nothing
+else in the geometry changed; all proofs unchanged.
+
+Board: `docs/spikes/boards/cases-ribbon-turn.html` (fig. 1c and the verdict).

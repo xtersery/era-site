@@ -177,8 +177,8 @@ function useCaseTextures(plates: readonly CasePlate[]): Texture[][] {
 function useRailGeometry(n: number, st: Staging): BufferGeometry {
   return useMemo(() => {
     const per = 24;
-    const from = -1.2;
-    const to = n + 0.2;
+    const from = -0.32; // the rail begins at the first case — a short lead, not a turn into nothing
+    const to = n - 0.68;
     const count = Math.ceil((to - from) * per);
     const pos: number[] = [];
     const uv: number[] = [];
@@ -253,11 +253,14 @@ function Ribbon({
     const t = clock.elapsedTime;
     const dt = Math.min(0.05, t - last.current);
     last.current = t;
-    const drift = still ? 0 : t * 0.035; // the ribbon is never quite still — unless motion is reduced
+    // the ribbon is never quite still — but it breathes around its pose (±1.7°, a
+    // 35 s period) rather than turning: the case the visitor arrives at is always
+    // presented to her, never already sliding away
+    const drift = still ? 0 : Math.sin(t * 0.18) * 0.03;
     const u = smooth(s.unfold);
 
     // --- the camera rides just outside the helix and looks at the docked case ---
-    const camA = s.pos * st.step + drift * 0.25;
+    const camA = s.pos * st.step + drift;
     const camR = st.radius + st.dock;
     const dockY = -s.pos * st.drop; // centre height of the docked case at scale 1
     const browseX = -Math.sin(camA) * camR;

@@ -73,7 +73,7 @@ ul{padding-left:1.2em;color:var(--mute);max-width:80ch}li{margin:6px 0}li b{colo
 .mono{font:13px/1.6 JetBrains Mono,monospace;color:var(--mute)}
 </style></head>
 <body><div class="wrap">
-<header><div><div class="eyebrow">ЭРА · Spike C · pass 7b–7c · геометрия спирали · открытый кейс</div>
+<header><div><div class="eyebrow">ЭРА · Spike C · pass 7b–7d · геометрия спирали · открытый кейс · якорь</div>
 <h1>The archive, as one turn<small>Направление то же — архив на рейке. Исправлена только геометрия: спираль стала тесной и читаемой, кейсы — ближе, глубина — ограничена.</small></h1>
 <p class="lede">Three faults were named in the previous staging: the sheets drifted too far into the fog, the spiral read as a loose diagonal, and the composition was sparse. All three had one cause — the visitor stood outside a <b>wide</b> ring (radius 7.5, 20° between cases), so only ~60° of the helix was ever in frame, and that is a diagonal, not a turn. The fix is geometric, not a matter of scale: a tight ring of eight cases making one full turn, and a visitor who stands a little above it and looks down into the turn.</p></div>
 <div class="spike"><b>The working spike</b><code>docs/spikes/boards/cases-ribbon-spike.html</code> · or <code>npm run dev</code> → <code>/spikes/gallery/</code></div></header>
@@ -83,7 +83,7 @@ ul{padding-left:1.2em;color:var(--mute);max-width:80ch}li{margin:6px 0}li b{colo
 ${fig('1a', 'At 04.4 — the turn. Sheets in the frame: 04.3 and 04.5 turned away either side of the docked case, 04.2 and 04.6 edge-on, the backs of 04.1 and 04.7 across the ring.', '1440 × 900', await img('d2-browse-mid', 'Архив на кейсе 04.4'))}
 ${fig('1b', 'One scroll step, 04.3 → 04.4, in four frames: the ring rotates past the visitor. The case coming next arrives from the left and turns to face her; the one she leaves turns away to the right.', 'pos 2 · 2.33 · 2.66 · 3', await img('d7-turn', 'Поворот архива при прокрутке', 1600))}
 <div class="two">
-${fig('1c', 'The head of the archive: 04.1 docked, the turn continuing behind it.', 'scroll 0', await img('d1-browse-head', 'Начало архива', 1100))}
+${fig('1c', 'The entry pose: 04.1 is the anchor — presented frontally, lit, labelled, the rail beginning at its top edge — and the turn unwinds behind it: 04.2 turned away, 04.3 edge-on, the backs beyond. It holds: the old drift was a rotation of the whole ring (0.5°/s), so by the time a visitor had scrolled down, 04.1 had already turned away; it is now a ±1.7° breath around the pose.', 'scroll 0 · after 20 s on the page', await img('d1-browse-head', 'Начало архива — якорный кейс', 1100))}
 ${fig('1d', 'The tail: 04.8 docked, the archive it came out of behind it.', 'scroll end', await img('d2t-browse-tail', 'Конец архива', 1100))}
 </div></section>
 
@@ -129,6 +129,7 @@ ${fig('5c', 'The unfold.', 'u = 0 · 0.35 · 0.65 · 1', await img('m4-unfold', 
 <tr><td class="k">selected case comes forward naturally</td><td>per-frame max 12 px, monotonic, 0 % over 33 ms, both viewports</td><td class="pass">PASS</td></tr>
 <tr><td class="k">open case isolated · «×» · same position on return</td><td>archive and rail at 3 % while open (4a); «×» at the sheet's corner; pos 2.63 → 2.63 and scrollY restored after 300 px of scrolling while open; honesty best at zero shift (${perf.honesty.perShift['0,0']} vs ${perf.honesty.perShift['1,0']} at 1 px)</td><td class="pass">PASS</td></tr>
 <tr><td class="k">cost</td><td>${d.browse.medianMs} ms median, ${d.browse.drawCalls} draw calls, ${d.heapMB} MB heap on 1440 × 900 (real Chrome); ${p.browse.drawCalls} draw calls on the emulated phone</td><td class="pass">PASS</td></tr>
+<tr><td class="k">04.1 as the frontal anchor, the spiral trailing behind</td><td>1c; the pose measured 20 s and 32 s after load: dock x 559 → 568 px — a breath, not a slide; the rail starts at 04.1</td><td class="pass">PASS</td></tr>
 <tr><td class="k">real phone GPU</td><td>still emulated</td><td class="open">OPEN</td></tr></table>
 <ul>
 <li><b>Carried over unchanged from pass 7:</b> DOM grips (canvas takes no pointer), hover lift and lit edge, the docked sheet's own label, the rail with landings, the scroll catch-up on return, close on leaving the section, the reduced-motion still, the eight spike-only placeholder cases.</li>
