@@ -54,12 +54,22 @@ const gripBox = async (p, sel) => { const b = await p.locator(sel).boundingBox()
   await page.click('.sheetinfo__btn >> nth=0'); await page.waitForTimeout(500);
   log.push(['«До» pressed →', await page.evaluate(() => document.querySelector('.sheetinfo__btn[aria-pressed="true"]')?.textContent)]);
   await page.click('.sheetinfo__btn >> nth=2'); await page.waitForTimeout(400);
-  // return: the page was scrolled meanwhile, so the rail catches up smoothly
+  // return with «×»: the page was scrolled meanwhile, so it is put back where the case was opened
   const posBefore = (await hud(page)).match(/pos ([\d.]+)/)?.[1];
-  await page.click('.sheetinfo__back');
+  const scrolledTo = await page.evaluate(() => window.scrollY);
+  const closeBox = await page.locator('.sheetclose').boundingBox();
+  const sheetBox = await page.evaluate(() => window.__ribbon.focusBox);
+  log.push(['«×» sits at the sheet\'s top-right corner:', Math.abs(closeBox.x - (sheetBox.x + sheetBox.w + 20)) < 3 && Math.abs(closeBox.y - (sheetBox.y - 4)) < 3, `(${Math.round(closeBox.x)},${Math.round(closeBox.y)} vs sheet right ${Math.round(sheetBox.x + sheetBox.w)}, top ${Math.round(sheetBox.y)})`]);
+  await page.click('.sheetclose');
   const samples = [];
   for (let i = 0; i < 12; i++) { await page.waitForTimeout(150); samples.push((await hud(page)).match(/pos ([\d.]+)/)?.[1]); }
-  log.push(['«Назад в архив» → pos', posBefore, '→', samples.join(' '), '· browse block back:', await page.evaluate(() => !document.querySelector('.browse[data-hidden]'))]);
+  log.push(['«×» → pos', posBefore, '→', samples.join(' '), '· scrollY', scrolledTo, '→', await page.evaluate(() => window.scrollY), '· browse block back:', await page.evaluate(() => !document.querySelector('.browse[data-hidden]'))]);
+  // a neighbour opened directly, then «Назад в архив» — same position again
+  const nb2 = await gripBox(page, `.grip >> nth=${near + 1}`);
+  await page.mouse.click(nb2.x + nb2.width / 2, nb2.y + nb2.height / 2); await page.waitForTimeout(1700);
+  log.push(['click on the next sheet →', await hud(page)]);
+  await page.click('.sheetinfo__back'); await page.waitForTimeout(1500);
+  log.push(['«Назад в архив» →', await hud(page)]);
   // keyboard: open from the index, close with Escape
   await page.click('.rail button >> nth=6'); await page.waitForTimeout(1700);
   log.push(['index 04.7 →', await hud(page)]);

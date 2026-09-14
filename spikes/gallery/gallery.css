@@ -290,6 +290,35 @@
 .sheetinfo__link:focus-visible { outline: 1px solid #cfaf72; outline-offset: 4px; }
 .sheetinfo__hint { margin: 2px 0 0; font-family: var(--font-mono); font-size: var(--text-meta); color: #6f7d75; }
 
+/* the close — the primary way out of an open case, hung at the sheet's top-right corner */
+.sheetclose {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  border: 1px solid rgba(211, 180, 120, 0.55);
+  background: rgba(5, 13, 10, 0.55);
+  color: #f0ece2;
+  font-family: var(--font-body);
+  font-size: 1.45rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 420ms ease 160ms, border-color 320ms ease, background 320ms ease;
+}
+.sheetclose span { transform: translateY(-1px); }
+.sheetclose[data-visible] { opacity: 1; pointer-events: auto; }
+.sheetclose:hover { border-color: #d3b478; background: #d3b478; color: #08140f; }
+.sheetclose:focus-visible { outline: 1px solid #d3b478; outline-offset: 4px; }
+
 /* the open sheet's own wall label */
 .sheettag {
   position: absolute;

@@ -189,7 +189,7 @@ export function createRailMaterial(): ShaderMaterial {
         float here = smoothstep(0.09, 0.0, abs(vUv.x - uHere));
         vec3 col = mix(uLine, uGold, here);
         float fog = smoothstep(0.0, 1.0, (vDepth - 5.0) / 10.0) * 0.7;
-        float a = (0.34 + here * 0.6) * (1.0 - fog) * (1.0 - uDim * 0.6);
+        float a = (0.34 + here * 0.6) * (1.0 - fog) * (1.0 - uDim * 0.97);
         if (a <= 0.002) discard;
         gl_FragColor = vec4(col, a);
       }

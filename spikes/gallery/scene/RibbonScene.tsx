@@ -280,7 +280,7 @@ function Ribbon({
     camera.lookAt(tmp.v);
 
     railMat.uniforms['uHere']!.value = clamp(s.pos / Math.max(1, n - 1), 0, 1);
-    railMat.uniforms['uDim']!.value = u;
+    railMat.uniforms['uDim']!.value = smooth(clamp((u - 0.25) / 0.55, 0, 1));
     // dev readout for the technical report
     (window as unknown as Record<string, unknown>)['__gl'] = {
       drawCalls: gl.info.render.calls,
@@ -315,8 +315,9 @@ function Ribbon({
         tmp.b.lerpVectors(tmp.c, tmp.a, u);
         camera.localToWorld(tmp.b);
         mesh.position.copy(tmp.b);
+        // one clean rotation from its place on the rail to facing the visitor
+        mesh.rotation.set(0, sl.yaw, 0);
         mesh.quaternion.slerp(camera.quaternion, u);
-        mesh.rotation.y = lerp(sl.yaw, mesh.rotation.y, u);
         mesh.scale.setScalar(lerp(scaleOnRail, st.open.scale, u));
         mat.uniforms['uBend']!.value = 1 - u; // the unfold
         mat.uniforms['uDim']!.value = 0;
@@ -343,8 +344,12 @@ function Ribbon({
         mat.uniforms['uBend']!.value = 1;
         // the archive recedes while a case is read, but stays an archive
         // the recession is clamped: a case three steps away is still a case
-        mat.uniforms['uDim']!.value = clamp(u * 0.5 + (1 - nearFocus) * 0.22 + Math.max(0, ad - 1.5) * 0.1, 0, 0.62);
-        mat.uniforms['uOpacity']!.value = clamp(1 - Math.max(0, ad - st.visible + 1) * 0.9, 0, 1) * (1 - u * 0.35);
+        mat.uniforms['uDim']!.value = clamp((1 - nearFocus) * 0.22 + Math.max(0, ad - 1.5) * 0.1, 0, 0.62);
+        // while a case is read the archive leaves the composition: the open case
+        // is its own scene, not a card over the turn. It goes as the sheet arrives
+        // and is back before the sheet has re-wrapped.
+        const gone = smooth(clamp((u - 0.25) / 0.55, 0, 1));
+        mat.uniforms['uOpacity']!.value = clamp(1 - Math.max(0, ad - st.visible + 1) * 0.9, 0, 1) * (1 - gone * 0.97);
         // away from the dock a case loses contrast and colour into the mineral dark
         mat.uniforms['uFlat']!.value = clamp((1 - nearFocus) * 0.55 + Math.max(0, ad - 1) * 0.12, 0, 0.8);
         mat.uniforms['uFog']!.value = 1;

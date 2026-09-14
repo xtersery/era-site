@@ -168,6 +168,8 @@ export function CasesArchive({
   useEffect(() => { modeRef.current = mode; }, [mode]);
 
   const closeRef = useRef<() => void>(() => {});
+  /** where the page stood when the case was opened — the archive comes back to exactly this */
+  const openedAt = useRef<number | null>(null);
 
   /** browsing: page scroll walks the rail (the rail holds still while a case is open) */
   useEffect(() => {
@@ -213,6 +215,7 @@ export function CasesArchive({
   const openCase = useCallback((k: number) => {
     state.current.focus = k;
     state.current.hover = null;
+    openedAt.current = window.scrollY;
     setFocus(k);
     unfoldTween.current?.kill();
     if (reduced) {
@@ -238,10 +241,20 @@ export function CasesArchive({
   const closeCase = useCallback(() => {
     setOpen(false);
     unfoldTween.current?.kill();
+    // if the page was scrolled while the case was open, put it back where it was
+    // opened — the section is pinned, so nothing visible moves, and the archive
+    // reappears at the position the visitor left it
+    const st = trigger.current;
+    const at = openedAt.current;
+    openedAt.current = null;
+    if (st && at !== null && at >= st.start && at <= st.end && Math.abs(window.scrollY - at) > 1) {
+      window.scrollTo({ top: at, behavior: 'instant' as ScrollBehavior });
+    }
     const done = () => {
       state.current.focus = null;
       setFocus(null);
       setBox(null);
+      onState?.({ pos: state.current.pos, focus: null, unfold: 0 });
       // if the page was scrolled while the case was open, the rail catches up
       // smoothly instead of jumping on the next scroll event
       const st = trigger.current;
@@ -382,6 +395,20 @@ export function CasesArchive({
         </div>
         <p className="sheetinfo__hint">{phone ? 'удерживайте снимок — кадр «до»' : 'ведите курсор по снимку — кадр «до»'}</p>
       </div>
+      {/* the primary way out: a close at the open sheet's top-right corner */}
+      {box && (
+        <button
+          type="button"
+          className="sheetclose"
+          data-visible={open || undefined}
+          aria-label="Закрыть кейс"
+          tabIndex={isOpen ? 0 : -1}
+          onClick={closeCase}
+          style={{ transform: phone ? `translate(${box.x + box.w - 44}px, ${box.y - 52}px)` : `translate(${box.x + box.w + 20}px, ${box.y - 4}px)` }}
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      )}
       {/* the open sheet's own wall label, at its lower edge */}
       {box && (
         <p className="sheettag" data-visible={open || undefined} aria-hidden="true" style={{ transform: `translate(${box.x}px, ${box.y + box.h}px)` }}>

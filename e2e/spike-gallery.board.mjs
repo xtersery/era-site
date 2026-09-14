@@ -73,7 +73,7 @@ ul{padding-left:1.2em;color:var(--mute);max-width:80ch}li{margin:6px 0}li b{colo
 .mono{font:13px/1.6 JetBrains Mono,monospace;color:var(--mute)}
 </style></head>
 <body><div class="wrap">
-<header><div><div class="eyebrow">ЭРА · Spike C · pass 7b · геометрия спирали</div>
+<header><div><div class="eyebrow">ЭРА · Spike C · pass 7b–7c · геометрия спирали · открытый кейс</div>
 <h1>The archive, as one turn<small>Направление то же — архив на рейке. Исправлена только геометрия: спираль стала тесной и читаемой, кейсы — ближе, глубина — ограничена.</small></h1>
 <p class="lede">Three faults were named in the previous staging: the sheets drifted too far into the fog, the spiral read as a loose diagonal, and the composition was sparse. All three had one cause — the visitor stood outside a <b>wide</b> ring (radius 7.5, 20° between cases), so only ~60° of the helix was ever in frame, and that is a diagonal, not a turn. The fix is geometric, not a matter of scale: a tight ring of eight cases making one full turn, and a visitor who stands a little above it and looks down into the turn.</p></div>
 <div class="spike"><b>The working spike</b><code>docs/spikes/boards/cases-ribbon-spike.html</code> · or <code>npm run dev</code> → <code>/spikes/gallery/</code></div></header>
@@ -101,14 +101,15 @@ ${fig('1d', 'The tail: 04.8 docked, the archive it came out of behind it.', 'scr
 ${fig('2a', 'The real projected boxes, read from the running scene: the docked case, its two turned neighbours, the edge-on pair, the backs across the ring. Negative widths are back faces.', 'measured', await annotated('d2-browse-mid', 1440, 900, 3))}
 </section>
 
-<section><h2>3 · Transition — out of the turn, forward, flat</h2>
-<p class="sub">The chosen sheet leaves the ring, travels in camera space (so it comes toward the visitor monotonically) and unrolls flat; the camera steps in 1.4 and the ring recedes behind it but stays in frame. Measured per animation frame at 60 fps: largest move 11 / 12 px (open / return) on desktop, 7 / 9 px on the phone, largest unfold step 0.049, monotonic — an eased travel, no cut.</p>
-${fig('3a', 'The unfold in six frames.', 'u = 0 · 0.2 · 0.38 · 0.56 · 0.76 · 1', await img('d6-unfold', 'Раскрытие листа в шесть кадров', 1600))}
+<section><h2>3 · Transition — out of the turn, and the turn leaves</h2>
+<p class="sub">The chosen sheet leaves the ring, travels in camera space (so it comes toward the visitor monotonically) and unrolls flat. As it arrives the archive leaves the composition: every other sheet and the rail fade to 3 % between 25 % and 80 % of the travel, and are back before the sheet has re-wrapped on the return. The open case is its own scene, not a card over the turn. Measured per animation frame at 60 fps: largest move 11 / 12 px (open / return) on desktop, 7 / 9 px on the phone, largest unfold step 0.049, monotonic — an eased travel, no cut.</p>
+${fig('3a', 'The unfold in six frames: the ring is gone by the fourth.', 'u = 0 · 0.2 · 0.38 · 0.56 · 0.76 · 1', await img('d6-unfold', 'Раскрытие листа в шесть кадров', 1600))}
 </section>
 
-<section><h2>4 · Opened case — the editorial state</h2>
+<section><h2>4 · Opened case — an isolated editorial scene</h2>
+<p class="sub">Only the active case, its words, and one way out. The «×» hangs at the sheet's top-right corner (44 px, gold hairline, fills on hover) and is the primary close; «← Назад в архив» stays as the secondary editorial control; Escape works. On return the page is put back to the exact scroll position the case was opened from — the section is pinned, so nothing visible moves — and the archive reappears where the visitor left it: measured, pos 2.63 before, 2.63 after, with 300 px of scrolling in between; the same when a neighbour was opened directly.</p>
 <div class="two">
-${fig('4a', 'The sheet flat at 63 % of the frame, the editorial block beside it, the ring behind — 04.3 still turned away at the right, 04.5 behind the words.', 'после', await img('d3-open', 'Открытый кейс', 1100))}
+${fig('4a', 'The open scene: the sheet at 63 % of the frame, the editorial block beside it, the close at its corner — no archive behind.', 'после', await img('d3-open', 'Открытый кейс', 1100))}
 ${fig('4b', '«Сравнить»: the pointer opens the earlier state as a soft field, mixed by opacity only.', 'курсор', await img('d5-open-compare', 'Сравнение до и после', 1100))}
 </div></section>
 
@@ -116,7 +117,7 @@ ${fig('4b', '«Сравнить»: the pointer opens the earlier state as a soft
 <p class="sub">The frame cannot hold the ring, so it holds a column of it: the same 44° step on a radius of 3.2, a steeper drop (1.6), the visitor 8.4 out and 0.8 above. The docked case centred at 66 % width; the next case turned away at the left edge, the previous at the right.</p>
 <div class="phones">
 ${fig('5a', 'Browsing at 04.3.', '390 × 844', await img('m1-browse', 'Архив на телефоне', 780))}
-${fig('5b', 'Open — the sheet above the words.', 'после', await img('m2-open', 'Открытый кейс на телефоне', 780))}
+${fig('5b', 'Open — the sheet above the words, the close above its corner, no archive.', 'после', await img('m2-open', 'Открытый кейс на телефоне', 780))}
 ${fig('5c', 'The unfold.', 'u = 0 · 0.35 · 0.65 · 1', await img('m4-unfold', 'Раскрытие на телефоне', 780))}
 </div></section>
 
@@ -126,7 +127,7 @@ ${fig('5c', 'The unfold.', 'u = 0 · 0.35 · 0.65 · 1', await img('m4-unfold', 
 <tr><td class="k">the spiral reads at first glance</td><td>radius 3.6, 44°, one full turn; sheet curvature visible; rail helix; the far side present as slates; the turn sequence 1b</td><td class="pass">PASS — judge on 1a / 1b</td></tr>
 <tr><td class="k">composition tighter, not sparse</td><td>${inFrame} sheets in frame, the ring fills the right two thirds; no arbitrary scaling (neighbour 0.94)</td><td class="pass">PASS</td></tr>
 <tr><td class="k">selected case comes forward naturally</td><td>per-frame max 12 px, monotonic, 0 % over 33 ms, both viewports</td><td class="pass">PASS</td></tr>
-<tr><td class="k">editorial state intact</td><td>4a / 4b; honesty check best at zero shift (${perf.honesty.perShift['0,0']} vs ${perf.honesty.perShift['1,0']} at 1 px)</td><td class="pass">PASS</td></tr>
+<tr><td class="k">open case isolated · «×» · same position on return</td><td>archive and rail at 3 % while open (4a); «×» at the sheet's corner; pos 2.63 → 2.63 and scrollY restored after 300 px of scrolling while open; honesty best at zero shift (${perf.honesty.perShift['0,0']} vs ${perf.honesty.perShift['1,0']} at 1 px)</td><td class="pass">PASS</td></tr>
 <tr><td class="k">cost</td><td>${d.browse.medianMs} ms median, ${d.browse.drawCalls} draw calls, ${d.heapMB} MB heap on 1440 × 900 (real Chrome); ${p.browse.drawCalls} draw calls on the emulated phone</td><td class="pass">PASS</td></tr>
 <tr><td class="k">real phone GPU</td><td>still emulated</td><td class="open">OPEN</td></tr></table>
 <ul>

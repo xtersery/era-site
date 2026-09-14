@@ -3,12 +3,13 @@
 **Status: DIRECTION APPROVED — THE ARCHIVE ON A RAIL (pass 6 PASS, 14.09.2026).
 Pass 7 (experience refinement) was reviewed: direction approved in principle,
 geometry sent back — cases drifted too deep, the spiral did not read, the
-composition was sparse. Pass 7b — spiral geometry and staging only — is built
-and AWAITING REVIEW.** The portal passage and all other concepts are closed; do
+composition was sparse. Pass 7b (spiral geometry) and pass 7c (the opened case
+as an isolated scene, «×», return to the same position) are built and
+AWAITING REVIEW.** The portal passage and all other concepts are closed; do
 not go back to them. Not productionised; do not start Specialists.
 
-Board (pass 7b): https://claude.ai/code/artifact/6044c33b-3b46-4102-b0e7-08aa7ff9ce38
-Spike (interactive, pass 7b): https://claude.ai/code/artifact/193e5716-b73f-4668-af01-d7ed547f3059
+Board (pass 7b–7c): https://claude.ai/code/artifact/6044c33b-3b46-4102-b0e7-08aa7ff9ce38
+Spike (interactive, pass 7c): https://claude.ai/code/artifact/193e5716-b73f-4668-af01-d7ed547f3059
 Board (pass 7, superseded): https://claude.ai/code/artifact/bd4cd872-3e09-4aaa-a8c0-f037002cc537
 
 Passes 1–2 (`spikes/cases/`, a DOM/CSS spatial archive) are superseded as a
@@ -539,3 +540,43 @@ Board: `docs/spikes/boards/cases-ribbon-turn.html` (`e2e/spike-gallery.board.mjs
 pass-7 board kept at `cases-ribbon-refined.html`).
 Spike: `docs/spikes/boards/cases-ribbon-spike.html` or `npm run dev` →
 `/spikes/gallery/`.
+
+
+---
+
+## Pass 7c — THE OPENED CASE AS ITS OWN SCENE (14.09.2026)
+
+Review note on 7b: opening a case that was not the front-most left the
+archive readable behind the open sheet — overlap and clutter. Required: the
+opened case is an isolated focus state; the archive leaves the composition
+once the sheet arrives and reappears on close; the visitor returns to the same
+archive position; a clear «×» close is the primary exit.
+
+**Isolation.** Every non-focused sheet and the rail now fade to 3 % over
+25 % → 80 % of the travel (`gone = smooth((u − 0.25) / 0.55)`), so the ring is
+still there while the sheet leaves it and is gone before the words arrive;
+on the return it is back before the sheet has re-wrapped. Index dim no longer
+depends on `u`. Browse = archive; open = only the active case, its words, and
+one way out.
+
+**«×».** A 44 px close with a gold hairline, hung at the open sheet's top-right
+corner (20 px outside it on desktop; above the corner on the phone), placed
+from the sheet's projected box like the wall label; `aria-label` «Закрыть
+кейс»; fills gold on hover; Escape unchanged. «← Назад в архив» stays as the
+secondary editorial control.
+
+**Same position on return.** `scrollY` is recorded on open; on close, if the
+page was scrolled meanwhile and the recorded position is still inside the
+pinned range, the page is put back to it instantly — the section is pinned, so
+nothing visible moves — and the rail position is untouched. The pass-7
+catch-up tween remains only as the fallback for a position outside the pin.
+Measured: pos 2.63 → 2.63 with 300 px of scrolling while open, scrollY
+2943 → 2643; the same after opening a neighbour directly.
+
+**Travel rotation.** The sheet's turn toward the visitor is now a single
+quaternion slerp from its rail orientation to the camera's (the Euler override
+that followed the slerp is gone) — no roll mid-flight. Continuity re-measured:
+max 10 / 12 px per frame (desktop open / return), 7 / 8 px (phone), monotonic,
+60 fps.
+
+Board: `docs/spikes/boards/cases-ribbon-turn.html` (sections 3–4 updated).
