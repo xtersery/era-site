@@ -86,7 +86,7 @@ ul{padding-left:1.2em;color:var(--mute);max-width:80ch}li{margin:6px 0}li b{colo
 <h1>The Passage — «I entered the crystal, and the crystal became the clinic»<small>Кинематографический переход между 05 (дымчатый кварц) и 06 (мрамор клиники): камера входит в кварц, внутри кристалл становится стеной, камера отступает — и это стена ЭРА. Не смена фона, не подмена текстуры, не кроссфейд: одна последовательность превращения материала.</small></h1>
 <p class="concept">The approved quartz stays the protagonist. The camera moves toward it until its facets fill the viewport, passes through its face, and is inside: smoke, sediment-like translucent layers, faceted planes, a thickness of mineral. There — on the crystal's own far shell, on its own photograph — the transformation happens: its smoke is read as density and takes the wall's graphite and blue-grey, its facet ridges become the first pale veins, the clinic's slab crosses the surface along them, the surface polishes, and the shell settles into the plane of the wall while the camera steps back. What the camera steps back into is the marble architecture of ERA, with the crystal's place still in its graphite band. One geometry, one photograph, one material shader on the shell and on the wall; the wall is the reference at native scale, projected in world units, never stretched.</p>
 <p class="lede">Deliberately absent: a fade between two backgrounds, a slide, a zoom on a picture, a transparent glass stand-in, a marble that appears behind the stone, a stretched image, any moment where the quartz is gone before the viewer is inside it.</p></div>
-<div class="spike"><b>The working spike</b><code>docs/spikes/boards/mineral-passage-spike.html</code> · or <code>npm run dev</code> → <code>/spikes/mineral/</code> · scroll (700 vh, pinned) or the slider · <code>?t=0…1</code> freezes a moment</div></header>
+<div class="spike"><b>The working spike</b><code>docs/spikes/boards/mineral-passage-spike.html</code> · or <code>npm run dev</code> → <code>/spikes/mineral/</code> · one scroll plays the passage; scroll up at the end to play it home · <code>?t=0…1</code> freezes a moment · <code>?d=1.55&amp;ease=power2.inOut</code> tunes the playback</div></header>
 
 <section><h2>1 · Storyboard — ten moments</h2>
 <p class="sub">Captured from the spike at 1440 × 900. <code>t</code> is the timeline (page scroll, 0 → 1 over 700 vh). Read left to right, top row then bottom row.</p>
@@ -122,10 +122,26 @@ ${fig('S6–S10', 'D · the interior becomes mineral: the smoke read as density,
 <p><b>The wall.</b> <code>docs/references/wallpapers.png</code>, whole (1672 × 941, four slabs) mirrored once vertically, laid 12 world units wide in the scene (a slab 3.24 units; the final view holds 2.65), placed so the diamond's pale centre sits under the founder's column and its graphite band passes through the stone. It is the albedo of a lit surface, projected in world units — never a background.</p>
 <p><b>Layers.</b> Six translucent slices across the crystal's length at the facets' tilts (<code>layer.frag</code>): the photograph's density at the large scale, fbm wisps at the small, 0.5 opacity, gone by 0.78. <b>Fog:</b> <code>FogExp2</code> 0 → 0.16 → 0 in warm graphite (<code>#5a524b</code>), matched in the custom shaders.</p></div>
 <table><tr><th>value</th><th></th></tr>
-<tr><td class="k">scroll</td><td>700 vh pinned; scrub 0.8 s; <code>?t=</code>; the slider on the spike</td></tr>
+<tr><td class="k">scroll</td><td>assisted: one gesture plays 1.55 s (phone 1.0 s), power2.inOut, the page held meanwhile — section 4b; <code>?t=</code>; the slider on the spike</td></tr>
 <tr><td class="k">stone</td><td>the approved body + glass overlay (Spike D pass 13 materials), place x 45.5 % / y 60 % / h 64 %, z 1.5, depth 1.3; the shell and six layers added</td></tr>
 <tr><td class="k">cost</td><td>scrub ${fps.median} ms median · p95 ${fps.p95} ms · ${fps.over33} % over 33 ms (${fps.n} frames, 1440 × 900, Apple M4)</td></tr>
-<tr><td class="k">reduced motion</td><td>whole states: the sitting, then the wall (t 0 / 1 at the scroll's midpoint)</td></tr></table>
+<tr><td class="k">reduced motion</td><td>the gesture lands on the end state at once — no playback</td></tr></table>
+</section>
+
+<section><h2>4b · Interaction — the assisted scroll</h2>
+<p class="sub">The passage is not scrubbed. When the section fills the viewport, one intentional gesture plays it to the end while the page is held; then the page is released and scrolls on. <code>spikes/mineral/passageController.ts</code> is the single source of truth — one state, one tween at a time, no loop of its own (it writes <code>t</code>; the scene reads it on its frame).</p>
+<div class="dark"><h3>State machine</h3>
+<p><code>idle → armed → playing → completed → released</code> · <b>armed</b> when the section's top is within 6 px of the viewport's and t is at 0 (or at 1, for the way back) · <b>playing</b> from one gesture: wheel ticks accumulated over 220 ms past 20 px, a touch move past 20 px, or ↓ / PageDown / Space (↑ / PageUp / Home at the end); a gesture up to 48 px off alignment still plays — the lock brings the section to the top · while <b>playing</b> the document is held (wheel, touch, keys prevented; scroll pinned to the section's top); every further gesture, either way, is ignored; a wheel up cannot reverse — the passage finishes first · <b>completed</b> at t 1, then <b>released</b> 60 ms later so the finishing gesture cannot leak into the page · after release the page scrolls on into 06 normally; at the top again, a gesture up plays the passage home.</p>
+<p><b>Motion.</b> <code>gsap.to(proxy, { t: 1, duration: 1.55, ease: 'power2.inOut' })</code> — a partial passage takes proportionally less; the phone plays the same passage at 1.0 s; reduced motion lands on the end state at once. <code>?d=</code> and <code>?ease=</code> (any GSAP ease, e.g. <code>expo.out</code>) tune it for review; the slider scrubs by hand and releases the lock. Noise in the playing direction is held (the page must not creep out of alignment); input the other way passes through.</p>
+<p><b>Proof</b> (Playwright, real wheel and synthetic touch):</p>
+<pre style="font:12px/1.5 JetBrains Mono,monospace;color:#d9dcd6;white-space:pre-wrap;margin:0">${readFileSync(`${CAP}/interact.log`, 'utf8').trim()}</pre></div>
+<table><tr><th>acceptance</th><th></th><th></th></tr>
+<tr><td class="k">one intentional scroll</td><td>a 120 px wheel plays; an 8 px tick does not</td><td class="pass">PASS</td></tr>
+<tr><td class="k">page locks inside the transition</td><td>y stays 0 through twelve more wheels and a wheel up</td><td class="pass">PASS</td></tr>
+<tr><td class="k">plays automatically · ≈ 1.5 s</td><td>t reached 1 after ≈ 1.57 s on desktop, 1.0 s on the phone</td><td class="pass">PASS</td></tr>
+<tr><td class="k">repeated input cannot break it</td><td>status stays playing, direction stays forward</td><td class="pass">PASS</td></tr>
+<tr><td class="k">normal scrolling resumes</td><td>the wheel after release moves the page; at the top, a gesture up plays home</td><td class="pass">PASS</td></tr>
+<tr><td class="k">the cinematic feeling · the reveal as a reveal</td><td>the animation is the approved one, untouched; the pace at 1.55 s is now the thing to judge in motion — <code>?d=1.8&amp;ease=power2.inOut</code> and <code>?ease=expo.out</code> are one URL away</td><td class="open">JUDGE ON THE SPIKE</td></tr></table>
 </section>
 
 <section><h2>5 · The phone</h2>

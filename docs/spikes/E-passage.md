@@ -78,3 +78,38 @@ sitting). Not integrated into `spikes/portraits/` — waits for approval.
 
 **Debug.** `window.__passage` (scene, camera, path, stone box);
 `window.__ov = { nofog, nolayers, noshell }`.
+
+## The assisted scroll (15.09.2026)
+
+**Brief.** One intentional scroll triggers the passage, which completes itself;
+the page is held meanwhile; then normal scrolling resumes. Do not touch the
+animation, camera, shaders, composition — interaction logic only.
+
+**Where it was.** No GSAP timeline existed: the scene reads a scalar `t`
+(a ref) every frame; `paint(v)` in `MineralSpike.tsx` was the only writer,
+fed by one `ScrollTrigger` scrub over a 700 vh pin. That ScrollTrigger is
+gone; the pin is gone (the section is a normal 100 svh block, so after the
+passage the page scrolls on into 06).
+
+**Built.** `spikes/mineral/passageController.ts` — `createPassageController`:
+the state `{ status, progress, triggered, locked, direction }`, one source of
+truth, mirrored to `window.__transition` and the HUD. `idle → armed →
+playing → completed → released`. Armed when the section's top is within 6 px
+of the viewport's and t is 0 (or 1 for the way back). Intent: wheel deltas
+accumulated over 220 ms past 20 px (a trackpad's ticks count as one gesture,
+a single tick does not), a touch move past 20 px, ↓/PageDown/Space (↑/PageUp/
+Home at the end); up to 48 px off alignment still plays, the lock brings the
+section to the top. Playing: `gsap.to(proxy, { t, duration: 1.55 × |Δt|,
+ease: 'power2.inOut' })` (phone 1.0 s; reduced motion lands at once;
+`?d=` / `?ease=` for review), `overwrite: true`, one tween at a time;
+wheel/touch/keys prevented, `scroll` pinned to the section top; every further
+gesture ignored, a wheel up cannot reverse. Completed at the end, released
+60 ms later (the finishing gesture cannot leak). Noise in the playing
+direction is held (alignment must not creep); the other direction passes to
+the page. The review slider calls `scrub(t)`: kills playback, releases.
+
+**Proof** (`e2e/spike-mineral.interact.mjs`): armed at rest → an 8 px wheel
+does nothing → a 120 px wheel plays, locked, y 0 → twelve more wheels and a
+wheel up ignored (still forward) → t 1 after ≈ 1.57 s → released; a wheel
+moves the page → at the top, a wheel up plays home → armed at 0. The phone
+the same with synthetic touches, 1.0 s.

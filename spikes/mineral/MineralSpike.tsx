@@ -1,41 +1,44 @@
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ru } from '@/lib/utils/ru';
 
 import { sitters } from '../portraits/people';
+import { createPassageController, type PassageController, type TransitionState } from './passageController';
 import { PassageScene } from './scene/PassageScene';
 
 /**
  * Spike E — THE PASSAGE: quartz → marble, as one material.
  *
- * The section is pinned for 700 vh; page scroll scrubs one timeline t (0 → 1)
- * through the choreography: A the sitting · B the camera moves into the stone
- * · C inside · D the interior becomes the wall · E the camera steps back into
- * the clinic. `?t=` freezes a moment; the slider at the foot scrubs it by hand.
+ * One timeline t (0 → 1). It is not scrubbed by the scroll: when the section
+ * fills the viewport, ONE intentional gesture (wheel, touch, keys) plays the
+ * passage to its end while the document is held in place; then the page is
+ * released and scrolls on into the next section. Scrolling back up at the
+ * end plays it home the same way. `passageController.ts` is the single
+ * source of truth; the scene only reads t. `?t=` freezes a moment; the
+ * slider at the foot scrubs by hand (review only).
  */
-gsap.registerPlugin(ScrollTrigger);
-
-const SCROLL_VH = 700;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const smooth = (t: number) => { const s = clamp(t, 0, 1); return s * s * (3 - 2 * s); };
 
 function readParams() {
   const q = new URLSearchParams(location.search);
   const t = q.get('t');
-  return { t: t === null ? null : clamp(Number(t), 0, 1), hud: q.get('hud') !== '0' };
+  const d = q.get('d');
+  return { t: t === null ? null : clamp(Number(t), 0, 1), hud: q.get('hud') !== '0', duration: d === null ? null : clamp(Number(d), 0.2, 6), ease: q.get('ease') };
 }
 
 export function MineralSpike() {
-  const { t: frozen, hud } = useMemo(readParams, []);
+  const { t: frozen, hud, duration: durationParam, ease: easeParam } = useMemo(readParams, []);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
+  const phone = useMemo(() => window.innerWidth < 1024, []);
   const t = useRef(frozen ?? 0);
   const sectionRef = useRef<HTMLElement>(null);
   const wordsRef = useRef<HTMLDivElement>(null);
   const founderRef = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(frozen ?? 0);
   const [live, setLive] = useState(false);
+  const controller = useRef<PassageController | null>(null);
+  const [status, setStatus] = useState<TransitionState['status']>('idle');
   const sitter = sitters[3]!;
 
   /** paints the DOM for a moment of the timeline; the scene reads t itself */
@@ -59,17 +62,20 @@ export function MineralSpike() {
 
   useEffect(() => {
     if (frozen !== null || !sectionRef.current) return;
-    const el = sectionRef.current;
-    const st = ScrollTrigger.create({
-      trigger: el,
-      start: 'top top',
-      end: `+=${SCROLL_VH}vh`,
-      pin: true,
-      scrub: reduced ? true : 0.8,
-      onUpdate: (self) => paint(reduced ? (self.progress < 0.5 ? 0 : 1) : self.progress),
+    const c = createPassageController({
+      section: sectionRef.current,
+      apply: paint,
+      initial: 0,
+      threshold: 20,
+      // the phone plays the same passage, shorter
+      duration: durationParam ?? (phone ? 1.0 : 1.55),
+      ease: easeParam ?? 'power2.inOut',
+      reduced,
+      onChange: (st) => { setStatus(st.status); (window as unknown as Record<string, unknown>)['__transition'] = st; },
     });
-    return () => st.kill();
-  }, [frozen, reduced, paint]);
+    controller.current = c;
+    return () => { c.destroy(); controller.current = null; };
+  }, [frozen, reduced, phone, paint, durationParam, easeParam]);
 
   return (
     <>
@@ -91,8 +97,8 @@ export function MineralSpike() {
         {hud && (
           <div className="passage__hud">
             <label>
-              <span>t {shown.toFixed(2)} · {phaseOf(shown)}</span>
-              <input type="range" min={0} max={1} step={0.001} value={shown} onChange={(e) => paint(Number(e.target.value))} aria-label="Момент перехода" />
+              <span>t {shown.toFixed(2)} · {phaseOf(shown)}{frozen === null ? ` · ${status}` : ''}</span>
+              <input type="range" min={0} max={1} step={0.001} value={shown} onChange={(e) => { const v = Number(e.target.value); if (controller.current) controller.current.scrub(v); else paint(v); }} aria-label="Момент перехода" />
             </label>
           </div>
         )}
