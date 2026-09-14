@@ -533,3 +533,39 @@ HEAD and the fallback re-rendered.
 
 **Cost.** 60 fps median, p95 16.8 ms, 0.8 % over 33 ms while scrubbing on
 1440 × 900. Board: B, B1 / B2 and the table (material and fallback rows).
+
+
+---
+
+## Pass 11 — THE STONE IN TWO LAYERS, NOTHING THAT CAN FAIL (14.09.2026)
+
+Reviewer's diagnostic: `STONE_WEBGL`, quartz loaded, stone mounted, no
+fallback — and still no visible stone; "the problem is only shader
+compilation". On an identical GPU (Apple M4, ANGLE Metal, Chrome) the bundle
+renders; the reviewer's `errors:` line was not supplied.
+
+**What was custom, and is gone.** Passes 4–9 used drei's
+`MeshTransmissionMaterial`, which replaces three's
+`transmission_pars_fragment` with an injected block (a `buffer` sampler,
+`anisotropicBlur`, `chromaticAberration`, its own `getIBLVolumeRefraction`)
+and a half-float FBO — the one custom shader modification in the page. Pass
+10 removed it. **What remains fragile:** three's own transmission pass, which
+renders the scene into a half-float target before drawing a transmissive
+mesh; if that target is unsupported the mesh is silently skipped and only the
+field remains — the reported symptom.
+
+**The stone no longer depends on it.** Two meshes on the same geometry:
+- **the body** — stock `MeshPhysicalMaterial`, the photograph as `map`, an
+  `alphaMap` opaque in the smoke and thinning in the clear zones
+  (1 − 0.5 × clear), roughness map, bump, clearcoat 0.6, env 1.0; `transparent`,
+  `depthWrite`. No transmission, no custom code — the portrait behind shows
+  through the clear zones by alpha. This cannot fail to draw.
+- **the glass** — `MeshPhysicalMaterial` with transmission 0.9, thickness 1.3,
+  ior 1.54, attenuation `#8f847b` at 4, roughness 0.35 × map, an `alphaMap` of
+  the clear zones only (clear^1.2 × 0.9), scale 1.004, `renderOrder` 1. Adds
+  the bend and the softening where the transmission pass works; where it does
+  not, the body alone is still the stone.
+`?mat=body` forces the body alone. The diagnostic reports `layers`.
+
+Verified here: full = 5 draw calls, body-only = 3, both the stone; the
+bundle diag `STONE_WEBGL`, no errors. 60 fps median.

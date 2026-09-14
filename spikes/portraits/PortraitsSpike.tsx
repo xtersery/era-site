@@ -445,7 +445,7 @@ quartz model loaded: ${diag.quartz ?? 'not started'}
 WebGL stone mounted: ${diag.stoneMounted ? 'yes' : 'no'} · canvas: ${diag.canvasCreated ? 'yes' : 'no'} · first frame: ${diag.firstFrame ? 'yes' : 'no'}
 fallback triggered: ${path === 'CSS_FALLBACK' || path === 'NO_WEBGL' ? 'yes' : 'no'}
 gpu: ${diag.renderer ?? probe.renderer} · webgl2: ${probe.webgl2 ? 'yes' : 'no'} · reduced: ${reduced ? 'yes' : 'no'} · phone layout: ${phone ? 'yes' : 'no'}
-stone visible now: ${diag.stoneVisible ? 'yes' : 'no'} · draw calls: ${diag.drawCalls ?? '—'}
+stone visible now: ${diag.stoneVisible ? 'yes' : 'no'} · draw calls: ${diag.drawCalls ?? '—'} · layers: ${diag.layers ?? '—'}
 errors: ${diag.errors.length ? diag.errors.join(' | ') : 'none'}`}
           </pre>
         );

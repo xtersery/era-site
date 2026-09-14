@@ -72,6 +72,7 @@ export interface SceneDiag {
   firstFrame?: boolean;
   stoneVisible?: boolean;
   drawCalls?: number;
+  layers?: string;
   error?: string;
 }
 
@@ -130,25 +131,36 @@ function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number
   const d = lg.getImageData(0, 0, W, H);
   const n = d.data.length;
   const trans = new Uint8ClampedArray(n), rough = new Uint8ClampedArray(n), bump = new Uint8ClampedArray(n);
+  const bodyAlpha = new Uint8ClampedArray(n), clearAlpha = new Uint8ClampedArray(n);
   for (let i = 0; i < n; i += 4) {
     const l = (0.2126 * d.data[i]! + 0.7152 * d.data[i + 1]! + 0.0722 * d.data[i + 2]!) / 255;
-    const t = Math.round((0.12 + 0.88 * Math.pow(l, 1.4)) * 255); // clear where the stone is clear
+    const clear = 0.12 + 0.88 * Math.pow(l, 1.4); // how clear the stone is here (its own smoke decides)
+    const t = Math.round(clear * 255);
     const r = Math.round((0.28 + 0.6 * (1 - l)) * 255);
     const b = Math.round(l * 255);
+    // the body: opaque in the smoke, thinning where the stone is clear — so the
+    // portrait behind shows through the clear zones with no transmission pass at all
+    const ba = Math.round((1 - 0.5 * clear) * 255);
+    // the glass layer over it: present only where the stone is clear
+    const ca = Math.round(Math.pow(clear, 1.2) * 0.9 * 255);
     trans[i] = trans[i + 1] = trans[i + 2] = t; trans[i + 3] = 255;
     rough[i] = rough[i + 1] = rough[i + 2] = r; rough[i + 3] = 255;
     bump[i] = bump[i + 1] = bump[i + 2] = b; bump[i + 3] = 255;
+    bodyAlpha[i] = bodyAlpha[i + 1] = bodyAlpha[i + 2] = ba; bodyAlpha[i + 3] = 255;
+    clearAlpha[i] = clearAlpha[i + 1] = clearAlpha[i + 2] = ca; clearAlpha[i + 3] = 255;
   }
   const [xc, xg] = draw(); xg.putImageData(new ImageData(trans, W, H), 0, 0);
   const [rc, rg] = draw(); rg.putImageData(new ImageData(rough, W, H), 0, 0);
   const [bc, bg] = draw(); bg.putImageData(new ImageData(bump, W, H), 0, 0);
+  const [ac, ag] = draw(); ag.putImageData(new ImageData(bodyAlpha, W, H), 0, 0);
+  const [cc, cg] = draw(); cg.putImageData(new ImageData(clearAlpha, W, H), 0, 0);
   const tex = (c: HTMLCanvasElement, srgb: boolean) => {
     const t = new CanvasTexture(c);
     if (srgb) t.colorSpace = SRGBColorSpace;
     t.wrapS = t.wrapT = ClampToEdgeWrapping;
     return t;
   };
-  return { tint: tex(tc, true), trans: tex(xc, false), rough: tex(rc, false), bump: tex(bc, false) };
+  return { tint: tex(tc, true), trans: tex(xc, false), rough: tex(rc, false), bump: tex(bc, false), bodyAlpha: tex(ac, false), clearAlpha: tex(cc, false) };
 }
 
 /** the shadow the stone throws on the portrait: a soft pool, drawn once */
@@ -242,25 +254,50 @@ function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props &
     [stoneH, narrow, phone],
   );
   const shadow = useMemo(() => createShadow(), []);
-  // the stone's material: the photograph on a body of smoky glass
-  const material = useMemo(
+  // the stone, in two layers. THE BODY cannot fail: a stock physical material
+  // with the photograph as its colour, opaque in the smoke and thinning in the
+  // clear zones (an alpha map), clearcoat and the environment for its polish —
+  // no transmission pass, nothing custom. THE GLASS lies over the clear zones
+  // only and adds transmission — the bend and the softening — where the
+  // renderer supports the transmission pass; where it does not, the body alone
+  // is still the stone. `?mat=body` shows the body alone.
+  const bodyOnly = useMemo(() => new URLSearchParams(location.search).get('mat') === 'body', []);
+  const body = useMemo(
     () =>
       new MeshPhysicalMaterial({
         map: maps.tint,
-        transmission: 0.72,
-        transmissionMap: maps.trans,
-        thickness: phone ? 1.0 : 1.3,
-        ior: 1.54,
+        alphaMap: maps.bodyAlpha,
+        transparent: true,
+        depthWrite: true,
         roughness: 0.5,
         roughnessMap: maps.rough,
         bumpMap: maps.bump,
         bumpScale: 0.05,
-        attenuationColor: new Color('#8f847b'),
-        attenuationDistance: 4,
         color: new Color('#efe9e0'),
         clearcoat: 0.6,
         clearcoatRoughness: 0.18,
         envMapIntensity: 1.0,
+        toneMapped: false,
+      }),
+    [maps],
+  );
+  const glass = useMemo(
+    () =>
+      new MeshPhysicalMaterial({
+        alphaMap: maps.clearAlpha,
+        transparent: true,
+        depthWrite: false,
+        transmission: 0.9,
+        thickness: phone ? 1.0 : 1.3,
+        ior: 1.54,
+        roughness: 0.35,
+        roughnessMap: maps.rough,
+        attenuationColor: new Color('#8f847b'),
+        attenuationDistance: 4,
+        color: new Color('#ffffff'),
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.2,
+        envMapIntensity: 0.6,
         toneMapped: false,
       }),
     [maps, phone],
@@ -269,7 +306,7 @@ function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props &
   const ready = useRef(false);
 
   useEffect(() => {
-    onDiag?.({ stoneMounted: true });
+    onDiag?.({ stoneMounted: true, layers: bodyOnly ? 'body' : 'body + glass' });
     scene.environment = env;
     scene.add(composite);
     scene.add(shadow);
@@ -278,14 +315,15 @@ function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props &
       scene.remove(composite);
       scene.remove(shadow);
       env.dispose();
-      material.dispose();
+      body.dispose();
+      glass.dispose();
       maps.tint.dispose(); maps.trans.dispose(); maps.rough.dispose(); maps.bump.dispose();
       profile.dispose();
       geometry.dispose();
       (composite.material as ShaderMaterial).dispose();
       textures.forEach((t) => t.dispose());
     };
-  }, [scene, env, composite, shadow, maps, profile, geometry, material, textures]);
+  }, [scene, env, composite, shadow, maps, profile, geometry, body, glass, textures]);
 
   useFrame(() => {
     const s = state.current;
@@ -343,8 +381,9 @@ function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props &
   return (
     <>
       <group ref={stone} position={[0, 0, STONE_Z]}>
-        {/* smoky quartz: the photograph on a body of smoky glass, clear where the stone is clear */}
-        <mesh geometry={geometry} material={material} />
+        {/* smoky quartz: the body (the photograph, opaque in the smoke), and the glass over its clear zones */}
+        <mesh geometry={geometry} material={body} />
+        {!bodyOnly && <mesh geometry={geometry} material={glass} scale={[1.004, 1.004, 1.004]} renderOrder={1} />}
       </group>
       {/* one warm key from the upper left, a cool fill low right — the ERA studio */}
       <directionalLight position={[-6, 7, 6]} intensity={1.5} color="#ffe6b8" />
