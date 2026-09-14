@@ -163,7 +163,7 @@ export function Sitting({
     // the shard crosses the face quickly and lingers at the edges: an eased seam.
     // `seam` is where its centre stands, in % of the frame; the incoming portrait
     // is clear behind its trailing edge and seen through it ahead of that
-    const seam = lerp(116, -22, smooth(f));
+    const seam = lerp(132, -36, smooth(f)); // the stone is half the frame wide: it enters and leaves fully
     const half = phone ? 17 : 13; // half the shard's width, in % of the frame
     const band = 4;
     for (let i = 0; i < N; i++) {
@@ -206,8 +206,8 @@ export function Sitting({
       const left = ((seam - half) * fw) / 100;
       // it pivots on its own axis — turned toward the visitor as it enters,
       // away as it leaves — and hangs at a slight tilt, like a shard held up
-      const rotY = lerp(-16, 14, f);
-      const rotZ = lerp(-6, -3, f);
+      const rotY = lerp(-14, 12, f);
+      const rotZ = lerp(-5, -2, f);
       const rise = lerp(1.5, -1.5, f); // it drifts down a little as it turns
       // the same pose for the body of quartz, and the two portraits it stands between
       const anchorOf = (i: number) => {

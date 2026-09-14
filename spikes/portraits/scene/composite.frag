@@ -37,8 +37,10 @@ void main() {
   float row = clamp(0.5 - (vUv.y - uStone.y) / (2.0 * uStoneSize.y), 0.0, 1.0);
   vec2 prof = texture2D(uProfile, vec2(0.5, 1.0 - row)).rg;
   float lean = (vUv.y - uStone.y) * uSkew;
-  float xL = uStone.x + (prof.r - 0.5) * 2.0 * uStoneSize.x + lean; // leading edge (it travels left)
-  float xR = uStone.x + (prof.g - 0.5) * 2.0 * uStoneSize.x + lean; // trailing edge
+  // the seams sit a little inside the stone's silhouette, so they are always under its body
+  float inset = uStoneSize.x * 0.22;
+  float xL = uStone.x + (prof.r - 0.5) * 2.0 * uStoneSize.x + lean + inset; // leading edge (it travels left)
+  float xR = uStone.x + (prof.g - 0.5) * 2.0 * uStoneSize.x + lean - inset; // trailing edge
 
   float ahead = xL - vUv.x;   // > 0: the portrait being left
   float behind = vUv.x - xR;  // > 0: the portrait arriving

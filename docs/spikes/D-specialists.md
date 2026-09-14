@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 6 — «СЕАНС», the sitting, with the transition built on SMOKY QUARTZ AS THE MECHANISM (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
+**Status: pass 7 — «СЕАНС», the sitting, with the SMOKY QUARTZ BUILT FROM THE REFERENCE PHOTOGRAPH as the transition mechanism (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -387,3 +387,54 @@ non-convex body (displaced hull or a sculpted mesh) would be the next step if
 the raw edge is judged insufficient.
 
 Board: sections B1 / B2 and the mechanism table.
+
+
+---
+
+## Pass 7 — THE QUARTZ FROM THE PHOTOGRAPH (14.09.2026)
+
+Review of pass 6: the stone was still an abstract translucent plate; the
+reference must drive form, material and character — asymmetric, volumetric,
+naturally broken edges, bodily, dense, inner depth, smoky grey-brown; a
+premium mineral, not a UI effect; the next portrait carried *through* it.
+
+**The trace** (`e2e/spike-portraits.quartz.mjs` → `scene/quartzTrace.ts`):
+the reference's alpha gives its crop box (571 × 1338, aspect 0.427) and, for
+112 rows, the outermost opaque pixels — the real chipped, concave flanks — plus
+a 112 × 56 luminance grid of the smoke.
+
+**The body** (`scene/quartzGeometry.ts`): a structured grid over the traced
+silhouette (each row runs from the stone's left edge to its right, 40
+columns), front and back faces swelling to a thickness that tapers into the
+flanks and ends (0.18–1.0 × depth; depth 1.4 units, phone 1.1), a relief of
+large planes meeting at ridges on each face (max of 7 / 6 planes × 0.55 ×
+depth), four rim strips with their own normals; indexed, smooth normals. The
+stone keeps the photograph's proportion (× 0.92 narrower; phone 0.8) and
+stands 1.06 × the frame's height — about 46 % of the frame wide, a body, not
+a sliver — so it enters and leaves fully (centre 132 % → −36 %).
+
+**The inside** — the photograph itself: its crop box drawn to three maps at
+448 px wide — a tint (36 % over `#efe9e0`: the smoke as density inside the
+glass), a roughness map (0.3 + 0.6 × (1 − luminance): dark smoke is cloudier)
+and a bump map (luminance, scale 0.035: the fractures and planes). UVs are in
+the box, so the smoke lands where it is in the stone; the back face mirrors.
+
+**The material:** drei transmission — transmission 0.9, thickness 1.45,
+ior 1.54, roughness 0.56 × map, anisotropic blur 0.34 (phone 0.26),
+attenuation `#9d9189` at 4.8, colour `#ebe4da`, clearcoat 0.5 / 0.28,
+chromatic aberration 0.006, env 1.35, 6 samples at 1024 (phone 4 at 512). The
+first build (tint 50 %, attenuation `#8a7b6e` at 3.2) was a dark brown slab
+and was lifted twice: the reference is a light stone.
+
+**The mechanism** is pass 6's, unchanged in principle: the frame drawn as a
+field around the stone (`composite.frag`) — the portrait being left
+compressed into the leading edge, the arriving one drawn out of the trailing
+edge, refracted inside. Two corrections: the edge profile is now the trace
+(linear-filtered, no stair-steps), and the seams are inset 22 % of the
+stone's half-width so they are always under the body — never a visible edge
+beside it. Pose: rotateY −14° → +12°, rotateZ −5° → −2°, rotateX −3° → +2°,
+3 % drift, z 1.7.
+
+**Cost.** 60 fps median, p95 16.8 ms, 1.3 % of frames over 33 ms while
+scrubbing on 1440 × 900 (a 112 × 40 × 2 body under 6-sample transmission);
+phone emulated. Board: B1 / B2 and the construction table.

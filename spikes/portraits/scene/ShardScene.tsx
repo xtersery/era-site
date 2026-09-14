@@ -1,5 +1,5 @@
 import { MeshTransmissionMaterial, useFBO } from '@react-three/drei';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import {
   CanvasTexture,
@@ -9,7 +9,7 @@ import {
   MeshBasicMaterial,
   NoToneMapping,
   PlaneGeometry,
-  RepeatWrapping,
+  ClampToEdgeWrapping,
   ShaderMaterial,
   SRGBColorSpace,
   TextureLoader,
@@ -17,10 +17,12 @@ import {
   type Texture,
 } from 'three';
 
+import quartzUrl from '../../../src/assets/smoky-quartz.png';
 import { createEraEnvironment } from '../../hero/scene/eraEnvironment';
 import compositeFrag from './composite.frag?raw';
 import compositeVert from './composite.vert?raw';
-import { createEdgeProfile, createQuartzGeometry } from './quartzGeometry';
+import { createEdgeProfile, createQuartzGeometry, QUARTZ_ASPECT } from './quartzGeometry';
+import { trace } from './quartzTrace';
 
 /**
  * The quartz as the mechanism.
@@ -81,40 +83,46 @@ function usePortraitTextures(urls: readonly string[]): Texture[] {
   }, [urls]);
 }
 
-/** the smoke inside the quartz: soft clouds drawn once — a roughness map and a faint tint */
-function createCloudTexture(size = 512): CanvasTexture {
-  const c = document.createElement('canvas');
-  c.width = size; c.height = size;
-  const ctx = c.getContext('2d')!;
-  ctx.fillStyle = '#8a8a8a';
-  ctx.fillRect(0, 0, size, size);
-  let seed = 3;
-  const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
-  for (let i = 0; i < 140; i++) {
-    const x = rnd() * size, y = rnd() * size, r = 30 + rnd() * 150;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    const v = rnd() > 0.5 ? 255 : 40;
-    g.addColorStop(0, `rgba(${v},${v},${v},${0.07 + rnd() * 0.1})`);
-    g.addColorStop(1, `rgba(${v},${v},${v},0)`);
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, size, size);
+/**
+ * The stone's inside, from the photograph: its crop box drawn to three maps —
+ * a lightened tint (the smoke as density inside the glass), a roughness map
+ * (dark smoke is cloudier), and a bump map (the fractures and planes).
+ */
+function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number; h: number }) {
+  const img = photo.image as HTMLImageElement;
+  const W = 448, H = Math.round(448 / (box.w / box.h));
+  const draw = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return [c, c.getContext('2d')!] as const; };
+  // the tint: the photograph lifted toward the stone's pale body
+  const [tc, tg] = draw();
+  tg.fillStyle = '#efe9e0';
+  tg.fillRect(0, 0, W, H);
+  tg.globalAlpha = 0.36;
+  tg.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, W, H);
+  tg.globalAlpha = 1;
+  // the roughness and the bump, from the luminance
+  const [lc, lg] = draw();
+  lg.fillStyle = '#9a9a9a';
+  lg.fillRect(0, 0, W, H);
+  lg.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, W, H);
+  const d = lg.getImageData(0, 0, W, H);
+  const rough = new Uint8ClampedArray(d.data.length);
+  const bump = new Uint8ClampedArray(d.data.length);
+  for (let i = 0; i < d.data.length; i += 4) {
+    const l = (0.2126 * d.data[i]! + 0.7152 * d.data[i + 1]! + 0.0722 * d.data[i + 2]!) / 255;
+    const r = Math.round((0.3 + 0.6 * (1 - l)) * 255);
+    rough[i] = rough[i + 1] = rough[i + 2] = r; rough[i + 3] = 255;
+    const b = Math.round(l * 255);
+    bump[i] = bump[i + 1] = bump[i + 2] = b; bump[i + 3] = 255;
   }
-  // a few fine veils, the way smoke settles along a crystal's growth
-  for (let i = 0; i < 18; i++) {
-    ctx.save();
-    ctx.translate(rnd() * size, rnd() * size);
-    ctx.rotate((rnd() - 0.5) * 0.9 + 0.35);
-    const g = ctx.createLinearGradient(0, -6, 0, 6);
-    g.addColorStop(0, 'rgba(30,30,30,0)');
-    g.addColorStop(0.5, `rgba(30,30,30,${0.08 + rnd() * 0.1})`);
-    g.addColorStop(1, 'rgba(30,30,30,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(-size, -6, size * 2, 12);
-    ctx.restore();
-  }
-  const t = new CanvasTexture(c);
-  t.wrapS = t.wrapT = RepeatWrapping;
-  return t;
+  const [rc, rg] = draw(); rg.putImageData(new ImageData(rough, W, H), 0, 0);
+  const [bc, bg] = draw(); bg.putImageData(new ImageData(bump, W, H), 0, 0);
+  const tex = (c: HTMLCanvasElement, srgb: boolean) => {
+    const t = new CanvasTexture(c);
+    if (srgb) t.colorSpace = SRGBColorSpace;
+    t.wrapS = t.wrapT = ClampToEdgeWrapping;
+    return t;
+  };
+  return { tint: tex(tc, true), rough: tex(rc, false), bump: tex(bc, false) };
 }
 
 /** cover-fit of a 4 : 5 portrait into the frame, anchored like its DOM plate */
@@ -129,8 +137,9 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
   const { scene, gl, camera, size } = useThree();
   const textures = usePortraitTextures(portraits);
   const env = useMemo(() => createEraEnvironment(1024, 512), []);
-  const clouds = useMemo(() => createCloudTexture(), []);
-  const profile = useMemo(() => createEdgeProfile(64), []);
+  const photo = useLoader(TextureLoader, quartzUrl);
+  const maps = useMemo(() => createQuartzMaps(photo, trace.box), [photo]);
+  const profile = useMemo(() => createEdgeProfile(), []);
   const worldW = (WORLD_H * size.width) / size.height;
   const frameAspect = size.width / size.height;
 
@@ -162,12 +171,13 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     return new Mesh(new PlaneGeometry(1, 1), mat);
   }, [profile]);
 
-  // the stone
-  const stoneW = worldW * (phone ? 0.36 : 0.28);
-  const stoneH = WORLD_H * 1.16;
+  // the stone: the photograph's proportion, a little over the frame's height, thick
+  const stoneH = WORLD_H * 1.06;
+  const narrow = phone ? 0.8 : 0.92;
+  const stoneW = stoneH * QUARTZ_ASPECT * narrow;
   const geometry = useMemo(
-    () => createQuartzGeometry({ width: stoneW, height: stoneH, depth: phone ? 0.9 : 1.15, seed: 5 }),
-    [stoneW, stoneH, phone],
+    () => createQuartzGeometry({ height: stoneH, depth: phone ? 1.1 : 1.4, narrow, seed: 5 }),
+    [stoneH, narrow, phone],
   );
   const fbo = useFBO(phone ? 768 : 1024, phone ? 768 : 1024, { depthBuffer: false });
   const stone = useRef<Group>(null);
@@ -182,13 +192,13 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
       scene.remove(backdrop);
       scene.remove(composite);
       env.dispose();
-      clouds.dispose();
+      maps.tint.dispose(); maps.rough.dispose(); maps.bump.dispose();
       profile.dispose();
       geometry.dispose();
       (composite.material as ShaderMaterial).dispose();
       textures.forEach((t) => t.dispose());
     };
-  }, [scene, env, backdrop, composite, clouds, profile, geometry, textures]);
+  }, [scene, env, backdrop, composite, maps, profile, geometry, textures]);
 
   useFrame(() => {
     const s = state.current;
@@ -226,8 +236,9 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     const y = (-s.rise / 100) * WORLD_H;
     const rotY = (s.rotY * Math.PI) / 180;
     const rotZ = (s.rotZ * Math.PI) / 180;
+    const rotX = ((-3 + 5 * s.f) * Math.PI) / 180; // a body turning in space leans a little too
     mesh.position.set(x, y, STONE_Z);
-    mesh.rotation.set(0, rotY, rotZ);
+    mesh.rotation.set(rotX, rotY, rotZ);
 
     // the field: where the stone's edges fall on the frame, in frame uv
     const u = (composite.material as ShaderMaterial).uniforms;
@@ -260,23 +271,25 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
         <mesh geometry={geometry}>
           <MeshTransmissionMaterial
             buffer={fbo.texture}
-            transmission={0.92}
-            thickness={phone ? 1.0 : 1.3}
+            transmission={0.9}
+            thickness={phone ? 1.1 : 1.45}
             ior={1.54}
-            chromaticAberration={0.008}
-            anisotropicBlur={phone ? 0.28 : 0.42}
-            roughness={0.46}
-            roughnessMap={clouds}
-            attenuationColor="#8a7d72"
-            attenuationDistance={3.4}
-            color="#dcd3c8"
-            clearcoat={0.55}
-            clearcoatRoughness={0.22}
-            envMapIntensity={1.4}
+            chromaticAberration={0.006}
+            anisotropicBlur={phone ? 0.26 : 0.34}
+            roughness={0.56}
+            roughnessMap={maps.rough}
+            map={maps.tint}
+            bumpMap={maps.bump}
+            bumpScale={0.035}
+            attenuationColor="#9d9189"
+            attenuationDistance={4.8}
+            color="#ebe4da"
+            clearcoat={0.5}
+            clearcoatRoughness={0.28}
+            envMapIntensity={1.35}
             samples={phone ? 4 : 6}
             resolution={phone ? 512 : 1024}
             toneMapped={false}
-            flatShading
           />
         </mesh>
       </group>
