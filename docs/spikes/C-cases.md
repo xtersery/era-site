@@ -1,10 +1,13 @@
 # Spike C — Cases / до · после
 
-**Status: pass 6 — the archive restaged, AWAITING REVIEW (13.09.2026).** The
-spiral concept is approved in principle; pass 6 is a staging / spacing /
-hierarchy correction, not a redesign. Not productionised; do not start Specialists.
-Passes 3–4 (the portal passage, `spikes/portal/`) stay in the repo; pass 5 is the
-current candidate for the final Cases direction.
+**Status: DIRECTION APPROVED — THE ARCHIVE ON A RAIL (pass 6 PASS, 14.09.2026).
+Pass 7 — the experience refinement asked for before closing (density,
+affordance, material, transitions) — is built and AWAITING REVIEW.** The
+portal passage and all other concepts are closed; do not go back to them. Not
+productionised; do not start Specialists.
+
+Board (pass 7): https://claude.ai/code/artifact/bd4cd872-3e09-4aaa-a8c0-f037002cc537
+Spike (interactive, pass 7): https://claude.ai/code/artifact/193e5716-b73f-4668-af01-d7ed547f3059
 
 Passes 1–2 (`spikes/cases/`, a DOM/CSS spatial archive) are superseded as a
 *direction* by pass 3, but their honesty machinery carries over unchanged. They
@@ -361,3 +364,108 @@ usually off-frame — the staging is built for 8–16 and should be re-judged wi
 them; and the affordance is still carried by «Открыть кейс» and the index rather
 than by the sheet, which matters more now that neighbours are fragments (decide
 whether a fragment is clickable at all, or only the docked case).
+
+
+---
+
+## Pass 7 — EXPERIENCE REFINEMENT (14.09.2026)
+
+Review of pass 6: **PASS — the archive-on-a-rail is the Cases interaction
+direction.** Spatial archive · scroll-driven · the chosen case flies forward ·
+the editorial state unfolds. Before closing, one refinement pass on experience
+quality only — no architecture, no rebuild. Four points were asked.
+
+**1 · Density.** Eight cases instead of four: the prototype's four placeholder
+records plus four more in the same format, spike-only
+(`spikes/gallery/cases8.ts`; `src/data/cases.ts` is untouched because the
+greyscale room and its 55 tests are built on four). Four new stand-in plates
+were cut from the one test portrait (two mirrored — a framing device, not a
+result). The staging was turned: the helix now winds so the case **coming
+next** rises through the lower left and the one just left leaves at the upper
+right — at any position the archive is a diagonal of four sheets through the
+frame (three at the head), never a photograph with a fragment beside it. The
+kicker says «Архив результатов · 08 кейсов».
+
+**2 · Affordance.** «Открыть кейс» was carrying the gesture; the sheet now
+carries it. Every sheet in view is a real `<button>` laid over its projected
+screen box every frame — a **DOM grip**, so the canvas is `pointer-events:
+none` as the architecture requires (§0.8) and the sheets are in the Tab order.
+The docked case carries a fine gold edge, the rail's glint under it, and its own
+wall label «04.4 · открыть →». Hover or keyboard focus on any sheet lifts it
+0.22 units off the rail toward the visitor (eased, measured 6.55 → 6.31 and
+back) and lights its edge; a neighbour's label shows its number and gains the
+verb only when the pointer arrives. The boxed button became a mono link
+«Открыть кейс 04.4 →» — the keyboard / screen-reader way in — so there is one
+primary CTA per viewport again. The hint is one clause. Decided here, to be
+confirmed: a neighbour is clickable and opens directly (the travel starts from
+wherever it hangs).
+
+**3 · One spatial object.** The rail is real: one hairline helix that runs
+level across the top edge of each sheet and descends between them (landings),
+drawn behind the sheets, with the glint where the visitor stands — the sheets
+hang from it. Depth is on the surface: the mineral dark gathers along each
+curved sheet with distance in the shader (`vDepth`), so a sheet turns away into
+the fog rather than being uniformly dimmed; neighbours lose contrast and
+colour. Gold is light: one glint just inside the docked sheet's edge, brightest
+where the key falls, dying along the far edges — it was first built as a full
+rim and read as a frame, so it was cut back. The pass-6 clipped fragments were
+dropped: a whole sheet reads as a documented result, a slice does not.
+
+| | pass 6 | pass 7 |
+| --- | --- | --- |
+| helix · angle · drop | 7.5 · 25° · 1.7 | 7.5 · 20° · 1.5, wound the other way |
+| the visitor | 4.55 outside; dock 45 % wide, ~90 % tall | 5.2 outside; dock 33 % wide, 68 % tall |
+| sheets in frame | 1 + a fragment | 4 (head: 3) |
+| neighbours | clipped fragments × 0.72 | whole sheets × 0.82, cooled, flattened, fogged along the surface |
+| the rail | vertical hairline at the axis, 7.5 behind the sheets | helix with landings through the sheets' top edges, behind them |
+| the docked case | larger | larger · lit edge · own label · the rail's glint |
+| picking | mesh raycast (canvas takes the pointer) | DOM grips (canvas `pointer-events: none`) |
+
+**4 · Transitions.** Browse → focus: the words now arrive at 72 % of the travel
+instead of after it; the archive recedes to a visible archive (dim 0.5,
+opacity 0.65), not to black — a single result taken out of a collection.
+Focus → return: if the page was scrolled while the case was open, the rail
+catches up with a 0.7 s mineral ease instead of jumping on the next scroll
+event (pass 6 had this latent jump); scrolling the section away closes the
+case (`onLeave` / `onLeaveBack`). The browse block, index and grips fade
+(360 ms) instead of toggling `hidden`. Measured per animation frame
+(`e2e/spike-gallery.continuity.mjs`): largest unfold step 0.041 / 0.049,
+largest sheet move 12 / 16 px (desktop open / return), 8 / 10 px on the phone,
+width step ≤ 10 px, monotonic — on a ~400 px journey, that is the peak of an
+eased travel, not a jump. Sheets do not write depth, so the travelling sheet
+never cuts into a neighbour.
+
+**Phone — its own composition.** The frame is too narrow for a neighbour
+beside the docked case, so the archive is a stack with a slight twist (step
+16°, drop 2.9, the visitor 8.2 out): the docked case in the upper half at 68 %
+width with its label under it; the next case rising from the lower left behind
+the words' scrim (now always on — in pass 6 it appeared only when open); the
+previous one leaving at the upper right under a new top scrim. Open: the sheet
+at 83 % width above the words, never under them (it overlapped in pass 6).
+
+**Reduced motion.** No drift (measured 0 px over 1 s), no hover lift, the case
+opens and returns in place.
+
+**Technical.** 60 fps median, 0 % of frames over 33 ms, browsing and open, on
+1440 × 900 (real Chrome on this Mac) and on an emulated 390 × 844 @2× touch
+viewport; 5–6 draw calls (up to 9 mid-archive: 8 sheets + the rail), 3
+programs, 34 MB heap. **Honesty:** «до» vs «после» on the open sheet still best
+at zero shift (1.530 vs 3.316 at 1 px). Interaction proof
+(`e2e/spike-gallery.interact.mjs`): scroll browse · hover lift and settle · Tab
+to a sheet · click the docked sheet · rail holds still while open · До/После ·
+back with catch-up · index · Escape · close on leave · phone touch scroll, tap
+the sheet, back, tap the link — all pass.
+
+**Not proved: a real phone.** The mobile numbers are emulation on a desktop
+GPU; the staging and the touch paths are proved, the frame rate on a real
+mid-range phone is not. That test needs a device in hand.
+
+Board: `docs/spikes/boards/cases-ribbon-refined.html` (built by
+`e2e/spike-gallery.board.mjs`; pass-6 board kept at `cases-ribbon-staging.html`).
+Spike: `docs/spikes/boards/cases-ribbon-spike.html` or `npm run dev` →
+`/spikes/gallery/` (`?c=&p=` browse still · `?hover=k` · `?c=&focus=&u=`
+unfold still · `?mode=` · `?fx=&fy=` · `?hud=1`).
+
+**Recommendation:** close Spike C on this pass. Carry into production: the
+DOM-grip picking model, one `STAGING` object per viewport class, `cases8`'s
+format as the content contract (8–16 cases), the honesty label on every case.

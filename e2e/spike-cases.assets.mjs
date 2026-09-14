@@ -20,6 +20,12 @@ const CROPS = [
   { id: 'case-2', x: 260, y: 120, w: 560, h: 700 }, // middle third
   { id: 'case-3', x: 330, y: 110, w: 480, h: 600 }, // brow and eyes
   { id: 'case-4', x: 390, y: 230, w: 400, h: 500 }, // cheek and temple, macro
+  // four more stand-ins so the archive can be judged at its intended length;
+  // `flip` mirrors the crop — a framing device, not a result
+  { id: 'case-5', x: 200, y: 380, w: 560, h: 700 }, // neck and jawline
+  { id: 'case-6', x: 90, y: 30, w: 700, h: 875, flip: true }, // the oval of the face, mirrored
+  { id: 'case-7', x: 440, y: 390, w: 380, h: 475 }, // lips and chin
+  { id: 'case-8', x: 360, y: 140, w: 440, h: 550, flip: true }, // temple and eye, mirrored
 ];
 const TIERS = [
   { suffix: '', scale: 1 },
@@ -44,7 +50,9 @@ const out = await page.evaluate(
           ctx.filter = state === 'before'
             ? 'saturate(0.7) contrast(0.94) brightness(0.95) sepia(0.04) hue-rotate(-10deg)'
             : 'none';
+          if (c.flip) { ctx.translate(w, 0); ctx.scale(-1, 1); }
           ctx.drawImage(img, c.x, c.y, c.w, c.h, 0, 0, w, h);
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
           files.push({ name: `${c.id}-${state}${t.suffix}.jpg`, data: cv.toDataURL('image/jpeg', 0.86), w, h });
         }
       }

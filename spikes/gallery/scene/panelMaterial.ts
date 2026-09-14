@@ -1,4 +1,4 @@
-import { Color, DoubleSide, ShaderMaterial, Vector2, Vector4, type Texture } from 'three';
+import { Color, DoubleSide, ShaderMaterial, Vector2, type Texture } from 'three';
 
 /**
  * One case panel on the rail.
@@ -10,10 +10,12 @@ import { Color, DoubleSide, ShaderMaterial, Vector2, Vector4, type Texture } fro
  *
  * Extended for ERA: the two states of the case live on this one sheet, sampled
  * with the same uv and mixed by opacity only (no scale, no offset, no warp — the
- * face cannot move); the archive dims behind the focused case; the sheet keeps a
- * mineral edge and a warm key instead of a paper-grid look.
+ * face cannot move); the archive recedes into the mineral dark with depth, along
+ * its own curved surface; the sheet keeps a soft mineral edge and a warm key;
+ * and the case the visitor has arrived at carries one fine gold edge — light,
+ * not decoration — which is how she knows it is the one she can take out.
  */
-export function createPanelMaterial(after: Texture, before: Texture): ShaderMaterial {
+export function createPanelMaterial(after: Texture, before: Texture, radius: number, dock: number): ShaderMaterial {
   return new ShaderMaterial({
     transparent: true,
     // transparent sheets are sorted back to front by the renderer; writing depth
@@ -31,21 +33,21 @@ export function createPanelMaterial(after: Texture, before: Texture): ShaderMate
       /** 1 = wrapped around the rail, 0 = flat (focused) */
       uBend: { value: 1 },
       /** the rail's radius — the curvature the sheet is wrapped to */
-      uRadius: { value: 7.5 }, // the helix radius the sheet is wrapped to
+      uRadius: { value: radius },
       uOpacity: { value: 1 },
       /** the archive stepping back while one case is read */
       uDim: { value: 0 },
-      /** pointer-over affordance, 0…1 */
-      uHover: { value: 0 },
-      /** 0 = the whole editorial plate · 1 = a clipped fragment of it */
-      uFragment: { value: 0 },
-      /** the fragment's window in the plate: centre x, centre y, half width, half height */
-      uFragmentRect: { value: new Vector4(0.5, 0.5, 0.5, 0.5) },
+      /** the gold edge, 0…1 — the docked case, and a sheet under the pointer */
+      uEdge: { value: 0 },
       /** contrast and colour leaving the sheet with distance */
       uFlat: { value: 0 },
+      /** whether the mineral dark gathers along the sheet with depth (off when it stands open) */
+      uFog: { value: 1 },
+      /** the distance at which the fog begins — the dock is always clear */
+      uFogNear: { value: dock + 0.4 },
       uDark: { value: new Color('#07120e') },
       uWarm: { value: new Color('#f7e4b1') },
-      uGold: { value: new Color('#cfaf72') },
+      uGold: { value: new Color('#d3b478') },
     },
     vertexShader: /* glsl */ `
       uniform float uBend;
@@ -75,14 +77,18 @@ export function createPanelMaterial(after: Texture, before: Texture): ShaderMate
       uniform float uFieldAmount;
       uniform float uOpacity;
       uniform float uDim;
-      uniform float uHover;
-      uniform float uFragment;
-      uniform vec4 uFragmentRect;
+      uniform float uEdge;
       uniform float uFlat;
+      uniform float uFog;
+      uniform float uFogNear;
       uniform vec3 uDark;
       uniform vec3 uWarm;
       uniform vec3 uGold;
       varying vec2 vUv;
+      varying float vDepth;
+
+      // the far end of a receding sheet also thins out, so it dissolves into the ground
+      float edgeAlpha(float full, float fog) { return full * (1.0 - fog * 0.55); }
 
       void main() {
         vec2 uv = vUv;
@@ -105,24 +111,26 @@ export function createPanelMaterial(after: Texture, before: Texture): ShaderMate
         vec2 e = abs(uv - 0.5) * 2.0;
         float full = (1.0 - smoothstep(0.9, 1.0, e.x)) * (1.0 - smoothstep(0.93, 1.0, e.y));
 
-        // a case standing back in the archive is not a small copy of the active one:
-        // it shows a clipped fragment of its plate, with soft mineral edges
-        vec2 fd = abs(uv - uFragmentRect.xy) - uFragmentRect.zw;
-        float fragment =
-          (1.0 - smoothstep(-0.06, 0.01, fd.x)) * (1.0 - smoothstep(-0.06, 0.01, fd.y));
-        float edge = mix(full, fragment * full, uFragment);
-
-        // and it loses contrast and colour as it goes back
+        // a case standing back on the rail loses contrast and colour
         float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
         col = mix(col, mix(vec3(l), uDark, 0.42), uFlat * 0.72);
+
+        // and the mineral dark gathers along its surface with depth, so a curved
+        // sheet turns away into the fog rather than being uniformly dimmed
+        float fog = 1.0 - exp(-pow(max(0.0, vDepth - uFogNear) * 0.22, 2.0));
+        col = mix(col, uDark, fog * uFog * 0.85);
 
         // the archive steps back while one case is being read
         col = mix(col, uDark, uDim * 0.82);
 
-        // the sheet the pointer is over warms very slightly — the only hover tell
-        col += uGold * uHover * 0.045 * (1.0 - uDim);
+        // one fine gold glint just inside the mineral fade — a lit edge, not a frame:
+        // it lives where the key falls (upper left) and dies away along the far edges
+        float em = max(e.x, e.y * 0.965);
+        float rim = exp(-pow((em - 0.905) / 0.0045, 2.0));
+        float lit = smoothstep(1.35, 0.15, uv.x + (1.0 - uv.y));
+        col += uGold * rim * uEdge * (0.03 + 0.42 * lit) * (1.0 - fog * uFog);
 
-        float a = uOpacity * edge * (1.0 - uDim * 0.35);
+        float a = uOpacity * edgeAlpha(full, fog * uFog) * (1.0 - uDim * 0.3);
         if (a <= 0.003) discard;
         gl_FragColor = vec4(col, a);
         #include <colorspace_fragment>
@@ -138,28 +146,34 @@ export function createRailMaterial(): ShaderMaterial {
     depthWrite: false,
     uniforms: {
       uHere: { value: 0 }, // where the visitor stands, in 0…1 of the rail
-      uGold: { value: new Color('#cfaf72') },
-      uLine: { value: new Color('#8a948c') },
+      uDim: { value: 0 }, // the rail recedes with the archive while a case is open
+      uGold: { value: new Color('#d3b478') },
+      uLine: { value: new Color('#96a09a') },
     },
     vertexShader: /* glsl */ `
       varying vec2 vUv;
+      varying float vDepth;
       void main() {
         vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vDepth = -mv.z;
+        gl_Position = projectionMatrix * mv;
       }
     `,
     fragmentShader: /* glsl */ `
       precision highp float;
       uniform float uHere;
+      uniform float uDim;
       uniform vec3 uGold;
       uniform vec3 uLine;
       varying vec2 vUv;
+      varying float vDepth;
       void main() {
-        float line = smoothstep(0.5, 0.0, abs(vUv.x - 0.5) * 2.0);
-        float fade = smoothstep(0.0, 0.16, vUv.y) * smoothstep(1.0, 0.84, vUv.y);
-        float here = smoothstep(0.03, 0.0, abs(vUv.y - uHere));
+        // the glint sits where the visitor stands and breathes out along the rail
+        float here = smoothstep(0.09, 0.0, abs(vUv.x - uHere));
         vec3 col = mix(uLine, uGold, here);
-        float a = line * fade * (0.16 + here * 0.7);
+        float fog = 1.0 - exp(-pow(max(0.0, vDepth - 5.0) * 0.11, 2.0));
+        float a = (0.22 + here * 0.62) * (1.0 - fog) * (1.0 - uDim * 0.6);
         if (a <= 0.002) discard;
         gl_FragColor = vec4(col, a);
       }

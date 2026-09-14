@@ -1,4 +1,4 @@
-// Stills and strips for the Spike C pass-5 board (the archive on a rail).
+// Stills and strips for the Spike C pass-7 board (the archive on a rail, refined).
 import { chromium } from '@playwright/test';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 const OUT = 'spikes/gallery/__captures__';
@@ -19,32 +19,36 @@ const strip = async (page, files, cols, out) => {
   }, { srcs: files.map((f) => 'data:image/png;base64,' + readFileSync(f).toString('base64')), cols });
   writeFileSync(out, Buffer.from(data.split(',')[1], 'base64'));
 };
+const boxes = {};
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1.5 });
   const page = await ctx.newPage();
-  const shot = async (q, name) => { await page.goto(base + q, { waitUntil: 'networkidle' }); await settle(page); const f = `${OUT}/${name}.png`; await page.screenshot({ path: f }); return f; };
-  await shot('?c=0&p=0', 'd1-browse');
-  await shot('?c=2&p=0.66', 'd2-browse-3');
-  await shot('?focus=2&u=1&mode=after', 'd3-open');
-  await shot('?focus=2&u=1&mode=before', 'd4-open-before');
-  await shot('?focus=2&u=1&fx=0.58&fy=0.42', 'd5-open-compare');
+  const shot = async (q, name) => { await page.goto(base + q, { waitUntil: 'networkidle' }); await settle(page); const f = `${OUT}/${name}.png`; await page.screenshot({ path: f }); boxes[name] = await page.evaluate(() => window.__sheets); return f; };
+  await shot('?c=0&p=0', 'd1-browse-head');
+  await shot('?c=3&p=0.4286', 'd2-browse-mid');
+  await shot('?c=3&p=0.4286&hover=4', 'd2h-hover-next');
+  await shot('?c=7&p=1', 'd2t-browse-tail');
+  await shot('?c=3&focus=3&u=1&mode=after', 'd3-open');
+  await shot('?c=3&focus=3&u=1&mode=before', 'd4-open-before');
+  await shot('?c=3&focus=3&u=1&fx=0.58&fy=0.42', 'd5-open-compare');
   // the unfold, six frames
   const un = [];
-  for (const [i, u] of [0, 0.2, 0.38, 0.56, 0.76, 1].entries()) un.push(await shot(`?focus=2&u=${u}&mode=after`, `u-${i}`));
+  for (const [i, u] of [0, 0.2, 0.38, 0.56, 0.76, 1].entries()) un.push(await shot(`?c=3&focus=3&u=${u}&mode=after`, `u-${i}`));
   await strip(page, un, 3, `${OUT}/d6-unfold.png`);
   await ctx.close();
 }
 {
   const m = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const page = await m.newPage();
-  const shot = async (q, name) => { await page.goto(base + q, { waitUntil: 'networkidle' }); await settle(page); const f = `${OUT}/${name}.png`; await page.screenshot({ path: f }); return f; };
-  await shot('?c=1&p=0.33', 'm1-browse');
-  await shot('?focus=1&u=1&mode=after', 'm2-open');
-  await shot('?focus=1&u=1&mode=before', 'm3-open-before');
+  const shot = async (q, name) => { await page.goto(base + q, { waitUntil: 'networkidle' }); await settle(page); const f = `${OUT}/${name}.png`; await page.screenshot({ path: f }); boxes[name] = await page.evaluate(() => window.__sheets); return f; };
+  await shot('?c=2&p=0.2857', 'm1-browse');
+  await shot('?c=2&focus=2&u=1&mode=after', 'm2-open');
+  await shot('?c=2&focus=2&u=1&mode=before', 'm3-open-before');
   const mu = [];
-  for (const [i, u] of [0, 0.35, 0.65, 1].entries()) mu.push(await shot(`?focus=1&u=${u}&mode=after`, `mu-${i}`));
+  for (const [i, u] of [0, 0.35, 0.65, 1].entries()) mu.push(await shot(`?c=2&focus=2&u=${u}&mode=after`, `mu-${i}`));
   await strip(page, mu, 4, `${OUT}/m4-unfold.png`);
   await m.close();
 }
 await browser.close();
+writeFileSync(`${OUT}/boxes.json`, JSON.stringify(boxes, null, 1));
 console.log('captured');

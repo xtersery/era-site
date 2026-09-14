@@ -1,4 +1,4 @@
-// Spike C pass 5 — technical report for the ribbon archive.
+// Spike C pass 7 — technical report for the ribbon archive (8 cases).
 import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 const OUT = 'spikes/gallery/__captures__';
@@ -26,8 +26,8 @@ async function measure(label, viewport, opts = {}) {
   const browse = await sample();
   const glBrowse = await page.evaluate(() => window.__gl);
   // one case open
-  await page.click('.browse__open');
-  await page.waitForTimeout(1800);
+  if (opts.isMobile) await page.tap('.grip[data-near]', { force: true }); else await page.click('.grip[data-near]', { force: true });
+  await page.waitForTimeout(1900);
   const open = await sample();
   const glOpen = await page.evaluate(() => window.__gl);
   const mem = await page.evaluate(() => ({ heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, nodes: document.querySelectorAll('*').length }));
@@ -41,9 +41,9 @@ report.phone = await measure('phone 390×844', { width: 390, height: 844 }, { de
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   const page = await ctx.newPage();
   const shot = async (q, clip) => { await page.goto(base + q, { waitUntil: 'networkidle' }); await page.waitForTimeout(2400); return page.screenshot({ clip }); };
-  const clip = { x: 700, y: 150, width: 420, height: 480 };
-  const a = await shot('?focus=2&u=1&mode=after', clip);
-  const b = await shot('?focus=2&u=1&mode=before', clip);
+  const clip = { x: 720, y: 150, width: 440, height: 560 };
+  const a = await shot('?c=3&focus=3&u=1&mode=after', clip);
+  const b = await shot('?c=3&focus=3&u=1&mode=before', clip);
   report.honesty = await page.evaluate(async ([x, y]) => {
     const load = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = s; });
     const [A, B] = await Promise.all([load(x), load(y)]);

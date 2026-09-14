@@ -37,6 +37,54 @@
 .ribbon[data-open]::after { opacity: 1; }
 
 .ribbon__stage { position: absolute; inset: 0; z-index: 1; touch-action: pan-y; }
+
+/* ---- the grips: every sheet in view is a real button on its own screen box -- */
+.grips { position: absolute; inset: 0; z-index: 4; pointer-events: none; transition: opacity 360ms ease; }
+.grips[data-hidden] { opacity: 0; pointer-events: none; }
+.grip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  will-change: transform;
+}
+.grips[data-hidden] .grip { pointer-events: none; }
+.grip[hidden] { display: none; }
+.grip:focus-visible { outline: 1px solid #d3b478; outline-offset: 6px; }
+/* the sheet's own wall label, hung just under its lower-left corner */
+.grip__tag {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 10px;
+  display: flex;
+  gap: 14px;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.04em;
+  color: #8d9a92;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 320ms ease, transform 420ms cubic-bezier(0.52, 0, 0.18, 1), color 320ms ease;
+}
+.grip__verb { color: #d3b478; }
+.grip[data-near] .grip__tag,
+.grip:hover .grip__tag,
+.grip:focus-visible .grip__tag { opacity: 1; transform: translateY(0); }
+.grip[data-near] .grip__tag { color: #ded9cf; }
+/* a neighbour's tag says only what it is until the pointer arrives */
+.grip:not([data-near]) .grip__verb { opacity: 0; transition: opacity 320ms ease; }
+.grip:not([data-near]):hover .grip__verb,
+.grip:not([data-near]):focus-visible .grip__verb { opacity: 1; }
+.grip:not([data-near]):hover .grip__tag { opacity: 1; }
+
 .ribbon__canvas { display: block; width: 100% !important; height: 100% !important; }
 
 .ribbon__label {
@@ -46,11 +94,16 @@
   left: var(--gutter);
   right: var(--gutter);
   display: flex;
-  justify-content: space-between;
+  gap: var(--space-md);
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   color: #7e8c84;
+}
+/* the counter sits with the label: the previous case leaves through the upper right */
+.ribbon__count { color: #a9b3ac; }
+@media (max-width: 1023.98px) {
+  .ribbon__label { justify-content: space-between; }
 }
 
 /* ---- browsing ---------------------------------------------------------- */
@@ -58,14 +111,15 @@
   position: absolute;
   z-index: 5;
   left: var(--gutter);
-  bottom: calc(var(--space-lg) + 1.4rem);
+  top: calc(var(--space-lg) + 3.2rem);
   width: min(24rem, 30vw);
   display: flex;
   flex-direction: column;
   gap: 10px;
   text-shadow: 0 1px 20px rgba(5, 13, 10, 0.9);
+  transition: opacity 360ms ease, transform 520ms cubic-bezier(0.52, 0, 0.18, 1);
 }
-.browse[hidden] { display: none; }
+.browse[data-hidden] { opacity: 0; transform: translateY(-8px); pointer-events: none; }
 .browse__kicker {
   margin: 0;
   font-family: var(--font-mono);
@@ -82,40 +136,49 @@
   letter-spacing: -0.02em;
 }
 .browse__service { margin: 0; font-size: 0.95rem; color: #b9c2bb; }
+/* the sheet is the affordance; this is the keyboard and screen-reader way in, a mono link */
 .browse__open {
   appearance: none;
   align-self: start;
-  margin-top: 6px;
-  border: 1px solid #cfaf72;
+  margin-top: 8px;
+  border: 0;
+  border-bottom: 1px solid rgba(211, 180, 120, 0.55);
   background: none;
-  color: #f7e4b1;
-  font: inherit;
-  font-size: 0.9375rem;
-  padding: 13px 24px;
-  min-height: 48px;
+  color: #d3b478;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.04em;
+  padding: 10px 0 6px;
+  min-height: 44px;
   cursor: pointer;
-  transition: background 320ms ease, color 320ms ease;
+  transition: border-color 320ms ease, color 320ms ease;
 }
-.browse__open:hover { background: #cfaf72; color: #08140f; }
-.browse__open:focus-visible { outline: 1px solid #cfaf72; outline-offset: 3px; }
+.browse__open:hover { border-color: #d3b478; color: #f7e4b1; }
+.browse__open:focus-visible { outline: 1px solid #d3b478; outline-offset: 4px; }
 .browse__hint {
-  margin: 4px 0 0;
+  position: absolute;
+  z-index: 5;
+  right: var(--gutter);
+  bottom: var(--space-md);
+  margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   color: #6f7d75;
-  max-width: 32ch;
+  transition: opacity 360ms ease;
 }
+.browse__hint[data-hidden] { opacity: 0; }
 
 /* the rail index */
 .rail {
   position: absolute;
   z-index: 6;
   right: var(--gutter);
-  top: 50%;
+  top: 60%;
   transform: translateY(-50%);
+  transition: opacity 360ms ease;
 }
-.rail[hidden] { display: none; }
-.rail ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; align-items: flex-end; }
+.rail[data-hidden] { opacity: 0; pointer-events: none; }
+.rail ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
 .rail button {
   appearance: none;
   border: 0;
@@ -227,6 +290,27 @@
 .sheetinfo__link:focus-visible { outline: 1px solid #cfaf72; outline-offset: 4px; }
 .sheetinfo__hint { margin: 2px 0 0; font-family: var(--font-mono); font-size: var(--text-meta); color: #6f7d75; }
 
+/* the open sheet's own wall label */
+.sheettag {
+  position: absolute;
+  z-index: 7;
+  top: 0;
+  left: 0;
+  margin: 12px 0 0;
+  display: flex;
+  gap: 14px;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.04em;
+  color: #8d9a92;
+  opacity: 0;
+  transition: opacity 420ms ease 120ms;
+  pointer-events: none;
+}
+.sheettag[data-visible] { opacity: 1; }
+.sheettag span:first-child { color: #ded9cf; }
+
 /* ---- stubs and readout ------------------------------------------------- */
 .stub {
   background: #ece8df;
@@ -256,29 +340,44 @@
 
 /* ---- phone ------------------------------------------------------------- */
 @media (max-width: 1023.98px) {
+  /* the label and index sit in their own scrim; the case that has just left passes under it */
+  .ribbon__scrim {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 24%;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(5, 13, 10, 0.92) 0%, rgba(5, 13, 10, 0.6) 55%, rgba(5, 13, 10, 0) 100%);
+  }
+  /* on the phone the words always sit in the mineral dark at the foot of the frame */
   .ribbon::after {
     inset: auto 0 0 0;
     width: auto;
-    height: 58%;
-    background: linear-gradient(180deg, rgba(5, 13, 10, 0) 0%, rgba(5, 13, 10, 0.74) 40%, rgba(5, 13, 10, 0.95) 100%);
+    height: 60%;
+    opacity: 1;
+    background: linear-gradient(180deg, rgba(5, 13, 10, 0) 0%, rgba(5, 13, 10, 0.5) 28%, rgba(5, 13, 10, 0.86) 55%, rgba(5, 13, 10, 0.96) 100%);
   }
   .browse {
     left: var(--gutter);
     right: var(--gutter);
-    bottom: calc(var(--space-md) + 1.2rem);
+    top: auto;
+    bottom: calc(var(--space-md) + 1.6rem);
     width: auto;
   }
+  .browse[data-hidden] { transform: translateY(8px); }
   .browse__title { font-size: 1.5rem; }
+  .browse__hint { right: auto; left: var(--gutter); bottom: var(--space-sm); }
   .rail {
     right: auto;
     left: var(--gutter);
     top: calc(var(--space-lg) + 1rem);
     transform: none;
   }
-  .rail ol { flex-direction: row; gap: 10px; align-items: center; }
-  .rail button { padding: 6px; flex-direction: column; gap: 6px; }
-  .rail button::before { width: 16px; }
-  .rail button[aria-current]::before { width: 26px; }
+  .rail ol { flex-direction: row; gap: 4px; align-items: center; flex-wrap: wrap; }
+  .rail button { padding: 6px 4px; flex-direction: column; gap: 6px; }
+  .rail button::before { width: 14px; }
+  .rail button[aria-current]::before { width: 22px; }
+  .sheettag { display: none; }
   .sheetinfo {
     left: var(--gutter);
     right: var(--gutter);
