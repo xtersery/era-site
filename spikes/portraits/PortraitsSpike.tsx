@@ -10,7 +10,13 @@ import { subIndex } from '@/lib/utils';
 import quartzUrl from '../../src/assets/smoky-quartz.png';
 import { PLACEHOLDER_LABEL, sitters } from './people';
 import { QUARTZ_ASPECT } from './scene/quartzGeometry';
-import { ShardScene, type SceneDiag, type ShardState } from './scene/ShardScene';
+import { ShardScene, type SceneDiag, type ShardState, type StonePlace } from './scene/ShardScene';
+
+/** the frame's box and the stone's place, in fractions of the section */
+const LAYOUT = {
+  desktop: { frame: { x: 0.44, y: 0, w: 0.56, h: 1 }, place: { x: 0.355, y: 0.56, h: 0.74, narrow: 0.92 } as StonePlace },
+  phone: { frame: { x: 0, y: 0, w: 1, h: 0.55 }, place: { x: 0.24, y: 0.55, h: 0.36, narrow: 0.9 } as StonePlace },
+} as const;
 
 /** what a visitor's browser can do, probed once */
 function probeWebGL(): { webgl2: boolean; webgl: boolean; renderer: string } {
@@ -95,8 +101,7 @@ export function Sitting({
   const names = useRef<(HTMLElement | null)[]>([]);
   const shard = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState(false);
-  const shardState = useRef<ShardState>({ on: false, f: 0, seam: 112, rotY: -20, rotZ: -7, rise: 1.5, from: 0, next: 1, anchorFrom: 0.28, anchorNext: 0.28 });
-  const shardThrough = useRef<HTMLImageElement>(null);
+  const shardState = useRef<ShardState>({ on: false, f: 0, from: 0, next: 1, anchorFrom: 0.28, anchorNext: 0.28, current: frozen?.k ?? 0, anchorCurrent: 0.28 });
   const focal = useRef<HTMLDivElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
@@ -170,9 +175,11 @@ export function Sitting({
     state.current = { k, f };
     const next = Math.min(N - 1, k + 1);
     // the words are masked lines: the label she is leaving lifts away from the
-    // foot up to the name, then the next label is set from its name down
-    const goingOut = clamp(f / 0.5, 0, 1);
-    const comingIn = clamp((f - 0.5) / 0.5, 0, 1);
+    // foot up to the name in the first fifth of the travel, and the next label
+    // is set from its name down right after — the words are there long before
+    // the picture has finished changing
+    const goingOut = clamp(f / 0.2, 0, 1);
+    const comingIn = clamp((f - 0.22) / 0.28, 0, 1);
     // the label lives between the wall label and the foot: the masks sweep that range
     const [lo, hi] = phone ? [0, 100] : [10, 80];
     const edgeOut = hi - goingOut * (hi - lo);
@@ -186,9 +193,10 @@ export function Sitting({
     // the shard crosses the face quickly and lingers at the edges: an eased seam.
     // `seam` is where its centre stands, in % of the frame; the incoming portrait
     // is clear behind its trailing edge and seen through it ahead of that
-    const seam = lerp(122, -26, smooth(f)); // the stone enters and leaves fully
-    const half = phone ? 17 : 13; // half the shard's width, in % of the frame
-    const band = 4;
+    // the no-WebGL reveal: the change leaves the resident stone and crosses the frame rightward
+    const seam = lerp(phone ? 30 : 4, 112, smooth(f));
+    const half = 0;
+    const band = 5;
     for (let i = 0; i < N; i++) {
       const plate = plates.current[i];
       const label = labels.current[i];
@@ -198,8 +206,8 @@ export function Sitting({
         plate.style.zIndex = '1';
         plate.style.maskImage = '';
         (plate.style as unknown as Record<string, string>)['webkitMaskImage'] = '';
-        // the portrait she is leaving steps back a little as the light passes
-        plate.style.transform = `translateX(${(-4 * f).toFixed(2)}%)`;
+        // the portrait she is leaving steps back a little as the change passes
+        plate.style.transform = `translateX(${(4 * f).toFixed(2)}%)`;
         label.hidden = goingOut >= 1;
         setMask(label, goingOut > 0 ? maskOut : '');
       } else if (i === next && f > 0) {
@@ -207,8 +215,8 @@ export function Sitting({
         plate.style.zIndex = '2';
         // the next portrait lies clear where the shard has passed: the reveal's
         // edge trails just inside the shard, so the shard is always the bridge
-        const edge = seam + half * 0.35;
-        const mask = `linear-gradient(90deg, transparent ${(edge - band).toFixed(2)}%, #000 ${(edge + band).toFixed(2)}%)`;
+        const edge = seam + half;
+        const mask = `linear-gradient(90deg, #000 ${(edge - band).toFixed(2)}%, transparent ${(edge + band).toFixed(2)}%)`;
         plate.style.maskImage = mask;
         (plate.style as unknown as Record<string, string>)['webkitMaskImage'] = mask;
         plate.style.transform = `scale(${(1 + 0.04 * (1 - f)).toFixed(4)})`;
@@ -219,47 +227,28 @@ export function Sitting({
         label.hidden = true;
       }
     }
-    // the shard: a suspended plate of mineral glass, turning as it crosses
-    if (shard.current && frameRef.current) {
-      const on = f > 0.001 && f < 0.999;
-      shard.current.style.opacity = on ? '1' : '0';
-      const fw = frameRef.current.clientWidth;
-      const fh = frameRef.current.clientHeight;
-      // the fallback stone keeps the photograph's proportion and sits inside the frame
-      const h = fh * (phone ? 0.72 : 0.86);
-      const w = h * QUARTZ_ASPECT * (phone ? 0.86 : 0.92);
-      const left = (seam * fw) / 100 - w / 2;
-      // it pivots on its own axis — turned toward the visitor as it enters,
-      // away as it leaves — and hangs at a slight tilt, like a shard held up
-      const rotY = lerp(-14, 12, f);
-      const rotZ = lerp(-5, -2, f);
-      const rise = lerp(1.5, -1.5, f); // it drifts down a little as it turns
-      // the same pose for the body of quartz, and the two portraits it stands between
-      const anchorOf = (i: number) => {
-        const img = plates.current[i]?.querySelector('img');
-        return img ? parseFloat(img.style.objectPosition.split(' ')[1] ?? '28') / 100 : 0.28;
-      };
-      shardState.current = { on, f, seam, rotY, rotZ, rise, from: k, next, anchorFrom: anchorOf(k), anchorNext: anchorOf(next) };
-      shard.current.style.transform = `translate3d(${left.toFixed(1)}px, ${((rise * fh) / 100 + (fh - h) / 2).toFixed(1)}px, 0) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg)`;
+    // the stone stays; the change comes out of it. The scene reads this every frame.
+    const anchorOf = (i: number) => {
+      const img = plates.current[i]?.querySelector('img');
+      return img ? parseFloat(img.style.objectPosition.split(' ')[1] ?? '28') / 100 : 0.28;
+    };
+    const on = f > 0.001 && f < 0.999;
+    shardState.current = { on, f, from: k, next, anchorFrom: anchorOf(k), anchorNext: anchorOf(next), current: f < 0.5 ? k : next, anchorCurrent: anchorOf(f < 0.5 ? k : next) };
+    // the no-WebGL stone: the photograph, resident at the same place
+    if (shard.current && sectionRef.current) {
+      const sw = sectionRef.current.clientWidth, sh = sectionRef.current.clientHeight;
+      const pl = phone ? LAYOUT.phone.place : LAYOUT.desktop.place;
+      const h = sh * pl.h;
+      const w = h * QUARTZ_ASPECT * pl.narrow;
       shard.current.style.width = `${w.toFixed(1)}px`;
       shard.current.style.height = `${h.toFixed(1)}px`;
-      // through it, the incoming portrait — aligned to the frame, then bent:
-      // a little larger, displaced with the turn, so the light bends as it passes
-      if (shardThrough.current) {
-        const bend = (Math.sin((rotY * Math.PI) / 180) * 2.4 * fw) / 100;
-        shardThrough.current.style.width = `${fw}px`;
-        shardThrough.current.style.height = `${fh}px`;
-        shardThrough.current.style.transform = `translate(${(-left + bend).toFixed(1)}px, ${((-rise * fh) / 100 - (fh - h) / 2).toFixed(1)}px) scale(1.045)`;
-        shardThrough.current.src = phone ? sitters[next]!.portraitPhone : sitters[next]!.portrait;
-        // the same crop as the plate it stands for, so only the bend displaces it
-        const plateImg = plates.current[next]?.querySelector('img');
-        if (plateImg) shardThrough.current.style.objectPosition = plateImg.style.objectPosition;
-      }
+      shard.current.style.transform = `translate3d(${(sw * pl.x - w / 2).toFixed(1)}px, ${(sh * pl.y - h / 2).toFixed(1)}px, 0) rotateZ(-4deg)`;
+      shard.current.style.opacity = '1';
     }
     // the focal line re-aims at the next pair of eyes while the light passes
     if (focal.current && eyes.current.length) {
       const a = eyes.current[k]!, b = eyes.current[next]!;
-      const m = smooth((f - 0.3) / 0.45);
+      const m = smooth((f - 0.15) / 0.35);
       // on desktop the line IS the datum; on the phone it finds her eye
       const y = phone ? lerp(a.y, b.y, m) : datumY.current;
       const endX = lerp(a.x, b.x, m);
@@ -275,7 +264,7 @@ export function Sitting({
       // the focal line is a line of rest; while the shard crosses, it withdraws
       focal.current.style.opacity = f > 0.06 && f < 0.94 ? '0' : '1';
     }
-    const shown = f < 0.5 ? k : next;
+    const shown = f < 0.21 ? k : next;
     if (counter.current) counter.current.textContent = `${subIndex(INDEX, shown + 1)} / ${String(N).padStart(2, '0')}`;
     setCurrent((prev) => (prev === shown ? prev : shown));
     onState?.({ k, f });
@@ -380,6 +369,24 @@ export function Sitting({
         </div>
       </div>
 
+      {/* the scene: the wall, the frame and the resident stone — the section's own layer, under the words */}
+      {!reduced && probe.webgl && (
+        <ShardScene
+          portraits={portraitUrls}
+          state={shardState}
+          phone={phone}
+          frame={phone ? LAYOUT.phone.frame : LAYOUT.desktop.frame}
+          place={phone ? LAYOUT.phone.place : LAYOUT.desktop.place}
+          still={reduced}
+          onReady={() => setLive(true)}
+          onDiag={onDiag}
+        />
+      )}
+      {/* the no-WebGL stone: the photograph itself, resident at the same place */}
+      <div ref={shard} className="shard shard--photo" aria-hidden="true" hidden={live}>
+        <img className="shard__photo" src={quartzUrl} alt="" draggable={false} />
+      </div>
+
       {/* the frame: one portrait at a time, at the scale of a person */}
       <div ref={frameRef} className="frame">
         {sitters.map((s, i) => (
@@ -397,17 +404,7 @@ export function Sitting({
             />
           </figure>
         ))}
-        {/* the shard as a body of ERA Mineral Glass; the CSS shard below is the no-WebGL fallback */}
-        {!reduced && probe.webgl && <ShardScene portraits={portraitUrls} state={shardState} phone={phone} onReady={() => setLive(true)} onDiag={onDiag} />}
-        <div ref={shard} className="shard shard--photo" aria-hidden="true" hidden={live}>
-          <div className="shard__stone">
-          <div className="shard__body" style={{ maskImage: `url(${quartzUrl})`, WebkitMaskImage: `url(${quartzUrl})` }}>
-            <img ref={shardThrough} className="shard__through" alt="" draggable={false} />
-            <div className="shard__tint" />
-          </div>
-          <img className="shard__photo" src={quartzUrl} alt="" draggable={false} />
-          </div>
-        </div>
+
         <p className="frame__caption" aria-hidden="true">{PLACEHOLDER_LABEL}</p>
       </div>
 
@@ -437,6 +434,8 @@ export function Sitting({
                         ? 'stone mounted but no frame reported in 6 s'
                         : 'waiting for the first frame';
         (window as unknown as Record<string, unknown>)['__diag'] = { path, why, ...diag, probe, live, reduced, phone };
+        const wanted = new URLSearchParams(location.search).get('diag');
+        if (wanted === '0' || (phone && wanted !== '1')) return null;
         return (
           <pre className="diag" aria-hidden="true">
             {`ACTIVE RENDER PATH: ${path}

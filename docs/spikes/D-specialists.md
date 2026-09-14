@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 10 — «СЕАНС», the sitting, with THE SMOKY QUARTZ STONE ITSELF as the transition carrier, now on every render path — AWAITING REVIEW (14.09.2026).** Pass 9 review: the board is approved as the visual target; the live page did not match it on the reviewer's machine ("abstract transparent transition, no readable stone"). Pass 8 review: the stone must remain physically present, visibly the smoky quartz, never abstracted into a translucent form — non-negotiable; keep it, embed it more organically. Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
+**Status: pass 12 — «СЕАНС», the sitting, with the SMOKY QUARTZ AS A RESIDENT OF THE LAYOUT (on the wall/frame boundary, the name crossing it, the change coming out of it) — AWAITING REVIEW (14.09.2026).** The stone renders on the reviewer's machine since the packaging fix. Pass 9 review: the board is approved as the visual target; the live page did not match it on the reviewer's machine ("abstract transparent transition, no readable stone"). Pass 8 review: the stone must remain physically present, visibly the smoky quartz, never abstracted into a translucent form — non-negotiable; keep it, embed it more organically. Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -605,3 +605,55 @@ reports `STONE_WEBGL`, 5 draw calls, no errors.
 
 Pass 11's two-layer stone (a body that needs no transmission pass) stays —
 it is the right robustness regardless — but it was not the cure.
+
+
+---
+
+## Pass 12 — THE RESIDENT QUARTZ (14.09.2026)
+
+Brief: keep the approved stone on screen as a persistent layout object; place
+it on the left near the text column, overlapping the wall/frame boundary;
+part of the typography (the name) crosses in front of it; the portrait
+transition keeps the stone as its mediator while the stone stays; the words
+must update much faster. Refinement, not a new concept.
+
+**Layering.** The canvas is now the section's layer (`z 2`), not the frame's:
+it paints the wall (a plane matching the CSS surface, `createWall`) and the
+frame (the field plane — at rest the current portrait, pixel-equal to the DOM
+plate), with the stone at the boundary in front of both and its shadow on
+wall and portrait alike. Above the canvas: the focal line (`z 4`) and the
+words (`.wall`, `z 5`, `pointer-events: none` except links/buttons). The
+wall's CSS surface moved to `.sitting::before` (`z 0`) beneath the canvas;
+the DOM plates stay beneath for the no-WebGL path, where the photograph
+itself stands at the same place (`.shard--photo`). Place (`LAYOUT`):
+desktop x 35.5 %, y 56 %, h 74 % of the section, the photograph's proportion
+× 0.92; phone x 24 %, y 55 %, h 36 %. The body column narrowed to 22 rem so
+only the name (30 rem head) reaches the stone — the sentence and the facts
+stay on the wall.
+
+**The transition** (`composite.frag`, `ShardScene.tsx`). The frame is a
+field around a moving FRONT. At f = 0 the frame is the current portrait.
+From the first moment of a change the field under the stone is the arriving
+portrait, so what the stone lets through is the next state. A front leaves
+the stone's right edge (inset 14 % of its half-width; a mirror front leaves
+the left edge — off the frame on desktop, used on the phone) and crosses the
+frame on `smoothstep(f / 0.85)` × 1.6 frame widths; ahead of it the departing
+portrait is compressed toward it (w = e^(−d/(0.6·wake))) and softened, behind
+it the arriving portrait is drawn out (w = e^(−d/wake)) and settles; the
+front's shape is the stone's own edge profile, rounding off beyond its ends
+(lag = beyond² × 0.5); the field lets go over f 0.85 → 1. The stone turns
++7° rotY, comes 0.25 toward the visitor and scales 1.015 on a sine over
+f 0 → 0.7, then settles. At rest it breathes: rotY −4° ± 3° (27 s), rotZ −4°
+± 1.2° (37 s), rotX −2° ± 1.5° (48 s), bob 0.05 (20 s). Reduced motion: no
+breath, whole states. The no-WebGL reveal now leaves the stone rightward.
+
+**Timing of the words.** Was: out over f 0 → 0.5, in over 0.5 → 1 (the name
+at 50 % at the earliest, the facts at 100 %). Now: out over 0 → 0.2, in
+(name first) over 0.22 → 0.5; the count and index switch at 0.21; the focal
+line re-aims over 0.15 → 0.5. The name is on the wall by f ≈ 0.28 and the
+whole label by 0.5 while the picture changes until 0.85.
+
+**Measured.** 60 fps median, p95 16.8 ms, 0.4 % over 33 ms while scrubbing
+(1440 × 900); 7 draw calls; the interaction proof passes. Published through
+`scripts/artifact-copy.mjs` (716 shader includes intact). The diagnostic
+stays on desktop (`?diag=0` hides it) and is off on the phone (`?diag=1`).

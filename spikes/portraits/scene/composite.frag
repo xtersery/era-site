@@ -1,15 +1,17 @@
 precision highp float;
 
-// The transition, as a field around the stone. Everything ahead of the stone is
-// the portrait being left; everything behind it is the portrait arriving; the
-// stone's body (drawn over this plane, refracting the arriving portrait) is the
-// threshold between them. Near the stone both images are pulled toward it —
-// the one ahead compressed into the seam, the one behind stretched out of it
-// and settling — and softened, as if reorganised through the mineral.
-// Without the stone there is no seam and no field: nothing happens.
+// The change comes out of the stone. The stone stands still on the frame's
+// left edge; a FRONT leaves its edges and crosses the frame, and the field
+// around the front is what moves the portraits: ahead of it the portrait being
+// left is compressed toward it and softened; behind it (on the stone's side)
+// the portrait arriving is drawn out and settles. The front has the stone's
+// own edge for its shape, rounded beyond the stone's ends. Under the stone
+// the field is the arriving portrait from the first moment — what the stone
+// lets through is the next state. At rest the frame is the current portrait,
+// pixel for pixel the DOM plate.
 
-uniform sampler2D uOut;      // the outgoing portrait
-uniform sampler2D uIn;       // the incoming portrait
+uniform sampler2D uOut;      // the portrait being left
+uniform sampler2D uIn;       // the portrait arriving
 uniform vec2 uOutRepeat; uniform vec2 uOutOffset;
 uniform vec2 uInRepeat;  uniform vec2 uInOffset;
 uniform sampler2D uProfile;  // the stone's left/right edge per row of its height
@@ -19,6 +21,7 @@ uniform float uSkew;         // tan of its tilt: the edges lean
 uniform float uWake;         // how far the field reaches, in frame uv
 uniform float uAmount;       // how hard it pulls, in frame uv
 uniform float uAspect;       // frame width / height
+uniform float uFront;        // 0 at the stone's edge … 1 past the far edges
 uniform float uSettle;       // 0 → 1 as the transition ends: the field lets go
 varying vec2 vUv;
 
@@ -33,48 +36,46 @@ vec3 sampleSoft(sampler2D t, vec2 uv, float soft) {
 }
 
 void main() {
-  // where the stone's edges are on this row; above and below the stone the
-  // field follows it as a soft band rather than a cut
+  // the stone's edges on this row (clamped beyond its ends), leaning with its tilt
   float rowRaw = 0.5 - (vUv.y - uStone.y) / (2.0 * uStoneSize.y);
   float row = clamp(rowRaw, 0.0, 1.0);
-  float outside = smoothstep(0.0, 0.12, max(-rowRaw, rowRaw - 1.0));
+  float beyond = max(-rowRaw, rowRaw - 1.0); // > 0 above or below the stone
   vec2 prof = texture2D(uProfile, vec2(0.5, 1.0 - row)).rg;
   float lean = (vUv.y - uStone.y) * uSkew;
-  // the seams sit just inside the stone's silhouette: under the whole body the
-  // field is the arriving portrait — what the stone lets through is the next state
-  float inset = uStoneSize.x * 0.16;
-  float xL = uStone.x + (prof.r - 0.5) * 2.0 * uStoneSize.x + lean + inset; // leading edge (it travels left)
-  float xR = uStone.x + (prof.g - 0.5) * 2.0 * uStoneSize.x + lean - inset; // trailing edge
+  // beyond the ends the front rounds off: it lags the further from the stone
+  float lag = clamp(beyond, 0.0, 1.0);
+  float lagX = lag * lag * 0.5;
+  float inset = uStoneSize.x * 0.14;
+  float xR = uStone.x + (prof.g - 0.5) * 2.0 * uStoneSize.x + lean - inset; // the stone's right edge
+  float xL = uStone.x + (prof.r - 0.5) * 2.0 * uStoneSize.x + lean + inset; // its left edge
 
-  float ahead = xL - vUv.x;   // > 0: the portrait being left
-  float behind = vUv.x - xR;  // > 0: the portrait arriving
+  // the two fronts: from the right edge rightward, from the left edge leftward
+  float reach = uFront * 1.6;
+  float frontR = xR + reach - lagX;
+  float frontL = xL - reach + lagX;
+
+  // ahead: still the portrait being left; behind: the portrait arriving
+  float aheadR = vUv.x - frontR;      // > 0: right of the right front
+  float aheadL = frontL - vUv.x;      // > 0: left of the left front
+  float ahead = max(aheadR, aheadL);  // > 0 anywhere the change has not reached
+  float behind = min(frontR - vUv.x, vUv.x - frontL); // > 0 between the fronts
   float release = 1.0 - uSettle;
 
   vec3 col;
-  if (outside > 0.0) {
-    // beyond the stone's ends: the two portraits cross softly along its width
-    float mixv = smoothstep(xL - uStoneSize.x * 0.9, xR + uStoneSize.x * 0.9, vUv.x);
-    float wA = exp(-max(ahead, 0.0) / (uWake * 0.6)) * release;
-    float wB = exp(-max(behind, 0.0) / uWake) * release;
-    vec3 a = sampleSoft(uOut, (vUv + vec2(wA * uAmount * 0.35, 0.0)) * uOutRepeat + uOutOffset, wA * 0.008);
-    vec3 b = sampleSoft(uIn, (vUv - vec2(wB * uAmount * 0.6, 0.0)) * uInRepeat + uInOffset, wB * 0.012);
-    vec3 soft = mix(a, b, mixv);
-    vec3 hard;
-    if (ahead > 0.0) hard = a; else if (behind > 0.0) hard = b; else hard = texture2D(uIn, vUv * uInRepeat + uInOffset).rgb;
-    col = mix(hard, soft, outside);
+  if (uFront <= 0.0) {
+    col = texture2D(uOut, vUv * uOutRepeat + uOutOffset).rgb;
   } else if (ahead > 0.0) {
-    // compressed toward the seam, and softened as it nears the stone
+    // compressed toward the front, and softened as it nears it
     float w = exp(-ahead / (uWake * 0.6)) * release;
-    vec2 uv = vUv + vec2(w * uAmount * 0.55, 0.0);
+    float dir = aheadR > aheadL ? -1.0 : 1.0; // toward the front
+    vec2 uv = vUv + vec2(dir * w * uAmount * 0.55, 0.0);
     col = sampleSoft(uOut, uv * uOutRepeat + uOutOffset, w * 0.012);
-  } else if (behind > 0.0) {
-    // pulled out of the stone: stretched toward it, settling with distance
-    float w = exp(-behind / uWake) * release;
-    vec2 uv = vUv - vec2(w * uAmount, 0.0);
-    col = sampleSoft(uIn, uv * uInRepeat + uInOffset, w * 0.02);
   } else {
-    // under the stone: the arriving portrait (the stone draws over this)
-    col = texture2D(uIn, vUv * uInRepeat + uInOffset).rgb;
+    // pulled out of the stone: stretched toward the front, settling with distance
+    float w = exp(-behind / uWake) * release;
+    float dir = (frontR - vUv.x) < (vUv.x - frontL) ? 1.0 : -1.0; // toward the nearer front
+    vec2 uv = vUv + vec2(dir * w * uAmount, 0.0);
+    col = sampleSoft(uIn, uv * uInRepeat + uInOffset, w * 0.02);
   }
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>

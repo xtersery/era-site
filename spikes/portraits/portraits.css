@@ -23,15 +23,25 @@
 }
 
 /* ---- the wall --------------------------------------------------------- */
-.wall {
+/* the wall's surface is the section's own ground, under the scene; the wall element holds only the words */
+.sitting::before {
+  content: '';
   position: absolute;
   inset: 0 auto 0 0;
   width: var(--split);
-  z-index: 2;
+  z-index: 0;
   background:
     radial-gradient(90% 60% at 0% 100%, rgba(31, 54, 44, 0.09), transparent 70%),
     linear-gradient(180deg, var(--wall) 0%, var(--wall) 70%, var(--wall-deep) 100%);
 }
+.wall {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--split);
+  z-index: 5;
+  pointer-events: none;
+}
+.wall a, .wall button { pointer-events: auto; }
 .wall__label {
   position: absolute;
   top: var(--space-md);
@@ -53,7 +63,7 @@
  * label starts a fixed 28 px below it. Neither depends on the portrait or on
  * how many lines the name takes, so nothing drifts from state to state.
  */
-.sitting { --datum: 30%; --column: 30rem; }
+.sitting { --datum: 30%; --column: 22rem; }
 .sitter {
   position: absolute;
   inset: 0;
@@ -65,7 +75,7 @@
 .sitter__head {
   position: absolute;
   left: var(--gutter);
-  width: min(var(--column), calc(100% - var(--gutter) - var(--space-lg)));
+  width: min(30rem, calc(100% - var(--gutter) - var(--space-lg)));
   bottom: calc(100% - var(--datum));
   padding-bottom: 0.1em; /* the descender: the baseline, not the box, sits on the datum */
   display: flex;
@@ -204,131 +214,34 @@
   inset: 0;
   width: 100% !important;
   height: 100% !important;
-  z-index: 3;
+  z-index: 2;
 }
 .shard[hidden] { display: none; }
-/* the fallback stone is the photograph: its alpha masks the body, its pixels sit on top */
-.shard--photo { top: 0; height: auto; }
-.shard--photo .shard__body { clip-path: none; mask-size: 100% 100%; mask-repeat: no-repeat; -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; background: transparent; }
-.shard--photo .shard__stone { filter: none; }
+/* the no-WebGL stone: the photograph, resident at the stone's place */
+.shard--photo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  will-change: transform;
+}
+.shard--photo[hidden] { display: none; }
 .shard__photo {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: fill;
-  opacity: 0.94;
+  opacity: 0.96;
   pointer-events: none;
-  filter: drop-shadow(14px 18px 22px rgba(8, 12, 10, 0.32));
-}
-.frame { perspective: 1400px; perspective-origin: 60% 45%; }
-.shard {
-  position: absolute;
-  top: -6%;
-  left: 0;
-  height: 112%;
-  width: 26%;
-  z-index: 3;
-  opacity: 0;
-  pointer-events: none;
-  transform-style: preserve-3d;
-  transform-origin: 50% 50%;
-  will-change: transform, opacity;
-}
-/* the uncut stone: everything inside is displaced along its long edges by one SVG filter */
-.shard__stone {
-  position: absolute;
-  inset: 0;
-  filter: url(#shard-rough);
-  transform-style: preserve-3d;
-}
-/* the back face, a little behind and aside: the shard has thickness */
-.shard__back {
-  position: absolute;
-  inset: 0;
-  transform: translate(10px, 7px);
-  clip-path: url(#shard-clip);
-  background:
-    linear-gradient(160deg, rgba(31, 54, 44, 0.74) 0%, rgba(11, 22, 17, 0.88) 100%);
-  opacity: 0.9;
-}
-/* the body: the next portrait seen through the stone */
-.shard__body {
-  position: absolute;
-  inset: 0;
-  clip-path: url(#shard-clip);
-  overflow: hidden;
-  background: #1d2a24;
-}
-.shard__through {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: block;
-  max-width: none; /* it is the whole frame, aligned to the frame; the shard clips it */
-  object-fit: cover;
-  transform-origin: 50% 50%;
-  filter: saturate(0.86) contrast(0.97) brightness(1.03);
-  will-change: transform;
-}
-/* the mineral inside the glass: green in the thickness, clearer in the middle */
-.shard__tint {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(105deg, rgba(31, 54, 44, 0.34) 0%, rgba(31, 54, 44, 0.1) 26%, rgba(31, 54, 44, 0.05) 60%, rgba(11, 22, 17, 0.3) 100%),
-    radial-gradient(70% 45% at 30% 28%, rgba(243, 223, 174, 0.12), transparent 70%);
-  mix-blend-mode: multiply;
-}
-/* one soft sheen where the key light crosses the face of the stone */
-.shard__sheen {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(118deg, transparent 22%, rgba(243, 223, 174, 0.2) 40%, rgba(255, 250, 238, 0.28) 46%, rgba(243, 223, 174, 0.1) 54%, transparent 70%);
-  mix-blend-mode: screen;
-}
-/* the edge: an inner rim of mineral light, and one gold hairline, brightest toward the key */
-.shard__edge {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  clip-path: url(#shard-clip); /* only the inner half of the rim stroke survives */
-}
-.shard__rim {
-  fill: none;
-  stroke: rgba(214, 226, 208, 0.42);
-  stroke-width: 16px;
-  stroke-linejoin: round;
-  filter: blur(6px);
-  mix-blend-mode: soft-light;
-}
-.shard__glint {
-  fill: none;
-  stroke: var(--gold-light);
-  stroke-width: 1.4px;
-  stroke-linejoin: round;
-  opacity: 1;
-  filter: drop-shadow(0 0 3px rgba(243, 223, 174, 0.55));
-}
-
-.frame__caption {
-  position: absolute;
-  z-index: 4;
-  right: var(--gutter);
-  bottom: var(--space-md);
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--text-meta);
-  color: rgba(236, 233, 224, 0.62);
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
+  filter: drop-shadow(16px 20px 24px rgba(8, 12, 10, 0.34));
 }
 
 /* ---- the focal line ---------------------------------------------------- */
 .focal {
   position: absolute;
-  z-index: 3;
+  z-index: 4;
   height: 1px;
   pointer-events: none;
   /* ink on the wall, gold on the portrait: one line, two grounds */
@@ -398,11 +311,11 @@
 @media (max-width: 1023.98px) {
   .sitting { --split: 55%; --split-vh: 55; }
   .frame { inset: 0 0 auto 0; height: var(--split); }
+  .sitting::before { inset: auto 0 0 0; width: auto; height: calc(100% - var(--split)); background: var(--wall); }
   .wall {
     inset: auto 0 0 0;
     width: auto;
     height: calc(100% - var(--split));
-    background: var(--wall);
   }
   .wall__label {
     top: calc(var(--split-vh) * -1svh + var(--space-md));

@@ -4,6 +4,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 const OUT = 'spikes/portraits/__captures__';
 mkdirSync(OUT, { recursive: true });
 const base = 'http://localhost:5173/spikes/portraits/';
+const q = (x) => x + '&diag=0';
 const browser = await chromium.launch({ channel: 'chrome' });
 const settle = async (page) => { await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(2200); };
 const strip = async (page, files, cols, out) => {
@@ -22,7 +23,7 @@ const strip = async (page, files, cols, out) => {
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1.5 });
   const page = await ctx.newPage();
-  const shot = async (q, name, clip) => { await page.goto(base + q, { waitUntil: 'networkidle' }); await settle(page); const f = `${OUT}/${name}.png`; await page.screenshot({ path: f, clip }); return f; };
+  const shot = async (qs, name, clip) => { await page.goto(base + q(qs), { waitUntil: 'networkidle' }); await settle(page); const f = `${OUT}/${name}.png`; await page.screenshot({ path: f, clip }); return f; };
   await shot('?k=0', 'd1-rest-1');
   await shot('?k=1', 'd2-rest-2');
   await shot('?k=2', 'd3-rest-3');
@@ -30,18 +31,18 @@ const strip = async (page, files, cols, out) => {
   await strip(page, [`${OUT}/d1-rest-1.png`, `${OUT}/d2-rest-2.png`, `${OUT}/d3-rest-3.png`, `${OUT}/d3b-rest-4.png`], 2, `${OUT}/d0-grid.png`);
   await shot('?k=0', 'd4-focal', { x: 20, y: 120, width: 1060, height: 260 });
   const tr = [];
-  for (const [i, f] of [0, 0.12, 0.24, 0.36, 0.46, 0.56, 0.66, 0.78, 0.9, 1].entries()) tr.push(await shot(`?k=1&f=${f}`, `tr-${i}`));
+  for (const [i, f] of [0, 0.1, 0.2, 0.3, 0.42, 0.55, 0.68, 0.8, 0.9, 1].entries()) tr.push(await shot(`?k=1&f=${f}`, `tr-${i}`));
   await strip(page, tr, 5, `${OUT}/d5-transition.png`);
   // the object, close: the frame only, at three moments
   const det = [];
-  for (const [i, f] of [0.32, 0.52, 0.72].entries()) det.push(await shot(`?k=1&f=${f}`, `det-${i}`, { x: 634, y: 0, width: 806, height: 900 }));
+  for (const [i, f] of [0, 0.3, 0.55].entries()) det.push(await shot(`?k=1&f=${f}`, `det-${i}`, { x: 300, y: 60, width: 640, height: 780 }));
   await strip(page, det, 3, `${OUT}/d6-shard.png`);
   await ctx.close();
 }
 {
   const m = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const page = await m.newPage();
-  const shot = async (q, name) => { await page.goto(base + q, { waitUntil: 'networkidle' }); await settle(page); const f = `${OUT}/${name}.png`; await page.screenshot({ path: f }); return f; };
+  const shot = async (qs, name) => { await page.goto(base + q(qs), { waitUntil: 'networkidle' }); await settle(page); const f = `${OUT}/${name}.png`; await page.screenshot({ path: f }); return f; };
   await shot('?k=0', 'm1-rest-1');
   await shot('?k=0&f=0.5', 'm2-mid');
   await shot('?k=2', 'm3-rest-2');

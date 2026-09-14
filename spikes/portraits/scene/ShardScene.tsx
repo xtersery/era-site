@@ -26,41 +26,47 @@ import { createEdgeProfile, createQuartzGeometry, QUARTZ_ASPECT } from './quartz
 import { trace } from './quartzTrace';
 
 /**
- * The quartz as the mechanism.
+ * The quartz as a resident of the layout, and the mediator of the change.
  *
- * During a transition the whole portrait frame is drawn here: a COMPOSITE
- * plane shows the portrait being left ahead of the stone and the portrait
- * arriving behind it, both pulled toward the stone's edges and softened there
- * — the field the stone makes as it passes. Over it, the QUARTZ: a smoky
- * slab of ERA mineral glass with the reference's form — large polished facets,
- * a broken flank, smoke gathering in its thickness, cloud inside — letting the
- * arriving portrait through where the stone is clear (three's own transmission
- * pass renders the field plane behind it; under the stone the field is the
- * arriving portrait). The seam has the stone's silhouette; without the stone
- * there is no seam and no field. At rest the canvas is clear and the DOM
- * plates show. The canvas takes no pointer.
+ * The canvas covers the whole section. The stone stands on the boundary
+ * between the wall and the frame, on the left half, near the words — the
+ * name crosses in front of it — and stays: a slow breath at rest. When the
+ * specialist changes, the change comes OUT of the stone: the arriving portrait
+ * is first seen inside the stone's clear zones, then a front leaves the
+ * stone's edge and moves across the frame, the departing portrait compressed
+ * ahead of it, the arriving one drawn out behind it and settling. The stone
+ * turns a few degrees as the front leaves it and settles back. The front's
+ * shape is the stone's own edge, rounded beyond its ends. Remove the stone
+ * and there is no source for the change.
  *
- * Built on three's built-in physical transmission rather than a custom buffer
- * material: fewer moving parts, and it compiles on the GPUs the custom one did
- * not — when the stone's shader fails, the stone is silently gone and only the
- * field remains, which is the one failure this room cannot afford.
+ * The scene paints the wall and the frame itself (the DOM plates and wall
+ * remain beneath for the no-WebGL path), so the stone's transmission sees
+ * what a stone there would see. The canvas takes no pointer.
  */
 export interface ShardState {
+  /** a transition is in progress */
   on: boolean;
   /** the transition, 0…1 */
   f: number;
-  /** the stone's centre, in % of the frame width */
-  seam: number;
-  /** its turn about the vertical, degrees */
-  rotY: number;
-  rotZ: number;
-  /** its drift down, in % of the frame height */
-  rise: number;
   /** the portrait being left and the one arriving, with their crop anchors (object-position y, 0…1) */
   from: number;
   next: number;
   anchorFrom: number;
   anchorNext: number;
+  /** the current portrait at rest (the frame is painted by the scene at all times) */
+  current: number;
+  anchorCurrent: number;
+}
+
+/** where the stone lives, in fractions of the section */
+export interface StonePlace {
+  /** centre, 0…1 of the section width and height */
+  x: number;
+  y: number;
+  /** height, 0…1 of the section height */
+  h: number;
+  /** narrower than the photograph's proportion by this */
+  narrow: number;
 }
 
 export interface SceneDiag {
@@ -80,6 +86,10 @@ interface Props {
   portraits: readonly string[];
   state: React.MutableRefObject<ShardState>;
   phone: boolean;
+  /** the frame's box in fractions of the section: left, top, width, height */
+  frame: { x: number; y: number; w: number; h: number };
+  place: StonePlace;
+  still: boolean;
   onReady?: () => void;
   onDiag?: (d: SceneDiag) => void;
 }
@@ -88,7 +98,9 @@ const WORLD_H = 10;
 const FOV = 30;
 /** the camera distance at which a plane WORLD_H tall exactly fills the view */
 const CAM_Z = WORLD_H / 2 / Math.tan((FOV / 2) * (Math.PI / 180));
-const STONE_Z = 1.7;
+const STONE_Z = 1.5;
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+const smooth = (t: number) => { const x = clamp(t, 0, 1); return x * x * (3 - 2 * x); };
 
 function usePortraitTextures(urls: readonly string[]): Texture[] {
   return useMemo(() => {
@@ -163,6 +175,22 @@ function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number
   return { tint: tex(tc, true), trans: tex(xc, false), rough: tex(rc, false), bump: tex(bc, false), bodyAlpha: tex(ac, false), clearAlpha: tex(cc, false) };
 }
 
+/** the wall as the scene sees it: the same light mineral surface as the CSS, drawn once */
+function createWall(): Mesh {
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 512;
+  const ctx = c.getContext('2d')!;
+  const g = ctx.createLinearGradient(0, 0, 0, 512);
+  g.addColorStop(0, '#e9ebe6');
+  g.addColorStop(0.7, '#e9ebe6');
+  g.addColorStop(1, '#dfe3dd');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 512);
+  const t = new CanvasTexture(c);
+  t.colorSpace = SRGBColorSpace;
+  return new Mesh(new PlaneGeometry(1, 1), new MeshBasicMaterial({ map: t, toneMapped: false }));
+}
+
 /** the shadow the stone throws on the portrait: a soft pool, drawn once */
 function createShadow(): Mesh {
   const c = document.createElement('canvas');
@@ -207,20 +235,24 @@ function useQuartzPhoto(onDiag?: (d: SceneDiag) => void): Texture | null {
   return photo;
 }
 
-function Quartz({ portraits, state, phone, onReady, onDiag }: Props) {
-  const photo = useQuartzPhoto(onDiag);
+function Quartz(props: Props) {
+  const photo = useQuartzPhoto(props.onDiag);
   if (!photo) return null;
-  return <QuartzBody portraits={portraits} state={state} phone={phone} onReady={onReady} onDiag={onDiag} photo={photo} />;
+  return <QuartzBody {...props} photo={photo} />;
 }
 
-function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props & { photo: Texture }) {
+function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onDiag, photo }: Props & { photo: Texture }) {
   const { scene, size, gl } = useThree();
+  const wall = useMemo(() => createWall(), []);
   const textures = usePortraitTextures(portraits);
   const env = useMemo(() => createEraEnvironment(1024, 512), []);
   const maps = useMemo(() => createQuartzMaps(photo, trace.box), [photo]);
   const profile = useMemo(() => createEdgeProfile(), []);
   const worldW = (WORLD_H * size.width) / size.height;
-  const frameAspect = size.width / size.height;
+  // the frame's box in world units
+  const frameW = worldW * frame.w, frameH = WORLD_H * frame.h;
+  const frameX = (frame.x + frame.w / 2 - 0.5) * worldW, frameY = (0.5 - frame.y - frame.h / 2) * WORLD_H;
+  const frameAspect = (size.width * frame.w) / (size.height * frame.h);
 
   // the visible plane: the field around the stone
   const composite = useMemo(() => {
@@ -238,17 +270,18 @@ function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props &
         uWake: { value: 0.16 },
         uAmount: { value: 0.05 },
         uAspect: { value: 1 },
-        uSettle: { value: 0 },
+        uSettle: { value: 1 },
+        uFront: { value: 0 },
       },
     });
     return new Mesh(new PlaneGeometry(1, 1), mat);
   }, [profile]);
 
-  // the stone: the photograph's proportion, an object inside the frame — its
-  // top and bottom in view — thick, with a shadow on the portrait behind it
-  const stoneH = WORLD_H * (phone ? 0.72 : 0.86);
-  const narrow = phone ? 0.86 : 0.92;
+  // the stone: the photograph's proportion, at its place on the boundary
+  const stoneH = WORLD_H * place.h;
+  const narrow = place.narrow;
   const stoneW = stoneH * QUARTZ_ASPECT * narrow;
+  const stoneX = (place.x - 0.5) * worldW, stoneY = (0.5 - place.y) * WORLD_H;
   const geometry = useMemo(
     () => createQuartzGeometry({ height: stoneH, depth: phone ? 1.0 : 1.3, narrow, seed: 5 }),
     [stoneH, narrow, phone],
@@ -308,12 +341,15 @@ function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props &
   useEffect(() => {
     onDiag?.({ stoneMounted: true, layers: bodyOnly ? 'body' : 'body + glass' });
     scene.environment = env;
+    scene.add(wall);
     scene.add(composite);
     scene.add(shadow);
     return () => {
       scene.environment = null;
+      scene.remove(wall);
       scene.remove(composite);
       scene.remove(shadow);
+      (wall.material as MeshBasicMaterial).map?.dispose();
       env.dispose();
       body.dispose();
       glass.dispose();
@@ -323,40 +359,29 @@ function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props &
       (composite.material as ShaderMaterial).dispose();
       textures.forEach((t) => t.dispose());
     };
-  }, [scene, env, composite, shadow, maps, profile, geometry, body, glass, textures]);
+  }, [scene, env, wall, composite, shadow, maps, profile, geometry, body, glass, textures]);
 
-  useFrame(() => {
+  useFrame(({ clock }) => {
     const s = state.current;
     const mesh = stone.current;
     if (!mesh) return;
-    mesh.visible = s.on;
-    composite.visible = s.on;
-    shadow.visible = s.on;
+    const t = clock.elapsedTime;
     if (!ready.current) { ready.current = true; onReady?.(); onDiag?.({ firstFrame: true }); }
-    onDiag?.({ stoneVisible: s.on, drawCalls: gl.info.render.calls });
-    if (!s.on) return;
-    const texIn = textures[s.next];
-    const texOut = textures[s.from];
-    const fIn = fit(frameAspect, s.anchorNext);
-    const fOut = fit(frameAspect, s.anchorFrom);
-    if (texIn) { texIn.repeat.set(1, 1); texIn.offset.set(0, 0); }
+    onDiag?.({ stoneVisible: true, drawCalls: gl.info.render.calls });
 
-    // the stone's pose: in front of the picture, turning as it crosses
-    const x = ((s.seam / 100) - 0.5) * worldW;
-    const y = (-s.rise / 100) * WORLD_H;
-    const rotY = (s.rotY * Math.PI) / 180;
-    const rotZ = (s.rotZ * Math.PI) / 180;
-    const rotX = ((-3 + 5 * s.f) * Math.PI) / 180; // a body turning in space leans a little too
-    // it comes a little toward the visitor mid-crossing and settles back as it leaves
-    const z = STONE_Z + 0.35 * Math.sin(Math.PI * s.f);
-    mesh.position.set(x, y, z);
-    mesh.rotation.set(rotX, rotY, rotZ);
-    // its shadow on the portrait, thrown down and to the right of the key
-    shadow.position.set(x + stoneW * 0.28, y - WORLD_H * 0.05, 0.06);
-    shadow.rotation.set(0, 0, rotZ);
-    shadow.scale.set(stoneW * 2.0, stoneH * 1.25, 1);
+    // the wall and the frame, painted by the scene at all times
+    wall.scale.set(worldW - frameW + 0.02, WORLD_H, 1);
+    wall.position.set(frameX - frameW / 2 - (worldW - frameW) / 2, 0, -0.02);
+    composite.scale.set(frameW, frameH, 1);
+    composite.position.set(frameX, frameY, 0);
 
-    // the field: where the stone's edges fall on the frame, in frame uv
+    // which portraits the frame shows: at rest the current one, in a transition the pair
+    const on = s.on;
+    const outIdx = on ? s.from : s.current;
+    const inIdx = on ? s.next : s.current;
+    const texOut = textures[outIdx], texIn = textures[inIdx];
+    const fOut = fit(frameAspect, on ? s.anchorFrom : s.anchorCurrent);
+    const fIn = fit(frameAspect, on ? s.anchorNext : s.anchorCurrent);
     const u = (composite.material as ShaderMaterial).uniforms;
     u['uOut']!.value = texOut ?? null;
     u['uIn']!.value = texIn ?? null;
@@ -364,18 +389,40 @@ function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props &
     (u['uOutOffset']!.value as Vector2).copy(fOut.offset);
     (u['uInRepeat']!.value as Vector2).copy(fIn.repeat);
     (u['uInOffset']!.value as Vector2).copy(fIn.offset);
-    // the stone is nearer the camera than the plane, so it projects larger by this
+
+    // the stone: resident, breathing; it turns a few degrees as the change leaves it
+    const f = on ? s.f : 0;
+    const swing = Math.sin(Math.PI * clamp(f / 0.7, 0, 1));
+    const breathe = still ? 0 : 1;
+    const rotY = ((-4 + 3 * Math.sin(t * 0.23) * breathe + 7 * swing) * Math.PI) / 180;
+    const rotZ = ((-4 + 1.2 * Math.sin(t * 0.17 + 1) * breathe) * Math.PI) / 180;
+    const rotX = ((-2 + 1.5 * Math.sin(t * 0.13 + 2) * breathe) * Math.PI) / 180;
+    const bob = 0.05 * Math.sin(t * 0.31) * breathe;
+    const z = STONE_Z + 0.25 * swing;
+    mesh.position.set(stoneX, stoneY + bob, z);
+    mesh.rotation.set(rotX, rotY, rotZ);
+    mesh.scale.setScalar(1 + 0.015 * swing);
+    shadow.position.set(stoneX + stoneW * 0.3, stoneY - WORLD_H * 0.05 + bob, 0.04);
+    shadow.rotation.set(0, 0, rotZ);
+    shadow.scale.set(stoneW * 2.0, stoneH * 1.25, 1);
+
+    // the field: the stone's place and edges in FRAME uv, and the front's position
     const mag = CAM_Z / (CAM_Z - z);
-    (u['uStone']!.value as Vector2).set(0.5 + (x * mag) / worldW, 0.5 + (y * mag) / WORLD_H);
-    (u['uStoneSize']!.value as Vector2).set(((stoneW * mag) / worldW) * 0.5 * Math.abs(Math.cos(rotY)), ((stoneH * mag) / WORLD_H) * 0.5);
-    u['uSkew']!.value = -Math.tan(rotZ) * (WORLD_H / worldW);
+    const sx = 0.5 + ((stoneX - frameX) * mag) / frameW;
+    const sy = 0.5 + ((stoneY + bob - frameY) * mag) / frameH;
+    const halfW = ((stoneW * mag) / frameW) * 0.5 * Math.abs(Math.cos(rotY));
+    const halfH = ((stoneH * mag) / frameH) * 0.5;
+    (u['uStone']!.value as Vector2).set(sx, sy);
+    (u['uStoneSize']!.value as Vector2).set(halfW, halfH);
+    u['uSkew']!.value = -Math.tan(rotZ) * (frameH / frameW);
     u['uAspect']!.value = frameAspect;
     u['uWake']!.value = phone ? 0.2 : 0.16;
     u['uAmount']!.value = phone ? 0.06 : 0.05;
-    // the field lets go as the stone leaves and the new state settles
-    u['uSettle']!.value = Math.max(0, (s.f - 0.86) / 0.14);
-    composite.scale.set(worldW, WORLD_H, 1);
-    composite.position.set(0, 0, 0);
+    // the front leaves the stone's edges and crosses the frame both ways; it is
+    // gone past the far edge by 0.85, and the field lets go over the rest
+    const travel = smooth(clamp(f / 0.85, 0, 1));
+    u['uFront']!.value = on ? travel : 0;
+    u['uSettle']!.value = on ? Math.max(0, (f - 0.85) / 0.15) : 1;
   });
 
   return (
@@ -393,7 +440,7 @@ function QuartzBody({ portraits, state, phone, onReady, onDiag, photo }: Props &
   );
 }
 
-export function ShardScene({ portraits, state, phone, onReady, onDiag }: Props) {
+export function ShardScene({ portraits, state, phone, frame, place, still, onReady, onDiag }: Props) {
   return (
     <Canvas
       className="frame__canvas"
@@ -410,7 +457,7 @@ export function ShardScene({ portraits, state, phone, onReady, onDiag }: Props) 
         onDiag?.({ canvasCreated: true, webgl2: ctx instanceof WebGL2RenderingContext, renderer });
       }}
     >
-      <Quartz portraits={portraits} state={state} phone={phone} onReady={onReady} onDiag={onDiag} />
+      <Quartz portraits={portraits} state={state} phone={phone} frame={frame} place={place} still={still} onReady={onReady} onDiag={onDiag} />
     </Canvas>
   );
 }
