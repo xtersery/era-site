@@ -136,7 +136,7 @@ function usePortraitTextures(urls: readonly string[]): Texture[] {
  * does not), a roughness map (dark smoke is cloudier), and a bump map (the
  * fractures and planes).
  */
-function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number; h: number }) {
+export function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number; h: number }) {
   const img = photo.image as HTMLImageElement;
   const W = 512, H = Math.round(512 / (box.w / box.h));
   const draw = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return [c, c.getContext('2d')!] as const; };
@@ -196,7 +196,7 @@ function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number
 }
 
 /** the wall as the scene sees it: the same light mineral surface as the CSS, drawn once */
-function createWall(): Mesh {
+export function createWall(): Mesh {
   const c = document.createElement('canvas');
   c.width = 64; c.height = 512;
   const ctx = c.getContext('2d')!;
@@ -212,7 +212,7 @@ function createWall(): Mesh {
 }
 
 /** the shadow the stone throws on the portrait: a soft pool, drawn once */
-function createShadow(): Mesh {
+export function createShadow(): Mesh {
   const c = document.createElement('canvas');
   c.width = 256; c.height = 512;
   const ctx = c.getContext('2d')!;

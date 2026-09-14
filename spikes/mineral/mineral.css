@@ -1,0 +1,38 @@
+/* Spike E — the passage. The scene paints everything; the DOM holds the words. */
+.passage {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  background: #e9ebe6;
+  color: #0f1a15;
+}
+.passage__canvas { position: absolute !important; inset: 0; z-index: 1; pointer-events: none; }
+.passage__ui { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.passage__label {
+  position: absolute; top: 24px; left: 40px; right: 40px;
+  display: flex; gap: 24px;
+  font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.04em; color: #5b6a62;
+}
+.passage__count { color: #0f1a15; }
+.passage__words { position: absolute; left: 40px; top: 30%; width: 30rem; transform: translateY(-100%); will-change: opacity, transform; }
+.passage__index { margin: 0 0 6px; font: 500 11px/1 'JetBrains Mono', monospace; color: #5b6a62; }
+.passage__name { margin: 0; font: 400 clamp(44px, 5vw, 76px)/0.98 'Prata', Georgia, serif; letter-spacing: -0.015em; text-wrap: balance; }
+.passage__role { margin: 28px 0 0; font: 400 20px/1.3 Inter, system-ui, sans-serif; }
+.passage__approach { margin: 20px 0 0; max-width: 40ch; font: 400 22px/1.32 'Prata', Georgia, serif; }
+.passage__founder { position: absolute; left: 40px; bottom: 64px; width: 34rem; opacity: 0; color: #eae6dc; will-change: opacity, transform; }
+.passage__label-small { margin: 0 0 10px; font: 500 12px/1 'JetBrains Mono', monospace; letter-spacing: 0.04em; color: #d9d2c4; }
+.passage__founder-line { margin: 0; font: 400 clamp(20px, 2vw, 28px)/1.3 'Prata', Georgia, serif; text-shadow: 0 1px 24px rgba(0, 0, 0, 0.35); }
+.passage__hud {
+  position: absolute; right: 24px; bottom: 20px; z-index: 3;
+  padding: 10px 12px; background: rgba(8, 20, 15, 0.86); color: #d9dcd6;
+  font: 500 11px/1.4 'JetBrains Mono', monospace; letter-spacing: 0.04em;
+}
+.passage__hud label { display: grid; gap: 8px; }
+.passage__hud input { width: 320px; accent-color: #b58f47; }
+.passage__after { height: 100svh; background: #08140f; }
+@media (width < 1024px) {
+  .passage__label { left: 20px; right: 20px; }
+  .passage__words { left: 20px; width: calc(100% - 40px); top: 62%; transform: none; }
+  .passage__founder { left: 20px; width: calc(100% - 40px); bottom: 96px; }
+  .passage__hud input { width: 200px; }
+}

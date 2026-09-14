@@ -1,0 +1,80 @@
+# Spike E — THE PASSAGE: quartz → marble (15.09.2026)
+
+**Brief.** A cinematic transition between 05 Specialists (the smoky quartz)
+and 06 Founder (the ERA marble): not a background change, not a texture
+replacement, not a cross-fade — a material transformation sequence. Keep the
+approved quartz object; the viewer must recognise it. Use
+`docs/references/wallpapers.png` as the destination; never stretch it, never
+a flat wallpaper. Choreography: A quartz exists · B the camera enters the
+quartz (its facets fill the viewport) · C inside (smoky layers, density,
+facets, dark translucent planes) · D geological dissolution (facets → mineral
+layers → veins → stone) · E the marble wall (depth, slabs, seams). Standalone
+spike first; storyboard + spike, then stop.
+
+**Board** `docs/spikes/boards/mineral-passage.html` (`e2e/spike-mineral.board.mjs`)
+· https://claude.ai/code/artifact/b4d03401-b34d-4322-8f25-26aad269ea75
+**Spike** `spikes/mineral/` · `docs/spikes/boards/mineral-passage-spike.html`
+· https://claude.ai/code/artifact/b13530b7-0666-4042-9b5d-5ba7a798fac4
+· `?t=0…1` freezes a moment; a slider on the page scrubs it.
+
+## Built
+
+- **Timeline** `t` 0 → 1 over a 700 vh pin (scrub 0.8 s): A 0–0.12 · B
+  0.12–0.44 · C 0.44–0.58 · D 0.52–0.84 · E 0.74–1. Reduced motion: whole
+  states at the scroll's midpoint.
+- **Camera** (`useCameraPath`): two centripetal Catmull-Rom curves (position,
+  target) through eight keys at t 0 / 0.14 / 0.34 / 0.46 / 0.56 / 0.7 / 0.86 /
+  1; the timeline's keys map to the curve parameter with an ease per segment.
+  (0,0,18.66) → (−1.4,−1.5,9.5) → (−1,+0.3,3.4) facets fill → through the
+  front face at z ≈ 2.15 → inside at the upper third looking down the
+  crystal's length → turn to the far shell (0.7: z 3.0) → pull back (0.86:
+  z 5.6) → settle (0.55, 0.15, 10.05) facing the wall, the view 8.6 units
+  wide.
+- **The stone**: the approved body + glass overlay (Spike D pass-13
+  materials, `createQuartzMaps` exported from `ShardScene`), the same
+  geometry and place. The front surface gives way as the viewer passes it
+  (0.4–0.47); the glass overlay first (0.36–0.45); the shadow lifts by 0.42;
+  breathing to rest by 0.34.
+- **The interior**: the same geometry drawn `BackSide` with
+  `scene/becoming.frag` (`uInside 1`): the stone's photograph (`maps.interior`,
+  with alpha, ungraded) sampled by world xy, reflected at its box (mirror
+  repeat) so the crystal continues itself; the flanks read across (a blend by
+  |normal.z|); deepened `pow 1.6 × 0.7`, lit from behind, wisps of value-noise
+  fbm (`noise.glsl`) at 6× and 19× for the fine structure the photograph
+  lacks; a dark fallback where the photograph's alpha is 0. Six translucent
+  slices across the crystal's length at the facets' tilts (`layer.frag`: the
+  photograph's density × fbm wisps, 0.5 opacity), `FogExp2` `#5a524b`
+  0 → 0.16 → 0 (matched in the custom shaders).
+- **The becoming** (`becoming.frag`, one material on the shell and on the
+  wall plane): `uBecome` 0 → 1 over 0.54–0.82 — density from the smoke's
+  luminance; graphite where dense, the wall's blue-grey where clear; the facet
+  ridges (`createRidgeMap`) as pale veins with a breath of gold; then the slab
+  as a front from the stone's place along the wall's veins (`uSpread` 0 → 9
+  over 0.66–0.92) with 30 % of the smoke kept as the band; normal from the
+  geometry → the slab's luminance relief; diffuse 0.6+0.4 → 0.74+0.28; sheen
+  pow 6 × 0.05 (inside) → pow 18 × 0.10; grain ± 1 %. `becoming.vert`:
+  `uFlatten` 0 → 0.94 over 0.68–0.88 settles the shell's world z toward the
+  wall's plane and its normals with it; the wall plane runs the same shader at
+  flatten 1 → one surface.
+- **The wall**: `spikes/mineral/assets/wall.jpg` = the whole reference
+  (1672 × 941) mirrored once vertically (`e2e/spike-mineral.marble.mjs`), laid
+  12 world units wide (slab 3.24 units; the final view holds 2.65), centred at
+  (−2.97, −3.33) so the diamond's pale centre sits under the founder's column
+  and the graphite band passes through the stone; projected in world units.
+  The room (plaster + portrait planes) leaves 0.46–0.56, unseen from inside.
+- **DOM**: the sitting's words leave 0.06–0.22; «06 — Основатель» and a line
+  arrive 0.88–0.98.
+
+**Measured.** Scrub 16.7 ms median, p95 16.8, 0.4 % over 33 ms (225 frames,
+1440 × 900). Published via `scripts/artifact-copy.mjs` (717 includes intact);
+the published file tested at `?t=0.72`.
+
+**Known soft spots (on the board).** S3 (facets filling the view) is the
+photograph at 4×; the inside is the photograph at 6–10× with noise for the
+fine structure; the wall at 0.72–0.8 is 3–4× before the camera is back. A
+macro photograph of the same stone would give the approach and the interior
+their own detail. The phone is not composed (the desktop layout of the
+sitting). Not integrated into `spikes/portraits/` — waits for approval.
+
+**Debug.** `window.__passage` (scene, camera, path, stone box);
+`window.__ov = { nofog, nolayers, noshell }`.
