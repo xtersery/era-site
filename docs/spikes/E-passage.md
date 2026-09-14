@@ -138,3 +138,9 @@ passes through each plane as a soft sheen (`pow(n·h, 36) × 0.42`, warm),
 two-sided, moving as the viewer moves. `becoming.frag`: inside, each facet of
 the shell reads the smoke past it shifted along its own normal (0.045 units)
 — refraction as parallax, not blur. Nothing else touched.
+
+**Immersion shortened (15.09.2026).** The stay inside read as lingering.
+Keys now (0, 0) · (2.5, 0.44) · (4, 0.62) · (7, 0.9) · (8.5, 1), hold 1 s:
+recognition unchanged, immersion 1.5 s (was 2.5), transformation and reveal
+the same lengths, the film 8.5 s + 1 s held. Measured: 2.6 s → 0.44 ·
+4.1 s → 0.62 · 7.1 s → 0.90 · 8.5 s → 1.00 · released 9.6 s.
