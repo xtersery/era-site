@@ -1,4 +1,4 @@
-// Stills and strips for the Spike C pass-7 board (the archive on a rail, refined).
+// Stills and strips for the Spike C pass-7b board (the archive on a rail — the tight turn).
 import { chromium } from '@playwright/test';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 const OUT = 'spikes/gallery/__captures__';
@@ -31,6 +31,10 @@ const boxes = {};
   await shot('?c=3&focus=3&u=1&mode=after', 'd3-open');
   await shot('?c=3&focus=3&u=1&mode=before', 'd4-open-before');
   await shot('?c=3&focus=3&u=1&fx=0.58&fy=0.42', 'd5-open-compare');
+  // the turn: one scroll step from 04.3 to 04.4, four frames — the ring rotating past the visitor
+  const turn = [];
+  for (const [i, pos] of [2, 2.33, 2.66, 3].entries()) turn.push(await shot(`?c=${Math.round(pos)}&p=${(pos / 7).toFixed(4)}`, `t-${i}`));
+  await strip(page, turn, 2, `${OUT}/d7-turn.png`);
   // the unfold, six frames
   const un = [];
   for (const [i, u] of [0, 0.2, 0.38, 0.56, 0.76, 1].entries()) un.push(await shot(`?c=3&focus=3&u=${u}&mode=after`, `u-${i}`));

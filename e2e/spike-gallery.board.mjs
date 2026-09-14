@@ -1,8 +1,8 @@
-// Builds the Spike C pass-7 review board (self-contained HTML, captures embedded as JPEG).
+// Builds the Spike C pass-7b review board (self-contained HTML, captures embedded as JPEG).
 import { chromium } from '@playwright/test';
 import { readFileSync, writeFileSync } from 'node:fs';
 const CAP = 'spikes/gallery/__captures__';
-const OUT = 'docs/spikes/boards/cases-ribbon-refined.html';
+const OUT = 'docs/spikes/boards/cases-ribbon-turn.html';
 const boxes = JSON.parse(readFileSync(`${CAP}/boxes.json`, 'utf8'));
 const perf = JSON.parse(readFileSync(`${CAP}/perf.json`, 'utf8'));
 
@@ -31,11 +31,13 @@ const annotated = async (name, vw, vh, near) => {
 
 const fig = (n, what, when, inner) => `<figure class="frame">${inner}<figcaption><span class="n">${n}</span><span class="what">${what}</span><span class="when">${when}</span></figcaption></figure>`;
 const mid = boxes['d2-browse-mid'];
-const inFrame = mid.filter((b) => b.w > 30 && b.x < 1440 && b.x + b.w > 0).length;
+const inFrame = mid.filter((b) => b.x < 1440 && b.x + Math.abs(b.w) > 0 && b.y + b.h > 0).length;
+const dock = mid.find((b) => b.k === 3);
+const dists = mid.map((b) => b.dist);
 const d = perf.desktop, p = perf.phone;
 
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Archive Refined</title>
+<title>Archive Turn</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prata&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 :root{--bg:#050d0a;--ink:#eae6dc;--mute:#94a09a;--gold:#d3b478;--gold-l:#f7e4b1;--line:#16241d;--pass:#7fb0a4;--fail:#c8836a}
@@ -59,93 +61,77 @@ h2{font:400 clamp(22px,2.4vw,32px)/1.15 Prata,Georgia,serif;margin:0 0 6px}
 .frame .n{color:var(--gold)}
 .frame .when{text-align:right;white-space:nowrap}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:28px}
-.three{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
 .phones{display:grid;grid-template-columns:repeat(3,minmax(0,330px));gap:22px}
-@media(max-width:900px){.two,.three,.phones{grid-template-columns:1fr}header{grid-template-columns:1fr}}
+@media(max-width:900px){.two,.phones{grid-template-columns:1fr}header{grid-template-columns:1fr}}
 table{width:100%;border-collapse:collapse;font:14px/1.5 Inter,sans-serif;margin:8px 0 26px}
 th,td{text-align:left;vertical-align:top;padding:10px 12px 10px 0;border-bottom:1px solid var(--line)}
 th{font:500 11px/1.4 JetBrains Mono,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
 td.k{font:500 13px/1.5 JetBrains Mono,monospace;color:var(--gold-l);white-space:nowrap}
 .pass{color:var(--pass);font:500 12px/1 JetBrains Mono,monospace;letter-spacing:.06em}
-.fail{color:var(--fail);font:500 12px/1 JetBrains Mono,monospace;letter-spacing:.06em}
 .open{color:var(--gold);font:500 12px/1 JetBrains Mono,monospace;letter-spacing:.06em}
 ul{padding-left:1.2em;color:var(--mute);max-width:80ch}li{margin:6px 0}li b{color:var(--ink);font-weight:500}
 .mono{font:13px/1.6 JetBrains Mono,monospace;color:var(--mute)}
 </style></head>
 <body><div class="wrap">
-<header><div><div class="eyebrow">ЭРА · Spike C · pass 7 · опыт, не архитектура</div>
-<h1>The archive at full length<small>Направление утверждено: архив на рейке. Этот проход — только качество опыта: плотность, аффорданс, материал, переходы. Ничего не перестроено.</small></h1>
-<p class="lede">Four things were asked of this pass, and only these: the archive must not feel empty; the visitor must find the archive without being told; the sheets must read as one designed spatial object rather than floating pages; and the two transitions must be clean on desktop and on a phone. Below, each one with the evidence.</p></div>
+<header><div><div class="eyebrow">ЭРА · Spike C · pass 7b · геометрия спирали</div>
+<h1>The archive, as one turn<small>Направление то же — архив на рейке. Исправлена только геометрия: спираль стала тесной и читаемой, кейсы — ближе, глубина — ограничена.</small></h1>
+<p class="lede">Three faults were named in the previous staging: the sheets drifted too far into the fog, the spiral read as a loose diagonal, and the composition was sparse. All three had one cause — the visitor stood outside a <b>wide</b> ring (radius 7.5, 20° between cases), so only ~60° of the helix was ever in frame, and that is a diagonal, not a turn. The fix is geometric, not a matter of scale: a tight ring of eight cases making one full turn, and a visitor who stands a little above it and looks down into the turn.</p></div>
 <div class="spike"><b>The working spike</b><code>docs/spikes/boards/cases-ribbon-spike.html</code> · or <code>npm run dev</code> → <code>/spikes/gallery/</code></div></header>
 
-<section><h2>1 · Density — eight cases, the archive continues through the frame</h2>
-<p class="sub">The prototype's four placeholder cases plus four more in the same format (spike-only, <code class="mono">spikes/gallery/cases8.ts</code>). The staging was turned so the case <b>coming next</b> rises through the lower left and the one just left leaves at the upper right — at any position the archive is a diagonal of ${inFrame} sheets through the frame, not a photograph with a fragment beside it. Same at the head and the tail.</p>
-${fig('1a', 'At 04.4 — the docked case right of centre with its own label; 04.5 rising lower left; 04.6 a corner in the fog; 04.3 leaving upper right.', '1440 × 900', await img('d2-browse-mid', 'Архив на кейсе 04.4'))}
+<section><h2>1 · Browse — the ring in frame</h2>
+<p class="sub">The docked case frontal and lit, right of centre; the next and the previous turned away on either side, one step lower and one step higher; the cases after them edge-on at the ring's extremes; and the far side of the turn showing through as dark mineral slates — the backs of plates, never a mirrored face. The rail steps level across each sheet and descends between them, so the helix is drawn as a line as well as a body. ${inFrame} of the 8 sheets are in the frame at any position; the nearest is ${dock.dist} units away, the farthest drawn ${Math.max(...dists)} — a ${(Math.max(...dists) / dock.dist).toFixed(1)}× spread, where the previous staging ran to 2.4× and beyond.</p>
+${fig('1a', 'At 04.4 — the turn. Sheets in the frame: 04.3 and 04.5 turned away either side of the docked case, 04.2 and 04.6 edge-on, the backs of 04.1 and 04.7 across the ring.', '1440 × 900', await img('d2-browse-mid', 'Архив на кейсе 04.4'))}
+${fig('1b', 'One scroll step, 04.3 → 04.4, in four frames: the ring rotates past the visitor. The case coming next arrives from the left and turns to face her; the one she leaves turns away to the right.', 'pos 2 · 2.33 · 2.66 · 3', await img('d7-turn', 'Поворот архива при прокрутке', 1600))}
 <div class="two">
-${fig('1b', 'The head of the archive: even at 04.1 the visitor sees two more results waiting and a third in the fog.', 'scroll 0', await img('d1-browse-head', 'Начало архива', 1100))}
-${fig('1c', 'The tail: 04.8 docked, the archive behind it at the upper right.', 'scroll end', await img('d2t-browse-tail', 'Конец архива', 1100))}
+${fig('1c', 'The head of the archive: 04.1 docked, the turn continuing behind it.', 'scroll 0', await img('d1-browse-head', 'Начало архива', 1100))}
+${fig('1d', 'The tail: 04.8 docked, the archive it came out of behind it.', 'scroll end', await img('d2t-browse-tail', 'Конец архива', 1100))}
 </div></section>
 
-<section><h2>2 · Affordance — the sheet is the affordance</h2>
-<p class="sub">«Открыть кейс» was carrying the whole gesture. It no longer needs to. Every sheet in view is now a real button laid over its own screen box (a DOM grip — the canvas takes no pointer, as the architecture requires); the docked case carries a fine gold edge and its own wall label «04.4 · открыть →»; hovering or keyboard-focusing any sheet lifts it 0.22 units off the rail toward the visitor and lights its edge; a neighbour's label shows its number, and the verb appears only when the pointer arrives. The boxed button became a mono link — the keyboard and screen-reader way in — so there is one primary CTA per viewport again.</p>
-${fig('2a', 'Pointer on the next case: it lifts off the rail (distance 6.55 → 6.31), its edge lights, its label says «открыть →». The docked case keeps its edge and label at all times.', 'hover on 04.5', await img('d2h-hover-next', 'Наведение на следующий кейс'))}
-<table><tr><th>What the visitor sees</th><th>Before this pass</th><th>Now</th></tr>
-<tr><td class="k">what is interactive</td><td>nothing on the sheet; a boxed «Открыть кейс» and the index</td><td>cursor + lift + lit edge on any sheet; the docked one is labelled «открыть →»</td></tr>
-<tr><td class="k">which is the current case</td><td>the biggest one</td><td>the biggest one, and the only one with a gold edge and a label at rest; the rail's glint sits under it</td></tr>
-<tr><td class="k">how to open</td><td>read the hint</td><td>click the thing that lifts when you touch it; the link «Открыть кейс 04.4 →» and the index remain for keyboard and screen readers</td></tr>
-<tr><td class="k">hint text</td><td>two clauses</td><td>«листайте — архив идёт вдоль рейки», bottom right, one clause</td></tr></table>
+<section><h2>2 · The spiral geometry — what changed</h2>
+<p class="sub">Every number below is in scene units; the sheet is 2.4 × 3.0. Nothing is scaled to make the hierarchy: a neighbour is 0.94 of the docked sheet, and the rest is distance and angle.</p>
+<table><tr><th></th><th>pass 7 (diagonal)</th><th>pass 7b (turn)</th><th>why</th></tr>
+<tr><td class="k">helix radius</td><td>7.5</td><td><b>3.6</b></td><td>a sheet now wraps 38° of the ring — its curvature is visible, and the ring fits the frame</td></tr>
+<tr><td class="k">angle between cases</td><td>20°</td><td><b>44°</b></td><td>8 cases ≈ one full turn (352°); the archive is literally one turn of the spiral</td></tr>
+<tr><td class="k">drop per case</td><td>1.5</td><td><b>0.8</b></td><td>a turn descends 6.4 — the stair is visible, not a cliff</td></tr>
+<tr><td class="k">where the visitor stands</td><td>5.2 outside, at eye height</td><td><b>8.6 outside, 1.6 above, looking 0.5 down</b></td><td>further back with a longer lens (fov 46° → <b>30°</b>): the ring is seen as a ring, not as perspective; from above, the far side shows over the dock</td></tr>
+<tr><td class="k">depth spread in frame</td><td>1.1–2.4× the dock distance, and on into fog</td><td><b>1.15–1.9×</b>, clamped</td><td>fog is a linear ramp over 9 units to a ceiling of 60 %; dim is capped at 0.62; a case three steps away is still a case</td></tr>
+<tr><td class="k">the far side</td><td>not in frame</td><td><b>dark slates</b></td><td>back faces render as mineral glass without the image — a body, never a mirrored face</td></tr>
+<tr><td class="k">docked sheet on screen</td><td>33 % wide · 68 % tall</td><td><b>${Math.round((dock.w / 1440) * 100)} % · ${Math.round((dock.h / 900) * 100)} %</b></td><td>unchanged dominance; its neighbours are now ${Math.round((mid.find((b) => b.k === 4).w / dock.w) * 100)} % of its width instead of 60 %</td></tr>
+<tr><td class="k">sheets in frame</td><td>4</td><td><b>${inFrame}</b></td><td>the composition is filled by the turn, not by more cards</td></tr></table>
+${fig('2a', 'The real projected boxes, read from the running scene: the docked case, its two turned neighbours, the edge-on pair, the backs across the ring. Negative widths are back faces.', 'measured', await annotated('d2-browse-mid', 1440, 900, 3))}
 </section>
 
-<section><h2>3 · One spatial object</h2>
-<p class="sub">Three material changes make the sheets read as an archive hung on a rail rather than pages in a void. <b>The rail is real:</b> a single hairline helix that runs level across the top edge of each sheet and descends between them — the sheets hang from it, and it passes behind them. <b>Depth is on the surface:</b> the mineral dark gathers along each curved sheet with distance, so a sheet turns away into the fog rather than being uniformly dimmed; neighbours lose contrast and colour. <b>Gold is light:</b> one fine glint just inside the docked sheet's edge, brightest where the key falls, dying along the far edges — never a frame. The clipped-fragment treatment of pass 6 was dropped: a whole sheet reads as a documented result; a slice does not.</p>
-${fig('3a', 'The real projected boxes of the sheets at 04.4, read from the running scene: the docked case at 33 % of the viewport width and 5.33 units; neighbours at 1.1–2.4× that distance, scaled 0.82, no silhouette touching the docked one.', 'measured', await annotated('d2-browse-mid', 1440, 900, 3))}
-<table><tr><th></th><th>pass 6</th><th>pass 7</th></tr>
-<tr><td class="k">helix · angle · drop</td><td>7.5 · 25° · 1.7</td><td>7.5 · 20° · 1.5 — wound the other way, so the next case comes round on the left</td></tr>
-<tr><td class="k">the visitor</td><td>4.55 outside the helix, the dock 45 % wide, ~90 % tall</td><td>5.2 outside, the dock 33 % wide, 68 % tall — room for the archive around it</td></tr>
-<tr><td class="k">sheets in frame</td><td>1 + a fragment</td><td>${inFrame} (at the head: 3)</td></tr>
-<tr><td class="k">neighbours</td><td>clipped fragments, scaled 0.72</td><td>whole sheets, scaled 0.82, cooled and flattened, fog along the surface</td></tr>
-<tr><td class="k">the rail</td><td>a vertical hairline at the helix axis, 7.5 units behind the sheets</td><td>a helix with landings through the sheets' top edges, drawn behind them, glint under the dock</td></tr>
-<tr><td class="k">the docked case</td><td>only larger</td><td>larger, lit edge, its own label, the rail's glint</td></tr></table>
+<section><h2>3 · Transition — out of the turn, forward, flat</h2>
+<p class="sub">The chosen sheet leaves the ring, travels in camera space (so it comes toward the visitor monotonically) and unrolls flat; the camera steps in 1.4 and the ring recedes behind it but stays in frame. Measured per animation frame at 60 fps: largest move 11 / 12 px (open / return) on desktop, 7 / 9 px on the phone, largest unfold step 0.049, monotonic — an eased travel, no cut.</p>
+${fig('3a', 'The unfold in six frames.', 'u = 0 · 0.2 · 0.38 · 0.56 · 0.76 · 1', await img('d6-unfold', 'Раскрытие листа в шесть кадров', 1600))}
 </section>
 
-<section><h2>4 · Transitions — measured per frame</h2>
-<p class="sub">Browse → focus: the chosen sheet leaves the rail, travels in camera space (so it approaches monotonically) and unrolls flat; the archive recedes but stays visible — a single result taken out of a collection. The words arrive at 72 % of the travel, not after it. Focus → return: the sheet re-wraps onto the rail; if the page was scrolled while the case was open the rail now catches up with a 0.7 s ease instead of jumping on the next scroll event; scrolling the section away closes the case. The browse block, index and grips fade rather than vanish.</p>
-${fig('4a', 'The unfold in six frames — the sheet comes forward and flattens while the archive steps back.', 'u = 0 · 0.2 · 0.38 · 0.56 · 0.76 · 1', await img('d6-unfold', 'Раскрытие листа в шесть кадров', 1600))}
-<table><tr><th>continuity (per animation frame, 60 fps)</th><th>desktop open</th><th>desktop return</th><th>phone open</th><th>phone return</th></tr>
-<tr><td class="k">largest step of the unfold value</td><td>0.041</td><td>0.048</td><td>0.041</td><td>0.049</td></tr>
-<tr><td class="k">largest move of the sheet</td><td>12 px</td><td>16 px</td><td>8 px</td><td>10 px</td></tr>
-<tr><td class="k">largest change of width</td><td>10 px</td><td>8 px</td><td>4 px</td><td>3 px</td></tr>
-<tr><td class="k">monotonic</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr></table>
-<p class="sub">A jump would be a 50–100 px step in one frame; the largest here is 16 px on a ~400 px journey — the peak of an eased travel. Sheets do not write depth, so the travelling sheet never cuts into a neighbour.</p>
+<section><h2>4 · Opened case — the editorial state</h2>
 <div class="two">
-${fig('4b', 'The open case: the sheet at 68 % of the frame, the editorial block beside it, the archive receded behind — still an archive.', 'после', await img('d3-open', 'Открытый кейс', 1100))}
-${fig('4c', '«Сравнить»: the pointer opens the earlier state as a soft field, mixed by opacity only — nothing moves.', 'курсор', await img('d5-open-compare', 'Сравнение до и после', 1100))}
+${fig('4a', 'The sheet flat at 63 % of the frame, the editorial block beside it, the ring behind — 04.3 still turned away at the right, 04.5 behind the words.', 'после', await img('d3-open', 'Открытый кейс', 1100))}
+${fig('4b', '«Сравнить»: the pointer opens the earlier state as a soft field, mixed by opacity only.', 'курсор', await img('d5-open-compare', 'Сравнение до и после', 1100))}
 </div></section>
 
-<section><h2>5 · The phone — its own composition</h2>
-<p class="sub">The frame is too narrow for a neighbour beside the docked case, so the archive is a stack with a slight twist: the docked case in the upper half at 68 % width with its label under it, the next case rising from the lower left behind the words' scrim, the previous one leaving at the upper right under the label's scrim. Open: the sheet at 83 % width above the words, never under them. Tap the sheet, or «Открыть кейс →».</p>
+<section><h2>5 · The phone — a column of the turn</h2>
+<p class="sub">The frame cannot hold the ring, so it holds a column of it: the same 44° step on a radius of 3.2, a steeper drop (1.6), the visitor 8.4 out and 0.8 above. The docked case centred at 66 % width; the next case turned away at the left edge, the previous at the right.</p>
 <div class="phones">
-${fig('5a', 'Browsing at 04.3 — the next case waits in the dark below.', '390 × 844', await img('m1-browse', 'Архив на телефоне', 780))}
+${fig('5a', 'Browsing at 04.3.', '390 × 844', await img('m1-browse', 'Архив на телефоне', 780))}
 ${fig('5b', 'Open — the sheet above the words.', 'после', await img('m2-open', 'Открытый кейс на телефоне', 780))}
-${fig('5c', 'Hold the picture — «до».', 'удержание', await img('m3-open-before', 'Кадр до на телефоне', 780))}
-</div>
-${fig('5d', 'The unfold on the phone in four frames.', 'u = 0 · 0.35 · 0.65 · 1', await img('m4-unfold', 'Раскрытие на телефоне', 1600))}
-</section>
+${fig('5c', 'The unfold.', 'u = 0 · 0.35 · 0.65 · 1', await img('m4-unfold', 'Раскрытие на телефоне', 780))}
+</div></section>
 
 <section><h2>6 · Verdict</h2>
 <table><tr><th>asked</th><th>evidence</th><th></th></tr>
-<tr><td class="k">the archive does not feel empty</td><td>8 cases; ${inFrame} sheets in frame mid-archive, 4 at the head; «08 кейсов» in the kicker</td><td class="pass">PASS</td></tr>
-<tr><td class="k">interactive · current · how to open — without instruction</td><td>lift + lit edge + cursor on any sheet; gold edge, label and glint on the docked one; hover measured 6.55 → 6.31 and back; Tab reaches the sheets</td><td class="pass">PASS</td></tr>
-<tr><td class="k">a designed spatial object</td><td>the rail through the sheets' top edges with landings; fog along the surface; whole neighbours; measured gaps</td><td class="pass">PASS — judge on the board</td></tr>
-<tr><td class="k">browse → focus, focus → return, no jumps, no collisions</td><td>per-frame: max 16 px, monotonic, 0 % over 33 ms; scroll catch-up 0.7 s; close on leave</td><td class="pass">PASS</td></tr>
-<tr><td class="k">desktop real device</td><td>real Chrome on this Mac, 1440 × 900: ${d.browse.medianMs} ms median, ${d.browse.over33} % over 33 ms, ${d.open.drawCalls} draw calls, ${d.heapMB} MB heap</td><td class="pass">PASS</td></tr>
-<tr><td class="k">mobile</td><td>emulated 390 × 844 @2× touch: ${p.browse.medianMs} ms median, ${p.browse.over33} % over 33 ms, ${p.open.drawCalls} draw calls. <b>Not a real phone GPU</b> — that test still needs a device in hand</td><td class="open">OPEN</td></tr>
-<tr><td class="k">reduced motion</td><td>no drift, no lift, the case opens and returns in place; measured 0 px drift over 1 s</td><td class="pass">PASS</td></tr>
-<tr><td class="k">honesty</td><td>«до» vs «после» on the open sheet: best alignment at zero shift (${perf.honesty.perShift['0,0']} vs ${perf.honesty.perShift['1,0']} at 1 px); every case «Визуализация»</td><td class="pass">PASS</td></tr></table>
+<tr><td class="k">cases closer, depth spread reduced, recession clamped</td><td>nearest ${dock.dist}, farthest drawn ${Math.max(...dists)} (${(Math.max(...dists) / dock.dist).toFixed(1)}×); fog ceiling 60 %, dim cap 0.62; neighbours ${Math.round((mid.find((b) => b.k === 4).w / dock.w) * 100)} % of the dock's width</td><td class="pass">PASS</td></tr>
+<tr><td class="k">the spiral reads at first glance</td><td>radius 3.6, 44°, one full turn; sheet curvature visible; rail helix; the far side present as slates; the turn sequence 1b</td><td class="pass">PASS — judge on 1a / 1b</td></tr>
+<tr><td class="k">composition tighter, not sparse</td><td>${inFrame} sheets in frame, the ring fills the right two thirds; no arbitrary scaling (neighbour 0.94)</td><td class="pass">PASS</td></tr>
+<tr><td class="k">selected case comes forward naturally</td><td>per-frame max 12 px, monotonic, 0 % over 33 ms, both viewports</td><td class="pass">PASS</td></tr>
+<tr><td class="k">editorial state intact</td><td>4a / 4b; honesty check best at zero shift (${perf.honesty.perShift['0,0']} vs ${perf.honesty.perShift['1,0']} at 1 px)</td><td class="pass">PASS</td></tr>
+<tr><td class="k">cost</td><td>${d.browse.medianMs} ms median, ${d.browse.drawCalls} draw calls, ${d.heapMB} MB heap on 1440 × 900 (real Chrome); ${p.browse.drawCalls} draw calls on the emulated phone</td><td class="pass">PASS</td></tr>
+<tr><td class="k">real phone GPU</td><td>still emulated</td><td class="open">OPEN</td></tr></table>
 <ul>
-<li><b>Still stand-in:</b> the eight plates are crops of the one test portrait (four of them new; two mirrored). Real consented photography replaces them; the staging is content-agnostic.</li>
-<li><b>Decided here, to be confirmed:</b> a neighbour is clickable and opens directly (the travel starts from wherever it hangs). If that feels like too much motion, the alternative is that a click on a neighbour docks it first.</li>
-<li><b>For production:</b> the grips are the picking model (canvas <code class="mono">pointer-events: none</code>), the rail's parameters live in one <code class="mono">STAGING</code> object per viewport class, and the 1024 px breakpoint decides which.</li>
+<li><b>Carried over unchanged from pass 7:</b> DOM grips (canvas takes no pointer), hover lift and lit edge, the docked sheet's own label, the rail with landings, the scroll catch-up on return, close on leaving the section, the reduced-motion still, the eight spike-only placeholder cases.</li>
+<li><b>Trade-off made:</b> from just outside a tight ring the ±2 cases are inevitably edge-on and the far side shows its backs — that is what a ring looks like from outside. The backs are treated as mineral slates so they build the body rather than clutter it.</li>
 </ul></section>
 </div></body></html>`;
 writeFileSync(OUT, html);

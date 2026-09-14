@@ -1,13 +1,15 @@
 # Spike C — Cases / до · после
 
 **Status: DIRECTION APPROVED — THE ARCHIVE ON A RAIL (pass 6 PASS, 14.09.2026).
-Pass 7 — the experience refinement asked for before closing (density,
-affordance, material, transitions) — is built and AWAITING REVIEW.** The
-portal passage and all other concepts are closed; do not go back to them. Not
-productionised; do not start Specialists.
+Pass 7 (experience refinement) was reviewed: direction approved in principle,
+geometry sent back — cases drifted too deep, the spiral did not read, the
+composition was sparse. Pass 7b — spiral geometry and staging only — is built
+and AWAITING REVIEW.** The portal passage and all other concepts are closed; do
+not go back to them. Not productionised; do not start Specialists.
 
-Board (pass 7): https://claude.ai/code/artifact/bd4cd872-3e09-4aaa-a8c0-f037002cc537
-Spike (interactive, pass 7): https://claude.ai/code/artifact/193e5716-b73f-4668-af01-d7ed547f3059
+Board (pass 7b): https://claude.ai/code/artifact/6044c33b-3b46-4102-b0e7-08aa7ff9ce38
+Spike (interactive, pass 7b): https://claude.ai/code/artifact/193e5716-b73f-4668-af01-d7ed547f3059
+Board (pass 7, superseded): https://claude.ai/code/artifact/bd4cd872-3e09-4aaa-a8c0-f037002cc537
 
 Passes 1–2 (`spikes/cases/`, a DOM/CSS spatial archive) are superseded as a
 *direction* by pass 3, but their honesty machinery carries over unchanged. They
@@ -469,3 +471,71 @@ unfold still · `?mode=` · `?fx=&fy=` · `?hud=1`).
 **Recommendation:** close Spike C on this pass. Carry into production: the
 DOM-grip picking model, one `STAGING` object per viewport class, `cases8`'s
 format as the content contract (8–16 cases), the honesty label on every case.
+
+
+---
+
+## Pass 7b — THE SPIRAL GEOMETRY (14.09.2026)
+
+Review of pass 7: the direction holds, the geometry does not — (1) the sheets
+drifted too far into the background, (2) the spiral read as a loose diagonal,
+(3) the composition was sparse. Fix by better spiral geometry, not by scaling
+or scattering. One cause behind all three: the visitor stood outside a **wide**
+ring (radius 7.5, 20° between cases), so only ~60° of the helix was ever in
+frame — a diagonal, not a turn.
+
+**The turn.** A tight ring of eight cases making one full turn: radius **3.6**,
+**44°** between cases (8 × 44° = 352°), drop **0.8** per case (a turn descends
+6.4). A sheet (2.4 wide) now wraps 38° of the ring, so its curvature is
+visible. The visitor stands **8.6** outside the ring, **1.6 above** the docked
+case and looks 0.5 below it, with a longer lens (**fov 30°**, was 46°) — further
+back so the ring is seen as a ring rather than as perspective, from above so
+the far side shows over the docked case. Result in frame: the docked case
+frontal and lit, right of centre; the next and the previous turned away
+either side, one step lower and one step higher; the cases after them edge-on
+at the ring's extremes; the far side of the turn as dark slates. The rail's
+landings draw the helix as a line as well.
+
+**Back faces.** From outside a tight ring the far side shows the backs of
+sheets; with `DoubleSide` that was a mirrored face. The fragment shader now
+uses `gl_FrontFacing`: a back face is the back of a plate — dark mineral glass
+with the key, no image, 35 % thinner — so the far side is a body, never a
+mirrored face.
+
+**Clamped recession.** Fog became a linear ramp over 9 units to a ceiling of
+60 % (was an exponential that ran to black); index dim is capped at 0.62 (was
+0.9); contrast loss is 0.55 + 0.12 per step. Measured at 04.4: the nearest
+sheet at 8.77, the farthest drawn at 16.5 — a **1.9×** spread (was 2.4× and
+into black); 8 of 8 sheets in frame (was 4); the docked case 32 % of the
+viewport wide and 63 % tall; its turned neighbours 54 % of its width (was
+60 % of a smaller dock); neighbour scale 0.94 (was 0.82) — the hierarchy is
+distance and angle.
+
+**Open state.** The camera steps in 1.4 (was 0.9 → 1.9 across passes) and the
+sheet stands at z −9.2 for the longer lens — 63 % of the frame, flat, with
+the ring still visible behind it (the previous case turned away at the right,
+the next behind the words). Per-frame continuity re-measured: largest move
+11 / 12 px (desktop open / return), 7 / 9 px (phone), largest unfold step
+0.049, monotonic, 60 fps, 0 % over 33 ms.
+
+**Phone — a column of the turn.** The frame cannot hold the ring, so: the same
+44° step on radius 3.2, drop 1.6, the visitor 8.4 out and 0.8 above. The
+docked case centred at 66 % width, the next turned away at the left edge, the
+previous at the right, the backs behind.
+
+**Technical.** 7 draw calls on desktop (8 sheets + rail; the whole ring is in
+frame), 6 on the phone; 60 fps median both; 34.5 MB heap. Honesty: zero shift
+still best (1.471 vs 3.137 at 1 px). Interaction proof unchanged and passing
+(hover lift 10.91 → 10.67 and back; Tab; click; catch-up 2.63 → 2.99; index;
+Escape; close on leave; phone tap/hold).
+
+**Trade-off made, to be confirmed:** from just outside a tight ring the ±2
+cases are inevitably edge-on and the far side is backs — that is what a ring
+looks like from outside. If the far side should show faces, the visitor would
+have to stand inside the ring, which is the chamber that was rejected in
+Spike B; the slate treatment is the honest alternative.
+
+Board: `docs/spikes/boards/cases-ribbon-turn.html` (`e2e/spike-gallery.board.mjs`;
+pass-7 board kept at `cases-ribbon-refined.html`).
+Spike: `docs/spikes/boards/cases-ribbon-spike.html` or `npm run dev` →
+`/spikes/gallery/`.

@@ -33,14 +33,15 @@ import { createPanelMaterial, createRailMaterial } from './panelMaterial';
  */
 
 /**
- * The staging (pass 7). One active case, and the archive visibly continuing
- * through the frame in both directions.
+ * The staging (pass 7b). A tight helix the visitor stands just outside of.
  *
- * The visitor rides just outside a wide helix and looks at the case she has
- * arrived at, which hangs right of centre; the case coming next hangs lower
- * left, one step deeper, and the one after it is a corner in the fog; the case
- * she has just left is leaving at the upper right. The archive is a diagonal
- * through the frame, not a photograph with a fragment beside it.
+ * Eight cases make one full turn: 45° apart on a radius of 4, each hanging
+ * 0.8 below the last. The visitor stands 4.8 outside the ring, a little above
+ * the case she has arrived at, and looks slightly down — so the ring is in the
+ * frame as a ring: the docked case frontal and lit, the next and the previous
+ * turned away on either side, the ones after them edge-on at the sides, and
+ * the far side of the turn showing through the gaps, lower and cooler. The
+ * hierarchy is distance and angle; nothing is scaled to make it.
  */
 export interface Staging {
   /** radius of the helix the sheets are wrapped to */
@@ -53,6 +54,12 @@ export interface Staging {
   dock: number;
   /** how far the docked case rides above the view axis */
   lift: number;
+  /** how far above the docked case the visitor's eye is — she looks slightly down the turn */
+  elev: number;
+  /** how far a sheet may recede: the fog's reach in units beyond the dock, and how much of it */
+  fog: { reach: number; amount: number };
+  /** how far a case can be from the dock before it is not drawn */
+  visible: number;
   /** the whole view slid sideways so the docked case hangs right of centre */
   side: number;
   /** how much the camera steps in while a case is open */
@@ -68,30 +75,35 @@ export const PANEL = { w: 2.4, h: 3.0 } as const;
 
 export const STAGING: { readonly desktop: Staging; readonly phone: Staging } = {
   desktop: {
-    radius: 7.5,
-    step: (20 * Math.PI) / 180,
-    drop: 1.5,
-    dock: 5.2,
-    lift: 0.16,
-    side: 0.95,
-    stepIn: 1.9,
-    fov: 46,
-    neighbour: 0.82,
-    open: { x: 1.25, y: 0.1, z: -6.0, scale: 1.25 },
+    radius: 3.6,
+    step: (44 * Math.PI) / 180,
+    drop: 0.8,
+    dock: 8.6,
+    lift: -0.5,
+    elev: 1.6,
+    side: 0.45,
+    stepIn: 1.4,
+    fov: 30,
+    neighbour: 0.94,
+    fog: { reach: 9, amount: 0.6 },
+    visible: 4.5,
+    open: { x: 1.0, y: 0.1, z: -9.2, scale: 1.25 },
   },
-  // the phone frame is too narrow for a neighbour beside the docked case, so the
-  // archive is a stack: the next case rises from the lower left behind the words,
-  // the previous one leaves at the upper right
+  // the phone frame is too narrow to hold the ring, so it holds a column of it:
+  // a steeper, tighter turn seen from further back
   phone: {
-    radius: 6.5,
-    step: (16 * Math.PI) / 180,
-    drop: 2.9,
-    dock: 8.2,
-    lift: 1.35,
-    side: 0.2,
-    stepIn: 1.6,
+    radius: 3.2,
+    step: (45 * Math.PI) / 180,
+    drop: 1.6,
+    dock: 8.4,
+    lift: 1.3,
+    elev: 0.8,
+    side: 0.15,
+    stepIn: 1.2,
     fov: 50,
-    neighbour: 0.8,
+    neighbour: 0.92,
+    fog: { reach: 9, amount: 0.62 },
+    visible: 4.5,
     open: { x: 0, y: 1.22, z: -7.8, scale: 1.05 },
   },
 };
@@ -200,7 +212,7 @@ function Ribbon({
   const { scene, size, camera } = useThree();
   const textures = useCaseTextures(plates);
   const n = plates.length;
-  const mats = useMemo(() => textures.map(([a, b]) => createPanelMaterial(a!, b!, st.radius, st.dock)), [textures, st]);
+  const mats = useMemo(() => textures.map(([a, b]) => createPanelMaterial(a!, b!, st.radius, st.dock, st.fog)), [textures, st]);
   const railMat = useMemo(() => createRailMaterial(), []);
   const railGeo = useRailGeometry(n, st);
   const env = useMemo(() => createEraEnvironment(512, 256), []);
@@ -253,7 +265,7 @@ function Ribbon({
     // stepping in a little as a case opens, never enough to lose the archive
     camera.position.set(
       lerp(browseX, -Math.sin(camA) * (camR - st.stepIn), u),
-      lerp(dockY + 0.1, dockY + 0.25, u),
+      lerp(dockY + st.elev, dockY + st.elev * 0.5 + 0.15, u),
       lerp(browseZ, Math.cos(camA) * (camR - st.stepIn), u),
     );
     // the view axis passes below the docked case, so it rides above centre and
@@ -330,17 +342,18 @@ function Ribbon({
         mesh.scale.setScalar(scale * (1 + 0.012 * hover));
         mat.uniforms['uBend']!.value = 1;
         // the archive recedes while a case is read, but stays an archive
-        mat.uniforms['uDim']!.value = clamp(u * 0.5 + (1 - nearFocus) * 0.3 + Math.max(0, ad - 1.5) * 0.22, 0, 0.9);
-        mat.uniforms['uOpacity']!.value = clamp(1 - Math.max(0, ad - 2.6) * 0.7, 0, 1) * (1 - u * 0.35);
+        // the recession is clamped: a case three steps away is still a case
+        mat.uniforms['uDim']!.value = clamp(u * 0.5 + (1 - nearFocus) * 0.22 + Math.max(0, ad - 1.5) * 0.1, 0, 0.62);
+        mat.uniforms['uOpacity']!.value = clamp(1 - Math.max(0, ad - st.visible + 1) * 0.9, 0, 1) * (1 - u * 0.35);
         // away from the dock a case loses contrast and colour into the mineral dark
-        mat.uniforms['uFlat']!.value = clamp((1 - nearFocus) * 0.8, 0, 0.8);
+        mat.uniforms['uFlat']!.value = clamp((1 - nearFocus) * 0.55 + Math.max(0, ad - 1) * 0.12, 0, 0.8);
         mat.uniforms['uFog']!.value = 1;
         mat.uniforms['uReveal']!.value = 0;
         mat.uniforms['uFieldAmount']!.value = 0;
         // the docked case carries a fine gold edge — the one taken out of the archive
         mat.uniforms['uEdge']!.value = clamp(nearFocus * nearFocus * 0.85 + hover * 0.6, 0, 1) * (1 - u);
       }
-      mesh.visible = ad < 3.6 || focused;
+      mesh.visible = ad < st.visible || focused;
 
       // the screen box of every visible sheet, for the DOM grips and the dev probe
       if (mesh.visible && !(focused && u > 0.0001)) {
