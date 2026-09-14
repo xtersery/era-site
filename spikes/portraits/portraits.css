@@ -46,20 +46,43 @@
 }
 .wall__count { color: var(--ink); }
 
-/* one specialist's label — every state is a complete page */
+/*
+ * One specialist's label — every state is a complete page, on one grid.
+ * The grid has one horizontal datum, 30 % down the frame: the name's last
+ * baseline sits on it and the name grows upward from it; the body of the
+ * label starts a fixed 28 px below it. Neither depends on the portrait or on
+ * how many lines the name takes, so nothing drifts from state to state.
+ */
+.sitting { --datum: 30%; --column: 30rem; }
 .sitter {
   position: absolute;
+  inset: 0;
+  will-change: mask-image;
+  pointer-events: none;
+}
+.sitter a { pointer-events: auto; }
+.sitter[hidden] { display: none; }
+.sitter__head {
+  position: absolute;
   left: var(--gutter);
-  right: var(--space-lg);
-  top: 22%;
+  width: min(var(--column), calc(100% - var(--gutter) - var(--space-lg)));
+  bottom: calc(100% - var(--datum));
+  padding-bottom: 0.1em; /* the descender: the baseline, not the box, sits on the datum */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sitter__body {
+  position: absolute;
+  left: var(--gutter);
+  width: min(var(--column), calc(100% - var(--gutter) - var(--space-lg)));
+  top: calc(var(--datum) + 28px);
   display: flex;
   flex-direction: column;
   gap: 10px;
-  will-change: mask-image;
 }
-.sitter[hidden] { display: none; }
 .sitter__no {
-  margin: 0 0 2px;
+  margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   color: var(--mute);
@@ -75,7 +98,7 @@
   max-width: 11ch;
 }
 .sitter__name-inner { display: inline; }
-.sitter__role { margin: 6px 0 0; font-size: 1.0625rem; color: var(--ink); }
+.sitter__role { margin: 0; font-size: 1.0625rem; color: var(--ink); }
 .sitter__focus {
   margin: 0;
   font-family: var(--font-mono);
@@ -122,7 +145,7 @@
 .sitter__primary:focus-visible,
 .sitter__link:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
 
-/* the way on */
+/* the foot: the row of four, at the gutter */
 .wall__foot {
   position: absolute;
   left: var(--gutter);
@@ -130,30 +153,7 @@
   bottom: var(--space-md);
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-md);
 }
-.wall__next {
-  appearance: none;
-  border: 0;
-  background: none;
-  padding: 8px 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: auto auto auto;
-  align-items: baseline;
-  gap: 10px;
-  font-family: var(--font-mono);
-  font-size: var(--text-meta);
-  color: var(--mute);
-  cursor: pointer;
-  text-align: left;
-}
-.wall__next[hidden] { display: none; }
-.wall__next-name { color: var(--ink); }
-.wall__next-glyph { color: var(--gold); }
-.wall__next:hover .wall__next-name { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
-.wall__next:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
 .row ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
 .row button {
   appearance: none;
@@ -284,7 +284,7 @@
 
 /* ---- phone: the portrait above, the label below ------------------------ */
 @media (max-width: 1023.98px) {
-  .sitting { --split: 57%; --split-vh: 57; }
+  .sitting { --split: 55%; --split-vh: 55; }
   .frame { inset: 0 0 auto 0; height: var(--split); }
   .wall {
     inset: auto 0 0 0;
@@ -301,18 +301,22 @@
     text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
   }
   .wall__count { color: #f2f1ec; }
-  .sitter { left: var(--gutter); right: var(--gutter); top: 18px; gap: 6px; }
+  .sitter { inset: auto; position: absolute; left: var(--gutter); right: var(--gutter); top: 18px; }
+  .sitter__head,
+  .sitter__body { position: static; width: auto; padding: 0; }
+  .sitter__body { margin-top: 6px; gap: 6px; }
   .sitter__no { display: none; }
   .sitter__name { font-size: 1.85rem; max-width: none; }
   .sitter__role { font-size: 1rem; margin-top: 2px; }
   .sitter__focus { display: none; }
-  .sitter__approach { font-size: 1.02rem; margin-top: 6px; max-width: none; }
-  .sitter__facts { grid-template-columns: 11ch 1fr; row-gap: 3px; margin-top: 10px; padding-top: 8px; font-size: 0.66rem; max-width: none; }
+  .sitter__approach { font-size: 1rem; margin-top: 4px; max-width: none; }
+  .sitter__facts { grid-template-columns: 13.5ch 1fr; row-gap: 3px; margin-top: 8px; padding-top: 8px; font-size: 0.66rem; max-width: none; }
   .sitter__facts dd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sitter__cta { margin-top: 12px; gap: var(--space-sm); }
   .sitter__primary { min-height: 52px; padding: 0 20px; }
   .wall__foot { left: var(--gutter); right: var(--gutter); bottom: var(--space-sm); }
-  .row { display: none; }
+  .row ol { gap: 4px; }
+  .row button { padding: 6px 4px; }
   .frame__caption { right: auto; left: var(--gutter); bottom: var(--space-sm); font-size: 0.66rem; }
   .light::before { width: 90px; }
   .focal { background: var(--gold); }

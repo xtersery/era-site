@@ -84,21 +84,39 @@ export function Sitting({
   const nameEnds = useRef<number[]>([]);
   const state = useRef({ k: frozen?.k ?? 0, f: frozen?.f ?? 0 });
 
-  /** measure once per layout: where each eye lands, where each name ends */
+  /** the focal datum: a fixed line of the grid, 30 % down the frame on desktop */
+  const DATUM = 0.3;
+  const datumY = useRef(0);
+
+  /**
+   * measure once per layout: the datum, where each name ends, and — the other
+   * way round from pass 1 — where each portrait must be anchored so that her
+   * eye lands ON the datum. The text never moves for a portrait; the portrait
+   * is cropped for the text.
+   */
   const measure = useCallback(() => {
     const frame = frameRef.current?.getBoundingClientRect();
     const section = sectionRef.current?.getBoundingClientRect();
     if (!frame || !section) return;
-    eyes.current = sitters.map((s) => {
-      const e = eyeOnScreen(frame, s.eye, s.anchorY);
-      return { x: e.x - section.left, y: e.y - section.top };
+    datumY.current = phone ? 0 : section.height * DATUM;
+    const iw = 4, ih = 5;
+    const sc = Math.max(frame.width / iw, frame.height / ih);
+    const w = iw * sc, h = ih * sc;
+    const slack = h - frame.height; // how far the crop can slide vertically
+    eyes.current = sitters.map((s, i) => {
+      // desktop: slide the crop so the eye sits on the datum (within the slack);
+      // phone: keep the sitter's own anchor, the line goes to wherever her eye is
+      const wanted = datumY.current - (frame.top - section.top);
+      const anchor = phone || slack <= 0 ? s.anchorY : clamp((s.eye.y * h - wanted) / slack, 0, 1);
+      const img = plates.current[i]?.querySelector('img');
+      if (img) img.style.objectPosition = `50% ${(anchor * 100).toFixed(2)}%`;
+      const oy = (frame.height - h) * anchor;
+      const ox = (frame.width - w) * 0.5;
+      return { x: frame.left - section.left + ox + s.eye.x * w, y: frame.top - section.top + oy + s.eye.y * h };
     });
-    // the name sits on the focal line: its block is placed so its last baseline is the eye line
     labels.current.forEach((el, i) => {
       const nm = names.current[i];
       if (!el || !nm) return;
-      const eye = eyes.current[i]!;
-      if (!phone) el.style.top = `${Math.round(eye.y - nm.offsetHeight + nm.offsetHeight * 0.16)}px`;
       nameEnds.current[i] = nm.getBoundingClientRect().right - section.left;
     });
   }, [phone]);
@@ -111,8 +129,12 @@ export function Sitting({
     // foot up to the name, then the next label is set from its name down
     const goingOut = clamp(f / 0.5, 0, 1);
     const comingIn = clamp((f - 0.5) / 0.5, 0, 1);
-    const maskOut = goingOut >= 1 ? 'linear-gradient(#000 0, #000 0)' : `linear-gradient(180deg, #000 ${((1 - goingOut) * 100 - 8).toFixed(2)}%, transparent ${((1 - goingOut) * 100).toFixed(2)}%)`;
-    const maskIn = comingIn <= 0 ? 'linear-gradient(transparent 0, transparent 0)' : `linear-gradient(180deg, #000 ${(comingIn * 100).toFixed(2)}%, transparent ${(comingIn * 100 + 8).toFixed(2)}%)`;
+    // the label lives between the wall label and the foot: the masks sweep that range
+    const [lo, hi] = phone ? [0, 100] : [10, 80];
+    const edgeOut = hi - goingOut * (hi - lo);
+    const edgeIn = lo + comingIn * (hi - lo);
+    const maskOut = goingOut >= 1 ? 'linear-gradient(#000 0, #000 0)' : `linear-gradient(180deg, #000 ${(edgeOut - 8).toFixed(2)}%, transparent ${edgeOut.toFixed(2)}%)`;
+    const maskIn = comingIn <= 0 ? 'linear-gradient(transparent 0, transparent 0)' : `linear-gradient(180deg, #000 ${edgeIn.toFixed(2)}%, transparent ${(edgeIn + 8).toFixed(2)}%)`;
     const setMask = (el: HTMLElement, mask: string) => {
       el.style.maskImage = mask;
       (el.style as unknown as Record<string, string>)['webkitMaskImage'] = mask;
@@ -158,7 +180,8 @@ export function Sitting({
     if (focal.current && eyes.current.length) {
       const a = eyes.current[k]!, b = eyes.current[next]!;
       const m = smooth((f - 0.3) / 0.45);
-      const y = lerp(a.y, b.y, m);
+      // on desktop the line IS the datum; on the phone it finds her eye
+      const y = phone ? lerp(a.y, b.y, m) : datumY.current;
       const endX = lerp(a.x, b.x, m);
       const startX = phone ? 0 : lerp(nameEnds.current[k] ?? 0, nameEnds.current[next] ?? 0, m) + 18;
       const width = Math.max(0, endX - startX - (phone ? 10 : 22));
@@ -216,9 +239,6 @@ export function Sitting({
     gsap.to(window, { scrollTo: y, duration: 0.9, ease: MINERAL, overwrite: true });
   }, [reduced]);
 
-  const nextIndex = Math.min(N - 1, current + 1);
-  const hasNext = current < N - 1;
-
   return (
     <section ref={sectionRef} className="sitting" id="specialists" aria-labelledby="specialists-title">
       <h2 id="specialists-title" className="sr-only">Специалисты</h2>
@@ -238,32 +258,33 @@ export function Sitting({
             aria-hidden={i !== current}
             aria-labelledby={`${s.person.id}-name`}
           >
-            <p className="sitter__no">{subIndex(INDEX, i + 1)}</p>
-            <h3 id={`${s.person.id}-name`} className="sitter__name" data-placeholder="fact">
-              <span ref={(el) => { names.current[i] = el; }} className="sitter__name-inner">{s.person.name}</span>
-            </h3>
-            <p className="sitter__role">{s.person.role}</p>
-            <p className="sitter__focus" data-placeholder="copy">{s.focus}</p>
-            <p className="sitter__approach" data-placeholder="copy">«{s.approach}»</p>
-            <dl className="sitter__facts">
-              {s.person.facts.map(([dt, dd]) => (
-                <div key={dt} style={{ display: 'contents' }}><dt>{dt}</dt><dd data-placeholder="fact">{dd}</dd></div>
-              ))}
-            </dl>
-            <div className="sitter__cta">
-              <a className="sitter__primary" href="#inquiry" tabIndex={i === current ? 0 : -1}>{cta.bookWith(s.person.shortName)}</a>
-              <a className="sitter__link" href="#services" tabIndex={i === current ? 0 : -1}>К направлениям →</a>
+            {/* the head grows UP from the datum: one line or two, the datum does not move */}
+            <div className="sitter__head">
+              <p className="sitter__no">{subIndex(INDEX, i + 1)}</p>
+              <h3 id={`${s.person.id}-name`} className="sitter__name" data-placeholder="fact">
+                <span ref={(el) => { names.current[i] = el; }} className="sitter__name-inner">{s.person.name}</span>
+              </h3>
+            </div>
+            {/* the body starts a fixed distance BELOW the datum, whatever the name did */}
+            <div className="sitter__body">
+              <p className="sitter__role">{s.person.role}</p>
+              <p className="sitter__focus" data-placeholder="copy">{s.focus}</p>
+              <p className="sitter__approach" data-placeholder="copy">«{s.approach}»</p>
+              <dl className="sitter__facts">
+                {s.person.facts.map(([dt, dd]) => (
+                  <div key={dt} style={{ display: 'contents' }}><dt>{dt}</dt><dd data-placeholder="fact">{dd}</dd></div>
+                ))}
+              </dl>
+              <div className="sitter__cta">
+                <a className="sitter__primary" href="#inquiry" tabIndex={i === current ? 0 : -1}>{cta.bookWith(s.person.shortName)}</a>
+                <a className="sitter__link" href="#services" tabIndex={i === current ? 0 : -1}>К направлениям →</a>
+              </div>
             </div>
           </article>
         ))}
 
-        {/* the way on: who is next, and the row itself */}
+        {/* the only progression cue besides the count: the row itself */}
         <div className="wall__foot">
-          <button type="button" className="wall__next" hidden={!hasNext} onClick={() => goTo(nextIndex)}>
-            <span className="wall__next-kicker">далее</span>
-            <span className="wall__next-name" data-placeholder="fact">{sitters[nextIndex]!.person.name}</span>
-            <span className="wall__next-glyph" aria-hidden="true">↓</span>
-          </button>
           <nav className="row" aria-label="Специалисты">
             <ol role="list">
               {sitters.map((s, i) => (

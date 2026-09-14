@@ -7,8 +7,9 @@ const hud = (p) => p.evaluate(() => document.querySelector('.hud')?.textContent 
 const readable = (p) => p.evaluate(() => {
   const a = [...document.querySelectorAll('.sitter')].find((el) => !el.hidden && el.getAttribute('aria-hidden') === 'false');
   if (!a) return null;
-  const r = a.getBoundingClientRect();
-  return { name: a.querySelector('.sitter__name')?.textContent, mask: getComputedStyle(a).maskImage || getComputedStyle(a).webkitMaskImage, inView: r.top >= 0 && r.bottom <= window.innerHeight, cta: a.querySelector('.sitter__primary')?.textContent };
+  const r = a.querySelector('.sitter__name').getBoundingClientRect();
+  const c = a.querySelector('.sitter__primary').getBoundingClientRect();
+  return { name: a.querySelector('.sitter__name')?.textContent, mask: getComputedStyle(a).maskImage || getComputedStyle(a).webkitMaskImage, inView: r.top >= 0 && c.bottom <= window.innerHeight, cta: a.querySelector('.sitter__primary')?.textContent };
 });
 async function run(label, viewport, opts = {}) {
   const ctx = await browser.newContext({ viewport, ...opts });
@@ -31,13 +32,13 @@ async function run(label, viewport, opts = {}) {
   const mid = await hud(page);
   await page.waitForTimeout(1600);
   log.push([label, 'after 360 px: mid', mid, '→ snapped', await hud(page), '· readable:', JSON.stringify(await readable(page))]);
-  // «далее» goes to the next specialist
-  if (opts.isMobile) await page.tap('.wall__next'); else await page.click('.wall__next');
+  // the row goes to a specialist
+  if (opts.isMobile) await page.tap('.row button >> nth=2'); else await page.click('.row button >> nth=2');
   await page.waitForTimeout(1400);
-  log.push([label, '«далее» →', await hud(page), '· readable:', JSON.stringify(await readable(page))]);
+  log.push([label, 'row 05.3 →', await hud(page), '· readable:', JSON.stringify(await readable(page))]);
   if (!opts.isMobile) {
     await page.click('.row button >> nth=3'); await page.waitForTimeout(1500);
-    log.push([label, 'index 05.4 →', await hud(page), '· next hidden:', await page.evaluate(() => document.querySelector('.wall__next').hidden)]);
+    log.push([label, 'row 05.4 →', await hud(page)]);
     // keyboard: the current label's CTA is the only one in the tab order
     log.push([label, 'focusable CTAs:', await page.evaluate(() => [...document.querySelectorAll('.sitter__primary')].filter((a) => a.tabIndex === 0).map((a) => a.textContent).join(' | '))]);
   }
@@ -45,6 +46,24 @@ async function run(label, viewport, opts = {}) {
   for (let i = 0; i < 50; i++) { if (opts.isMobile) { await page.evaluate(() => window.scrollBy(0, 200)); } else { await page.mouse.wheel(0, 200); } await page.waitForTimeout(16); }
   await page.waitForTimeout(800);
   log.push([label, 'scroll on → section left behind:', await page.evaluate(() => document.querySelector('#specialists').getBoundingClientRect().bottom < 0)]);
+  await ctx.close();
+}
+// the grid: the name, the role and the sentence sit at the same y on every state
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  const rows = [];
+  for (let k = 0; k < 4; k++) {
+    await page.goto(base + `?k=${k}`, { waitUntil: 'networkidle' });
+    await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(500);
+    rows.push(await page.evaluate(() => {
+      const a = [...document.querySelectorAll('.sitter')].find((el) => !el.hidden);
+      const r = (sel) => Math.round(a.querySelector(sel).getBoundingClientRect().top);
+      return { nameBottom: Math.round(a.querySelector('.sitter__name').getBoundingClientRect().bottom), role: r('.sitter__role'), approach: r('.sitter__approach'), facts: r('.sitter__facts'), focal: Math.round(document.querySelector('.focal').getBoundingClientRect().top) };
+    }));
+  }
+  const same = (key) => new Set(rows.map((r) => r[key])).size === 1;
+  log.push(['grid · name bottom / role / sentence / facts / focal identical on all 4 states:', ['nameBottom', 'role', 'approach', 'facts', 'focal'].map((k) => `${k} ${same(k) ? '=' : '≠'} ${rows[0][k]}`).join(' · ')]);
   await ctx.close();
 }
 await run('desktop', { width: 1440, height: 900 });

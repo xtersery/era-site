@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 1 built — «СЕАНС», the sitting — AWAITING REVIEW (14.09.2026).**
+**Status: pass 2 — «СЕАНС», the sitting, with the composition locked to a grid — AWAITING REVIEW (14.09.2026).** Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -49,24 +49,23 @@ a real face, an effect for its own sake.
 **Desktop (1440 × 900).** The wall takes 44 % and holds the label; the frame
 takes 56 % and holds the portrait full height, bleeding off three edges. The
 name is set in Prata at display scale (clamp 2.6–4.9 rem, −0.025 em, 0.98)
-with its last baseline **on her eye line** — the name block's `top` is
-computed from the eye's projected position (cover-fit maths from the 4 : 5
-image and the sitter's eye fractions). The focal line leaves the measured
+with its last baseline **on the datum** — a fixed line of the grid 30 % down
+the frame (see pass 2 below; in pass 1 the block followed the eye, which is
+what drifted). The focal line leaves the measured
 right edge of the name, crosses the wall in ink, crosses onto the portrait in
 gold (the split is a CSS variable set to the wall's edge) and stops 22 px
 short of her eye with a 7 px ring. Below the name: role · focus line (mono) ·
 her sentence in her own voice (Prata 1.25–1.6 rem, «…») · facts as a mono
 table (15ch / 1fr) · «Записаться к [Имя]» (ink on light, 56 px) with
-«К направлениям →» beside it. At the foot: «далее — [next name] ↓» (a button)
-and the row 05.1–05.4 (a `<nav>` of buttons). Top-left: the wall label and
+«К направлениям →» beside it. At the foot: the row 05.1–05.4 (a `<nav>` of
+buttons) — the only progression cue besides the count in the wall label. Top-left: the wall label and
 the count. Bottom-right of the portrait: «[Плейсхолдер — заменить на реальную
 съёмку]».
 
 **Phone (390 × 844).** The portrait takes the top 57 % full-bleed; the wall
 label and the count sit on it in light text; the focal line runs from the
 screen's edge to her eye. The label beneath: name 1.85 rem · role · sentence
-1.02 rem · facts one column, ellipsised · CTA 52 px · «далее». The row of four
-is hidden on the phone (the count and «далее» carry progression).
+1 rem · facts in a 13.5ch column · CTA 52 px · the row of four at the foot.
 
 ## The transition
 
@@ -136,3 +135,46 @@ stand-ins show); a real phone.
 Decisions to confirm: 100 vh per transition (Services uses 85); the name on
 the eye line as the organising rule for the real shoot; «далее» as a whisper
 rather than a ghost portrait.
+
+
+---
+
+## Pass 2 — THE COMPOSITION LOCKED TO A GRID (14.09.2026)
+
+Review of pass 1: the concept holds; the text placement was unstable across
+states — some states sat correctly, others drifted downward; «далее — [Имя
+Фамилия 2]» unnecessary and colliding. Correction pass only.
+
+**Cause.** Each state's label was placed from *that portrait's* eye position
+(`top = eye.y − nameHeight + …`), so a one-line name and a two-line name put
+the whole block at different heights, and every portrait's own eye height
+moved it again.
+
+**The rule, reversed.** The eye line is a fixed **datum** of the grid —
+`--datum: 30%` of the frame height. Each portrait is cropped so that her eye
+lands on the datum: `measure()` computes the cover-fit crop's vertical slack
+and sets `object-position` per portrait (`anchor = (eye.y × h − datum) /
+slack`, clamped); the text never moves for a portrait. On the phone the datum
+is not used (the name is below the portrait); the line finds her actual eye.
+
+**Two blocks on the datum.** `.sitter` spans the wall; inside it the **head**
+(index + name) is anchored by its bottom to the datum (`bottom: calc(100% −
+var(--datum))`, `padding-bottom: 0.1em` so the baseline — not the box — sits
+on the line) and grows upward; the **body** (role → focus → sentence → facts →
+CTA) is anchored by its top to `datum + 28 px`. Both sit in one column: from
+the gutter, `min(30rem, …)` wide. The foot holds only the row of four;
+`«далее»` is removed and nothing replaces it. Masks now sweep the content
+range (10 %–80 % of the wall) so the lift and the set read at the same pace as
+before.
+
+**Measured** (`e2e/spike-portraits.interact.mjs`, the grid proof): name
+bottom 268 · role 298 · sentence 401 · focal 270 — identical on all four
+states at 1440 × 900; only the facts row follows the sentence's length (2 or
+3 lines). Phone: portrait 55 % / wall 45 %; name 482 · role 519 · sentence
+555 · CTA 714 on every state; facts column 13.5ch (11ch collided).
+
+Everything else (the transition, the light, the masked lines, the driver, the
+snap, reduced motion, the proofs) unchanged and re-run: all pass, 60 fps.
+
+**For the shoot:** the datum at 30 % is now a constraint — eyes at 28–32 % of
+a 4 : 5 frame; the crop can absorb about ±10 % of the frame height, no more.

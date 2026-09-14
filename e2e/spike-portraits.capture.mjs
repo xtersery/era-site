@@ -26,6 +26,8 @@ const strip = async (page, files, cols, out) => {
   await shot('?k=0', 'd1-rest-1');
   await shot('?k=1', 'd2-rest-2');
   await shot('?k=2', 'd3-rest-3');
+  await shot('?k=3', 'd3b-rest-4');
+  await strip(page, [`${OUT}/d1-rest-1.png`, `${OUT}/d2-rest-2.png`, `${OUT}/d3-rest-3.png`, `${OUT}/d3b-rest-4.png`], 2, `${OUT}/d0-grid.png`);
   await shot('?k=0', 'd4-focal', { x: 20, y: 120, width: 1060, height: 260 });
   const tr = [];
   for (const [i, f] of [0, 0.18, 0.36, 0.5, 0.66, 0.82, 0.94, 1].entries()) tr.push(await shot(`?k=1&f=${f}`, `tr-${i}`));
@@ -38,7 +40,7 @@ const strip = async (page, files, cols, out) => {
   const shot = async (q, name) => { await page.goto(base + q, { waitUntil: 'networkidle' }); await settle(page); const f = `${OUT}/${name}.png`; await page.screenshot({ path: f }); return f; };
   await shot('?k=0', 'm1-rest-1');
   await shot('?k=0&f=0.5', 'm2-mid');
-  await shot('?k=1', 'm3-rest-2');
+  await shot('?k=2', 'm3-rest-2');
   const mt = [];
   for (const [i, f] of [0, 0.3, 0.5, 0.7, 0.85, 1].entries()) mt.push(await shot(`?k=2&f=${f}`, `mt-${i}`));
   await strip(page, mt, 6, `${OUT}/m4-transition.png`);
