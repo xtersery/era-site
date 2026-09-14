@@ -144,3 +144,39 @@ Keys now (0, 0) · (2.5, 0.44) · (4, 0.62) · (7, 0.9) · (8.5, 1), hold 1 s:
 recognition unchanged, immersion 1.5 s (was 2.5), transformation and reveal
 the same lengths, the film 8.5 s + 1 s held. Measured: 2.6 s → 0.44 ·
 4.1 s → 0.62 · 7.1 s → 0.90 · 8.5 s → 1.00 · released 9.6 s.
+
+## One continuous movement (15.09.2026)
+
+**Brief.** The movement read as separate camera steps (zoom → pause → zoom
+→ transform). One uninterrupted dolly, one easing curve, no keyframe stops,
+no sudden scale changes, no blur; ~15–20 % faster by removing pauses, not
+by moving the camera faster; the transformation begins while the camera
+still moves.
+
+**Cause.** `useCameraPath`'s `u(t)` eased each segment between keys with
+`smooth()` — the camera came to a full stop at every key (speed 0 eight
+times). The clock→t cubic was continuous, so the stops were the path's.
+
+**Built.** The timeline now maps to the curves' **arc length** through a
+monotone cubic (Fritsch–Carlson) with non-zero tangents at every key
+(`monotone(keys, flatEnds = false)`), `getPointAt` on position and target;
+speed along the path measured (world units per unit t): 68 → 36 (0.2) → 10
+(0.4) → 6 (0.5, deepest inside) → 15 (0.7) → 32 (0.9) — one deceleration
+in, one acceleration out, minimum 5.9, never zero. Inside, the curve turns
+without stopping (K4 → K5 differ in y, so the reversal in z is a bend, not a
+cusp). Rhythm keys: (0, 0) · (2.1, 0.44) · (3.3, 0.62) · (5.9, 0.9) ·
+(7.2, 1), hold 1 s — 7.2 s of motion (was 8.5, −15 %), released at 8.3 s.
+Flatten 0.66 → 0.9 so the shell settles while the camera is still gliding
+out; the shell's flanks fade as it settles (`alpha × facing`), since they
+end with no area. The wall sheet is now the reference's first three whole
+slabs (to the seam at x 1289) so its mirror repeat folds on a seam; laid
+9.25 units wide, centre (−3.9, −3.33).
+
+**Tried and dropped.** A push that never reverses (the wall at z −9, the
+shell receding to it): from inside, the receding hollow shell's flanks
+stretch into curtains and its patch floats in front of the wall — a
+texture card flying. The in-and-out path with continuous speed reads as one
+movement; the recession did not.
+
+**Measured.** 2.1 s → 0.42 · 3.5 s → 0.64 · 6.0 s → 0.90 · 7.2 s → 1.00 ·
+released 8.3 s; scrub 16.7 ms median, 0 % over 33 ms.

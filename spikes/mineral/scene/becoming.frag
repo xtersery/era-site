@@ -95,7 +95,7 @@ void main() {
   albedo = mix(albedo, marbled, arrive);
 
   // the surface: the geometry's normal, then the slab's own relief
-  vec2 px = vec2(1.0 / 1672.0, 1.0 / 1882.0);
+  vec2 px = vec2(1.0 / 1289.0, 1.0 / 1882.0);
   float hx = texture2D(uLuma, suv + vec2(px.x, 0.0)).r - texture2D(uLuma, suv - vec2(px.x, 0.0)).r;
   float hy = texture2D(uLuma, suv + vec2(0.0, px.y)).r - texture2D(uLuma, suv - vec2(0.0, px.y)).r;
   vec3 nRelief = normalize(vec3(-hx * 3.0, -hy * 3.0, 1.0));
@@ -113,6 +113,9 @@ void main() {
   float fog = 1.0 - exp(-pow(dCam * uFogDensity, 2.0));
   col = mix(col, uFogColor, fog);
 
-  gl_FragColor = vec4(col, uOpacity);
+  // as the shell recedes into the wall its flanks — which end with no area —
+  // go first, so the far faces alone carry the surface across
+  float alpha = uOpacity * mix(1.0, facing, smoothstep(0.0, 0.25, uFlatten) * uInside);
+  gl_FragColor = vec4(col, alpha);
   #include <colorspace_fragment>
 }

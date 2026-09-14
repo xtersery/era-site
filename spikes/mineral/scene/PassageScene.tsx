@@ -54,9 +54,9 @@ const FOV = 30;
 export const CAM_Z = WORLD_H / 2 / Math.tan((FOV / 2) * (Math.PI / 180));
 const STONE_Z = 1.5;
 const WALL_Z = -0.05;
-/** the wall sheet (1672 × 1882, four slabs across) laid 12 world units wide: a slab is 3.24 units, the final view holds 2.65 */
-const SHEET_W = 12;
-const SHEET_H = SHEET_W * (1882 / 1672);
+/** the wall sheet (1289 × 1882, three whole slabs, mirror-repeated on a seam) laid 9.25 world units wide: a slab is 3.24 units, the final view holds 2.65 */
+const SHEET_W = 9.25;
+const SHEET_H = SHEET_W * (1882 / 1289);
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const smooth = (t: number) => { const s = clamp(t, 0, 1); return s * s * (3 - 2 * s); };
@@ -69,16 +69,51 @@ export interface PassageProps {
 }
 
 /** the camera's path: positions and targets at the timeline's keys */
+/** a monotone cubic through (x, y) keys — Fritsch–Carlson; interior tangents never zero, so nothing stops */
+function monotone(keys: readonly (readonly [number, number])[], flatEnds = true) {
+  const n = keys.length;
+  const xs = keys.map((k) => k[0]), ys = keys.map((k) => k[1]);
+  const d = Array.from({ length: n - 1 }, (_, i) => (ys[i + 1]! - ys[i]!) / (xs[i + 1]! - xs[i]!));
+  const m = new Array<number>(n).fill(0);
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1]! * d[i]! <= 0 ? 0 : (d[i - 1]! + d[i]!) / 2;
+  m[0] = flatEnds ? 0 : d[0]!; m[n - 1] = flatEnds ? 0 : d[n - 2]!;
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+    const a = m[i]! / d[i]!, b = m[i + 1]! / d[i]!;
+    const h = a * a + b * b;
+    if (h > 9) { const tt = 3 / Math.sqrt(h); m[i] = tt * a * d[i]!; m[i + 1] = tt * b * d[i]!; }
+  }
+  return (x: number) => {
+    if (x <= xs[0]!) return ys[0]!;
+    if (x >= xs[n - 1]!) return ys[n - 1]!;
+    let i = 0;
+    while (x > xs[i + 1]!) i++;
+    const h = xs[i + 1]! - xs[i]!, u = (x - xs[i]!) / h;
+    const u2 = u * u, u3 = u2 * u;
+    return (2 * u3 - 3 * u2 + 1) * ys[i]! + (u3 - 2 * u2 + u) * h * m[i]! + (-2 * u3 + 3 * u2) * ys[i + 1]! + (u3 - u2) * h * m[i + 1]!;
+  };
+}
+
+/**
+ * The camera's path: one continuous movement. From the sitting's camera it
+ * pushes toward the stone, through its face and down its length; inside it
+ * curves — never stopping — and glides back out the way it came while the
+ * crystal around it becomes the wall, so what it comes out into is the wall.
+ * Position and target are Catmull-Rom curves; the timeline maps to ARC
+ * LENGTH through a monotone cubic with non-zero tangents at every key, so
+ * the speed is continuous everywhere: no stops, no stages.
+ */
 function useCameraPath(stoneX: number, stoneY: number) {
   return useMemo(() => {
-    const keys = [0, 0.14, 0.34, 0.46, 0.56, 0.7, 0.86, 1];
+    // (t, arc-length fraction) — where along the path each moment of the timeline is
+    const posKeysT = [0, 0.14, 0.34, 0.46, 0.58, 0.72, 0.86, 1];
     const pos = new CatmullRomCurve3([
       new Vector3(0, 0, CAM_Z),
       new Vector3(stoneX - 0.7, stoneY - 0.5, 9.5),
       new Vector3(stoneX - 0.25, stoneY + 1.3, 3.4),
       new Vector3(stoneX - 0.02, stoneY + 1.9, STONE_Z + 0.62),
       new Vector3(stoneX + 0.05, stoneY + 1.35, STONE_Z + 0.05),
-      new Vector3(stoneX + 0.1, stoneY + 0.5, STONE_Z + 1.5),
+      new Vector3(stoneX + 0.1, stoneY + 0.55, STONE_Z + 1.5),
       new Vector3(0.1, 0.05, 5.6),
       new Vector3(0.55, 0.15, 10.05),
     ], false, 'centripetal', 0.35);
@@ -92,15 +127,19 @@ function useCameraPath(stoneX: number, stoneY: number) {
       new Vector3(0.25, 0.1, 0),
       new Vector3(0.55, 0.15, 0),
     ], false, 'centripetal', 0.35);
-    // the timeline's keys map to the curves' uniform parameter
-    const u = (t: number) => {
-      for (let i = 0; i < keys.length - 1; i++) {
-        const a = keys[i]!, b = keys[i + 1]!;
-        if (t <= b) return (i + smooth((t - a) / (b - a))) / (keys.length - 1);
-      }
-      return 1;
+    // the arc-length fraction of each key on each curve
+    const fractions = (c: CatmullRomCurve3) => {
+      const lengths = c.getLengths(400);
+      const total = lengths[lengths.length - 1]!;
+      const n = c.points.length;
+      // the length up to each control point: sample the curve param at i/(n−1)
+      return Array.from({ length: n }, (_, i) => { const u = i / (n - 1); const k = Math.round(u * 400); return lengths[k]! / total; });
     };
-    return { pos, target, u };
+    const posMap = monotone(posKeysT.map((tk, i) => [tk, fractions(pos)[i]!] as const), false);
+    const targetMap = monotone(posKeysT.map((tk, i) => [tk, fractions(target)[i]!] as const), false);
+    const u = (t: number) => clamp(posMap(t), 0, 1);
+    const uTarget = (t: number) => clamp(targetMap(t), 0, 1);
+    return { pos, target, u, uTarget };
   }, [stoneX, stoneY]);
 }
 
@@ -155,7 +194,7 @@ function Passage({ t, onReady, photo }: PassageProps & { photo: Texture }) {
       uPhoto: { value: maps.interior }, uRidge: { value: ridge }, uMarble: { value: marble.sheet }, uLuma: { value: marble.luma },
       uBox: { value: new Vector2(stoneX, stoneY) }, uBoxHalf: { value: new Vector2(stoneW / 2, stoneH / 2) },
       // the sheet is placed so its graphite band passes through the stone and the pale slab sits left of the view's centre
-      uSheet: { value: new Vector2(-2.97, -3.33) }, uSheetSize: { value: new Vector2(SHEET_W, SHEET_H) },
+      uSheet: { value: new Vector2(-3.9, -3.33) }, uSheetSize: { value: new Vector2(SHEET_W, SHEET_H) },
       uBecome: { value: 0 }, uSpread: { value: 0 }, uFogDensity: { value: 0 }, uFogColor: { value: new Color('#5a524b') },
       uKey: { value: new Vector3(-0.5, 0.55, 0.75) }, uInside: { value: inside }, uFlatten: { value: flatten }, uWallZ: { value: WALL_Z + 0.01 * (1 - inside) + 0.012 * inside }, uOpacity: { value: 1 },
     });
@@ -213,9 +252,8 @@ function Passage({ t, onReady, photo }: PassageProps & { photo: Texture }) {
     wall.visible = roomGone < 1; portrait.visible = roomGone < 1;
 
     // the camera on its path
-    const u = path.u(tt);
-    path.pos.getPoint(u, tmpPos);
-    path.target.getPoint(u, tmpTarget);
+    path.pos.getPointAt(path.u(tt), tmpPos);
+    path.target.getPointAt(path.uTarget(tt), tmpTarget);
     camera.position.copy(tmpPos);
     camera.lookAt(tmpTarget);
 
@@ -258,7 +296,7 @@ function Passage({ t, onReady, photo }: PassageProps & { photo: Texture }) {
     // the shell settles into the wall's plane, a faint relief kept
     const become = seg(tt, 0.54, 0.82);
     const spread = 9 * seg(tt, 0.66, 0.92);
-    const flatten = 0.94 * seg(tt, 0.68, 0.88);
+    const flatten = 0.94 * seg(tt, 0.66, 0.9);
     for (const m of [becoming.shell, becoming.wallMat]) {
       m.uniforms['uBecome']!.value = become;
       m.uniforms['uSpread']!.value = spread;

@@ -64,15 +64,15 @@ const ALIGN_PX = 6;
 /**
  * The film's rhythm, as briefed: recognition (the mineral, a slow dolly) ·
  * immersion (into the material) · geological transformation · reveal, then a
- * held frame. 8.5 s of motion + 1 s hold. t is the scene's timeline.
+ * held frame. 7.2 s of motion + 1 s hold — one breath. t is the scene's timeline.
  */
 export const CINEMATIC_RHYTHM = {
   keys: [
     [0, 0],        // A · at rest
-    [2.5, 0.44],   // recognition: the dolly, the facets fill the view (2.5 s)
-    [4.0, 0.62],   // immersion: through the face, inside, among the planes (1.5 s — not a stay)
-    [7.0, 0.9],    // transformation: the structure becomes mineral, then slab; the shell settles (3 s)
-    [8.5, 1],      // reveal: the wall (1.5 s)
+    [2.1, 0.44],   // recognition: the push, the facets fill the view
+    [3.3, 0.62],   // immersion: through the face, down the crystal — the push does not stop
+    [5.9, 0.9],    // transformation: the structure becomes mineral, then slab; the shell recedes into the wall
+    [7.2, 1],      // reveal: the wall, the push settling
   ],
   hold: 1,
 } as const;

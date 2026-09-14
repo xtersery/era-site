@@ -20,7 +20,7 @@ const strip = async (page, files, cols, out) => {
   }, { srcs: files.map((f) => 'data:image/png;base64,' + readFileSync(f).toString('base64')), cols });
   writeFileSync(out, Buffer.from(data.split(',')[1], 'base64'));
 };
-export const MOMENTS = [0, 0.22, 0.36, 0.45, 0.54, 0.64, 0.72, 0.8, 0.9, 1];
+export const MOMENTS = [0, 0.2, 0.34, 0.44, 0.54, 0.64, 0.72, 0.8, 0.9, 1];
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1.5 });
   const page = await ctx.newPage();
@@ -34,7 +34,7 @@ export const MOMENTS = [0, 0.22, 0.36, 0.45, 0.54, 0.64, 0.72, 0.8, 0.9, 1];
   const path = await page.evaluate(() => {
     const P = window.__passage;
     const pts = [];
-    for (let i = 0; i <= 100; i++) { const t = i / 100; const u = P.path.u(t); const p = P.path.pos.getPoint(u); const q = P.path.target.getPoint(u); pts.push({ t, p: [p.x, p.y, p.z], q: [q.x, q.y, q.z] }); }
+    for (let i = 0; i <= 100; i++) { const t = i / 100; const p = P.path.pos.getPointAt(P.path.u(t)); const q = P.path.target.getPointAt(P.path.uTarget(t)); pts.push({ t, p: [p.x, p.y, p.z], q: [q.x, q.y, q.z] }); }
     return { pts, stone: P.stoneBox, wallZ: P.wallZ };
   });
   writeFileSync(`${OUT}/path.json`, JSON.stringify(path));
