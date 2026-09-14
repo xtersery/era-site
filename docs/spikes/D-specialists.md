@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 5 — «СЕАНС», the sitting, with the shard as a MINERAL SCULPTURE WITH PRESENCE (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 4 review: the technology is right; the glass went too far toward invisible optical glass and read as an image distortion — the object itself must be visible. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
+**Status: pass 6 — «СЕАНС», the sitting, with the transition built on SMOKY QUARTZ AS THE MECHANISM (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -326,3 +326,64 @@ body now sits at z 1.6.
 
 Everything else unchanged. 60 fps median, 0 % over 33 ms while scrubbing
 (1440 × 900, real Chrome). Board: B1 / B2 and the table.
+
+
+---
+
+## Pass 6 — SMOKY QUARTZ AS THE MECHANISM (14.09.2026)
+
+Review of pass 5, with a reference asset (`src/assets/парящий_дымчатый_кварц.png`):
+the smoky quartz must drive the transition — a transitional body, a moving
+mineral hinge / refractive seam — not a decorative foreground object; smoky
+translucent taupe, restrained, cloudy inside, polished but not plastic, no
+glow, no dispersion, no sparkle; integrated into the portrait panel, on the
+seam; resting state clean. **The test: remove the stone and the transition
+must stop working.**
+
+**The transition moved into the stone's field.** During a transition the
+frame is drawn in the WebGL layer as one composite plane
+(`scene/composite.frag`): ahead of the stone the portrait being left,
+compressed toward the stone's leading edge (uv + w·0.55·amount, w =
+e^(−d/(0.6·wake))) and softened as it nears; behind the stone the arriving
+portrait, drawn out of its trailing edge (uv − w·amount, w = e^(−d/wake)),
+softened, settling with distance; under the stone the arriving portrait (the
+stone draws over it, refracting the buffer of the arriving portrait as
+before). The leading and trailing edges are the stone's own silhouette: a
+64-row edge-profile texture of the outline's left/right x, read per row and
+leaned by tan(rotZ) — the seam has the shape of the quartz, not a vertical.
+Over the last 14 % (f 0.86 → 1) the field lets go; at f = 0 the composite is
+pixel-equal to the DOM plate (same cover-fit and anchor, sRGB, no tone
+mapping), so the hand-over to and from the DOM is invisible. Wake 0.16 of the
+frame, amount 0.05 (phone 0.2 / 0.06). The DOM reveal mask is now unused
+while live (the CSS shard + mask remain the no-WebGL fallback: a plain reveal,
+not the field).
+
+**The stone, from the reference** (`scene/quartzGeometry.ts`). A tall slab
+with a few large polished planes and a broken flank: the convex hull of the
+13-point outline set at two depths with the depth broken per corner (±0.4 ×
+depth) and eight points lifted off the faces, so the hull resolves into large
+flat facets at slightly different angles; the right-hand corners pull in
+unevenly for the flank; flat-shaded (every facet its own normal); planar UVs.
+28 % of the frame wide, 116 % tall, 1.15 units thick (phone 36 % / 0.9).
+Material — ERA Mineral Glass tuned to smoky quartz: transmission 0.92, ior
+1.54, roughness 0.46 under a canvas-drawn cloud map (140 soft pools, 18 fine
+veils — the smoke is uneven), anisotropic blur 0.42 (phone 0.28), attenuation
+`#8a7d72` at 3.4 (taupe smoke in the thickness), colour `#dcd3c8`, clearcoat
+0.55 / 0.22, chromatic aberration 0.008, env 1.4; 6 samples at 1024 (phone 4
+at 512 — 2 showed as grain). First build at attenuation `#4a3a2d` / 1.6 was
+near-black and was lifted: the reference is a *light* stone.
+
+**Motion.** Centre from 116 % to −22 % of the frame on the eased seam (it
+leaves the frame almost completely), rotateY −16° → +14°, rotateZ −6° → −3°,
+3 % drift down, z 1.7. The words, the focal line's withdrawal, the snap, the
+row, reduced motion: unchanged.
+
+**Cost.** 60 fps median, p95 16.8 ms, 0.4 % over 33 ms while scrubbing on
+1440 × 900 (real Chrome). Phone emulated.
+
+**Not yet:** the stone's silhouette is a clean convex polygon with facet
+breaks; the reference's flank is rougher (a concave, chipped edge). A
+non-convex body (displaced hull or a sculpted mesh) would be the next step if
+the raw edge is judged insufficient.
+
+Board: sections B1 / B2 and the mechanism table.

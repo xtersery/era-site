@@ -91,7 +91,7 @@ export function Sitting({
   const names = useRef<(HTMLElement | null)[]>([]);
   const shard = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState(false);
-  const shardState = useRef<ShardState>({ on: false, seam: 112, rotY: -20, rotZ: -7, rise: 1.5, next: 1, anchorY: 0.28 });
+  const shardState = useRef<ShardState>({ on: false, f: 0, seam: 112, rotY: -20, rotZ: -7, rise: 1.5, from: 0, next: 1, anchorFrom: 0.28, anchorNext: 0.28 });
   const shardThrough = useRef<HTMLImageElement>(null);
   const shardGlint = useRef<SVGPathElement>(null);
   const focal = useRef<HTMLDivElement>(null);
@@ -163,7 +163,7 @@ export function Sitting({
     // the shard crosses the face quickly and lingers at the edges: an eased seam.
     // `seam` is where its centre stands, in % of the frame; the incoming portrait
     // is clear behind its trailing edge and seen through it ahead of that
-    const seam = lerp(112, -14, smooth(f));
+    const seam = lerp(116, -22, smooth(f));
     const half = phone ? 17 : 13; // half the shard's width, in % of the frame
     const band = 4;
     for (let i = 0; i < N; i++) {
@@ -206,13 +206,15 @@ export function Sitting({
       const left = ((seam - half) * fw) / 100;
       // it pivots on its own axis — turned toward the visitor as it enters,
       // away as it leaves — and hangs at a slight tilt, like a shard held up
-      const rotY = lerp(-24, 26, f);
-      const rotZ = lerp(-7, -4, f);
+      const rotY = lerp(-16, 14, f);
+      const rotZ = lerp(-6, -3, f);
       const rise = lerp(1.5, -1.5, f); // it drifts down a little as it turns
-      // the same pose for the body of glass
-      const nextImg = plates.current[next]?.querySelector('img');
-      const anchorY = nextImg ? parseFloat(nextImg.style.objectPosition.split(' ')[1] ?? '28') / 100 : 0.28;
-      shardState.current = { on, seam, rotY, rotZ, rise, next, anchorY };
+      // the same pose for the body of quartz, and the two portraits it stands between
+      const anchorOf = (i: number) => {
+        const img = plates.current[i]?.querySelector('img');
+        return img ? parseFloat(img.style.objectPosition.split(' ')[1] ?? '28') / 100 : 0.28;
+      };
+      shardState.current = { on, f, seam, rotY, rotZ, rise, from: k, next, anchorFrom: anchorOf(k), anchorNext: anchorOf(next) };
       shard.current.style.transform = `translate3d(${left.toFixed(1)}px, ${((rise * fh) / 100).toFixed(1)}px, 0) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg)`;
       shard.current.style.width = `${w.toFixed(1)}px`;
       // through it, the incoming portrait — aligned to the frame, then bent:
