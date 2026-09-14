@@ -84,36 +84,42 @@ function usePortraitTextures(urls: readonly string[]): Texture[] {
 }
 
 /**
- * The stone's inside, from the photograph: its crop box drawn to three maps —
- * a lightened tint (the smoke as density inside the glass), a roughness map
- * (dark smoke is cloudier), and a bump map (the fractures and planes).
+ * The stone's surface and inside, from the photograph itself: its crop box
+ * drawn to four maps — the photograph as the colour (its real facets,
+ * fractures and smoke, lifted only a little), a transmission map from its
+ * luminance (the clear zones let the next portrait through, the dense smoke
+ * does not), a roughness map (dark smoke is cloudier), and a bump map (the
+ * fractures and planes).
  */
 function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number; h: number }) {
   const img = photo.image as HTMLImageElement;
-  const W = 448, H = Math.round(448 / (box.w / box.h));
+  const W = 512, H = Math.round(512 / (box.w / box.h));
   const draw = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return [c, c.getContext('2d')!] as const; };
-  // the tint: the photograph lifted toward the stone's pale body
+  // the colour: the photograph, lifted a little toward the pale body
   const [tc, tg] = draw();
-  tg.fillStyle = '#ece6dd';
+  tg.fillStyle = '#e6dfd5';
   tg.fillRect(0, 0, W, H);
-  tg.globalAlpha = 0.46;
+  tg.globalAlpha = 0.86;
   tg.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, W, H);
   tg.globalAlpha = 1;
-  // the roughness and the bump, from the luminance
+  // luminance → transmission, roughness, bump
   const [lc, lg] = draw();
-  lg.fillStyle = '#9a9a9a';
+  lg.fillStyle = '#6a6a6a';
   lg.fillRect(0, 0, W, H);
   lg.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, W, H);
   const d = lg.getImageData(0, 0, W, H);
-  const rough = new Uint8ClampedArray(d.data.length);
-  const bump = new Uint8ClampedArray(d.data.length);
-  for (let i = 0; i < d.data.length; i += 4) {
+  const n = d.data.length;
+  const trans = new Uint8ClampedArray(n), rough = new Uint8ClampedArray(n), bump = new Uint8ClampedArray(n);
+  for (let i = 0; i < n; i += 4) {
     const l = (0.2126 * d.data[i]! + 0.7152 * d.data[i + 1]! + 0.0722 * d.data[i + 2]!) / 255;
-    const r = Math.round((0.3 + 0.6 * (1 - l)) * 255);
-    rough[i] = rough[i + 1] = rough[i + 2] = r; rough[i + 3] = 255;
+    const t = Math.round((0.12 + 0.88 * Math.pow(l, 1.4)) * 255); // clear where the stone is clear
+    const r = Math.round((0.28 + 0.6 * (1 - l)) * 255);
     const b = Math.round(l * 255);
+    trans[i] = trans[i + 1] = trans[i + 2] = t; trans[i + 3] = 255;
+    rough[i] = rough[i + 1] = rough[i + 2] = r; rough[i + 3] = 255;
     bump[i] = bump[i + 1] = bump[i + 2] = b; bump[i + 3] = 255;
   }
+  const [xc, xg] = draw(); xg.putImageData(new ImageData(trans, W, H), 0, 0);
   const [rc, rg] = draw(); rg.putImageData(new ImageData(rough, W, H), 0, 0);
   const [bc, bg] = draw(); bg.putImageData(new ImageData(bump, W, H), 0, 0);
   const tex = (c: HTMLCanvasElement, srgb: boolean) => {
@@ -122,7 +128,27 @@ function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number
     t.wrapS = t.wrapT = ClampToEdgeWrapping;
     return t;
   };
-  return { tint: tex(tc, true), rough: tex(rc, false), bump: tex(bc, false) };
+  return { tint: tex(tc, true), trans: tex(xc, false), rough: tex(rc, false), bump: tex(bc, false) };
+}
+
+/** the shadow the stone throws on the portrait: a soft pool, drawn once */
+function createShadow(): Mesh {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 512;
+  const ctx = c.getContext('2d')!;
+  // an ellipse that reaches zero before the canvas edges on every side
+  ctx.save();
+  ctx.translate(128, 256);
+  ctx.scale(1, 2);
+  const g = ctx.createRadialGradient(0, 0, 8, 0, 0, 120);
+  g.addColorStop(0, 'rgba(8, 12, 10, 0.5)');
+  g.addColorStop(0.55, 'rgba(8, 12, 10, 0.22)');
+  g.addColorStop(1, 'rgba(8, 12, 10, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(-128, -128, 256, 256);
+  ctx.restore();
+  const t = new CanvasTexture(c);
+  return new Mesh(new PlaneGeometry(1, 1), new MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false }));
 }
 
 /** cover-fit of a 4 : 5 portrait into the frame, anchored like its DOM plate */
@@ -171,14 +197,16 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     return new Mesh(new PlaneGeometry(1, 1), mat);
   }, [profile]);
 
-  // the stone: the photograph's proportion, a little over the frame's height, thick
-  const stoneH = WORLD_H * 1.06;
-  const narrow = phone ? 0.8 : 0.92;
+  // the stone: the photograph's proportion, an object inside the frame — its
+  // top and bottom in view — thick, with a shadow on the portrait behind it
+  const stoneH = WORLD_H * (phone ? 0.72 : 0.86);
+  const narrow = phone ? 0.86 : 0.92;
   const stoneW = stoneH * QUARTZ_ASPECT * narrow;
   const geometry = useMemo(
-    () => createQuartzGeometry({ height: stoneH, depth: phone ? 1.1 : 1.4, narrow, seed: 5 }),
+    () => createQuartzGeometry({ height: stoneH, depth: phone ? 1.0 : 1.3, narrow, seed: 5 }),
     [stoneH, narrow, phone],
   );
+  const shadow = useMemo(() => createShadow(), []);
   const fbo = useFBO(phone ? 768 : 1024, phone ? 768 : 1024, { depthBuffer: false });
   const stone = useRef<Group>(null);
   const ready = useRef(false);
@@ -187,18 +215,20 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     scene.environment = env;
     scene.add(backdrop);
     scene.add(composite);
+    scene.add(shadow);
     return () => {
       scene.environment = null;
       scene.remove(backdrop);
       scene.remove(composite);
+      scene.remove(shadow);
       env.dispose();
-      maps.tint.dispose(); maps.rough.dispose(); maps.bump.dispose();
+      maps.tint.dispose(); maps.trans.dispose(); maps.rough.dispose(); maps.bump.dispose();
       profile.dispose();
       geometry.dispose();
       (composite.material as ShaderMaterial).dispose();
       textures.forEach((t) => t.dispose());
     };
-  }, [scene, env, backdrop, composite, maps, profile, geometry, textures]);
+  }, [scene, env, backdrop, composite, shadow, maps, profile, geometry, textures]);
 
   useFrame(() => {
     const s = state.current;
@@ -206,6 +236,7 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     if (!mesh) return;
     mesh.visible = s.on;
     composite.visible = s.on;
+    shadow.visible = s.on;
     if (!s.on) {
       if (!ready.current) { ready.current = true; onReady?.(); }
       return;
@@ -237,8 +268,14 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     const rotY = (s.rotY * Math.PI) / 180;
     const rotZ = (s.rotZ * Math.PI) / 180;
     const rotX = ((-3 + 5 * s.f) * Math.PI) / 180; // a body turning in space leans a little too
-    mesh.position.set(x, y, STONE_Z);
+    // it comes a little toward the visitor mid-crossing and settles back as it leaves
+    const z = STONE_Z + 0.35 * Math.sin(Math.PI * s.f);
+    mesh.position.set(x, y, z);
     mesh.rotation.set(rotX, rotY, rotZ);
+    // its shadow on the portrait, thrown down and to the right of the key
+    shadow.position.set(x + stoneW * 0.28, y - WORLD_H * 0.05, 0.06);
+    shadow.rotation.set(0, 0, rotZ);
+    shadow.scale.set(stoneW * 2.0, stoneH * 1.25, 1);
 
     // the field: where the stone's edges fall on the frame, in frame uv
     const u = (composite.material as ShaderMaterial).uniforms;
@@ -249,7 +286,7 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     (u['uInRepeat']!.value as Vector2).copy(fIn.repeat);
     (u['uInOffset']!.value as Vector2).copy(fIn.offset);
     // the stone is nearer the camera than the plane, so it projects larger by this
-    const mag = CAM_Z / (CAM_Z - STONE_Z);
+    const mag = CAM_Z / (CAM_Z - z);
     (u['uStone']!.value as Vector2).set(0.5 + (x * mag) / worldW, 0.5 + (y * mag) / WORLD_H);
     (u['uStoneSize']!.value as Vector2).set(((stoneW * mag) / worldW) * 0.5 * Math.abs(Math.cos(rotY)), ((stoneH * mag) / WORLD_H) * 0.5);
     u['uSkew']!.value = -Math.tan(rotZ) * (WORLD_H / worldW);
@@ -271,22 +308,23 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
         <mesh geometry={geometry}>
           <MeshTransmissionMaterial
             buffer={fbo.texture}
-            transmission={0.84}
-            thickness={phone ? 1.4 : 1.9}
+            transmission={0.72}
+            transmissionMap={maps.trans}
+            thickness={phone ? 1.0 : 1.3}
             ior={1.54}
             chromaticAberration={0.006}
-            anisotropicBlur={phone ? 0.4 : 0.55}
-            roughness={0.72}
+            anisotropicBlur={phone ? 0.3 : 0.4}
+            roughness={0.5}
             roughnessMap={maps.rough}
             map={maps.tint}
             bumpMap={maps.bump}
-            bumpScale={0.06}
+            bumpScale={0.05}
             attenuationColor="#8f847b"
-            attenuationDistance={3.4}
-            color="#e7e0d6"
-            clearcoat={0.8}
-            clearcoatRoughness={0.16}
-            envMapIntensity={1.5}
+            attenuationDistance={4}
+            color="#efe9e0"
+            clearcoat={0.6}
+            clearcoatRoughness={0.18}
+            envMapIntensity={1.0}
             samples={phone ? 4 : 6}
             resolution={phone ? 512 : 1024}
             toneMapped={false}

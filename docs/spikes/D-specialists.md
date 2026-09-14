@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 8 — «СЕАНС», the sitting, with the SMOKY QUARTZ BUILT FROM THE REFERENCE PHOTOGRAPH, at the reference's density, as the transition mechanism (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
+**Status: pass 9 — «СЕАНС», the sitting, with THE SMOKY QUARTZ STONE ITSELF (the reference's surface on its own silhouette, an object in the frame with a shadow) as the transition carrier (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 8 review: the stone must remain physically present, visibly the smoky quartz, never abstracted into a translucent form — non-negotiable; keep it, embed it more organically. Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -456,3 +456,43 @@ presence inside the stone rather than a picture behind glass; attenuation
 key light, so the polished planes flash as it turns; the cool fill damped to
 0.18 to kill specular specks on the flank. Geometry, mechanism, motion and
 layout unchanged. 60 fps median, 0 % over 33 ms while scrubbing (1440 × 900).
+
+
+---
+
+## Pass 9 — THE STONE ITSELF (14.09.2026)
+
+Review of pass 8: non-negotiable — the actual smoky quartz stone stays in the
+composition, visibly a stone, materially believable; not a silhouette, not a
+refractive form; integrate it more organically, make its entrance and exit
+elegant; the next portrait introduced *by* the stone.
+
+**The surface is the photograph's own pixels.** The colour map is the
+reference's crop box lifted only 14 % toward the pale body (`#e6dfd5`), on
+both faces with uv in the box — every facet, fracture and cloud is where it
+is in the stone. **Where the next portrait comes through is decided by the
+stone's own smoke:** a `transmissionMap` from the photograph's luminance
+(0.12 + 0.88 × l^1.4) × transmission 0.72 — the clear facets let the arriving
+portrait through, the dense smoke does not — so the next specialist is seen
+in the stone's clear zones and lost in its cloud, never as a picture behind
+glass. Roughness (0.28 + 0.6 × (1 − l)) and bump (0.05) from the same
+luminance. Thickness 1.3, ior 1.54, blur 0.4, attenuation `#8f847b` at 4,
+colour `#efe9e0`, clearcoat 0.6 / 0.18, env 1.0 (the photograph carries its
+own light); no dispersion.
+
+**An object, not a strip.** The stone is 86 % of the frame's height (phone
+72 %) at the photograph's proportion — its top and bottom in view — and
+casts a soft elliptical shadow on the portrait behind it (drawn once, 0.06
+in front of the picture, offset down and right of the key, turning with the
+stone), so it stands in front of the picture rather than lying on it. It
+enters fully from the right (centre 122 % → −26 %), comes 0.35 toward the
+visitor mid-crossing, turns −14° → +12° with a slight lean and tilt, and
+leaves fully. **The field beyond its ends:** above and below the stone the
+two portraits cross softly along its width (smoothstep over ±0.9 × its
+half-width, blended in over 12 % of its height), so there is no cut anywhere
+the stone is not. Within its rows the seams are its own silhouette, inset
+under the body. A first shadow texture had hard vertical edges (its radial
+gradient exceeded the canvas) and was made elliptical.
+
+**Cost.** 60 fps median, p95 16.8 ms, 0.4 % over 33 ms while scrubbing on
+1440 × 900. Board: B1 / B2 and the table.

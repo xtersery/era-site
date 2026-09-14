@@ -33,8 +33,11 @@ vec3 sampleSoft(sampler2D t, vec2 uv, float soft) {
 }
 
 void main() {
-  // where the stone's edges are on this row
-  float row = clamp(0.5 - (vUv.y - uStone.y) / (2.0 * uStoneSize.y), 0.0, 1.0);
+  // where the stone's edges are on this row; above and below the stone the
+  // field follows it as a soft band rather than a cut
+  float rowRaw = 0.5 - (vUv.y - uStone.y) / (2.0 * uStoneSize.y);
+  float row = clamp(rowRaw, 0.0, 1.0);
+  float outside = smoothstep(0.0, 0.12, max(-rowRaw, rowRaw - 1.0));
   vec2 prof = texture2D(uProfile, vec2(0.5, 1.0 - row)).rg;
   float lean = (vUv.y - uStone.y) * uSkew;
   // the seams sit a little inside the stone's silhouette, so they are always under its body
@@ -47,7 +50,18 @@ void main() {
   float release = 1.0 - uSettle;
 
   vec3 col;
-  if (ahead > 0.0) {
+  if (outside > 0.0) {
+    // beyond the stone's ends: the two portraits cross softly along its width
+    float mixv = smoothstep(xL - uStoneSize.x * 0.9, xR + uStoneSize.x * 0.9, vUv.x);
+    float wA = exp(-max(ahead, 0.0) / (uWake * 0.6)) * release;
+    float wB = exp(-max(behind, 0.0) / uWake) * release;
+    vec3 a = sampleSoft(uOut, (vUv + vec2(wA * uAmount * 0.35, 0.0)) * uOutRepeat + uOutOffset, wA * 0.008);
+    vec3 b = sampleSoft(uIn, (vUv - vec2(wB * uAmount * 0.6, 0.0)) * uInRepeat + uInOffset, wB * 0.012);
+    vec3 soft = mix(a, b, mixv);
+    vec3 hard;
+    if (ahead > 0.0) hard = a; else if (behind > 0.0) hard = b; else hard = texture2D(uIn, vUv * uInRepeat + uInOffset).rgb;
+    col = mix(hard, soft, outside);
+  } else if (ahead > 0.0) {
     // compressed toward the seam, and softened as it nears the stone
     float w = exp(-ahead / (uWake * 0.6)) * release;
     vec2 uv = vUv + vec2(w * uAmount * 0.55, 0.0);
