@@ -40,11 +40,18 @@ for (const [label, vp, mobile] of [['desktop', { width: 1440, height: 900 }, fal
   await p.waitForTimeout(80);
   const s3 = await st(p);
   log(`${label} · a wheel up during playback → ${fmt(s3)} (still forward: ${s3.direction === 1})`);
-  // wait for completion
-  let done = null;
-  for (let i = 0; i < 60; i++) { await p.waitForTimeout(50); const s = await st(p); if (s.progress >= 0.999) { done = Date.now() - t0; break; } }
-  await p.waitForTimeout(120);
-  log(`${label} · t reached 1 after ≈ ${done} ms → ${fmt(await st(p))}`);
+  // the rhythm: t sampled every half second
+  const samples = [];
+  let done = null, released = null;
+  for (let i = 0; i < 260; i++) {
+    await p.waitForTimeout(50);
+    const s = await st(p); const ms = Date.now() - t0;
+    if (samples.length === 0 || ms - samples[samples.length - 1].ms >= 480) samples.push({ ms, t: s.progress });
+    if (done === null && s.progress >= 0.999) done = ms;
+    if (s.status !== 'playing' && s.status !== 'completed' && done !== null) { released = ms; break; }
+  }
+  log(`${label} · rhythm: ${samples.map((x) => `${(x.ms / 1000).toFixed(1)}s→${x.t.toFixed(2)}`).join(' · ')}`);
+  log(`${label} · t reached 1 after ≈ ${done} ms · released after ≈ ${released} ms (the held frame) → ${fmt(await st(p))}`);
   // the page is free: a wheel moves on
   if (mobile) { await p.evaluate(() => window.scrollBy(0, 400)); } else { await p.mouse.wheel(0, 400); }
   await p.waitForTimeout(500);
@@ -58,7 +65,7 @@ for (const [label, vp, mobile] of [['desktop', { width: 1440, height: 900 }, fal
   } else { await p.mouse.wheel(0, -120); }
   await p.waitForTimeout(200);
   log(`${label} · gesture up at the end → ${fmt(await st(p))}`);
-  for (let i = 0; i < 60; i++) { await p.waitForTimeout(100); const s = await st(p); if (s.status === 'released' || s.status === 'armed') break; }
+  for (let i = 0; i < 80; i++) { await p.waitForTimeout(100); const s = await st(p); if (s.status === 'released' || s.status === 'armed') break; }
   log(`${label} · home → ${fmt(await st(p))}`);
   await ctx.close();
 }

@@ -113,3 +113,28 @@ does nothing → a 120 px wheel plays, locked, y 0 → twelve more wheels and a
 wheel up ignored (still forward) → t 1 after ≈ 1.57 s → released; a wheel
 moves the page → at the top, a wheel up plays home → armed at 0. The phone
 the same with synthetic touches, 1.0 s.
+
+## The film's rhythm (15.09.2026)
+
+**Brief.** 1.55 s felt like a web animation. Four phases, 8–9 s: recognition
+(0–35 %, ~2.5 s, the mineral recognisable, a slow dolly, internal structure)
+· immersion (35–65 %, ~2.5 s, into the material; refraction, light through
+the planes; no blur, no fade) · geological transformation (65–90 %, ~3 s,
+structure → mineral layers → marble surface) · reveal (90–100 %, ~1.5 s) ·
+hold 1 s. easeInOut cinematic curves, no GSAP defaults.
+
+**Built.** `CINEMATIC_RHYTHM` in `passageController.ts`: keys (seconds, t)
+= (0, 0) · (2.5, 0.44) · (5, 0.62) · (8, 0.9) · (9.5, 1), hold 1 s. A
+monotone cubic (Fritsch–Carlson, zero tangents at the ends) maps the film's
+clock to t, so each phase eases in and out of its own and the speed is
+continuous across phases. One tween drives the clock with `ease: 'none'`
+(the curve is the ease); a passage resumed mid-way finds its clock by
+bisection. The return is not the film: 4 s `power2.inOut`. Phone 0.7 ×.
+`?d=` = the whole film in seconds. Measured: 2.6 s → 0.45 · 5.1 s → 0.62 ·
+8.0 s → 0.90 · 9.5 s → 1.00 · released 10.6 s.
+
+**Scene, for immersion (small, physical).** `layer.frag`: the room's key
+passes through each plane as a soft sheen (`pow(n·h, 36) × 0.42`, warm),
+two-sided, moving as the viewer moves. `becoming.frag`: inside, each facet of
+the shell reads the smoke past it shifted along its own normal (0.045 units)
+— refraction as parallax, not blur. Nothing else touched.

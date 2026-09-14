@@ -56,9 +56,13 @@ void main() {
   vec3 slab = texture2D(uMarble, suv).rgb;
   float vein = texture2D(uLuma, suv).r;
 
+  // inside, each facet refracts: the smoke behind it is read shifted along
+  // the facet's tilt, so the planes bend what lies past them (parallax, not blur)
+  vec3 nW = normalize(vNormalW);
+  vec2 refr = nW.xy * 0.045 * uInside * (1.0 - uFlatten);
   // the flanks of the shell run along z: read the smoke across them, not along
-  vec4 siFace = interior(vWorld.xy);
-  vec4 siFlank = interior(vec2(uBox.x + (vWorld.z - 1.5) * 1.2, vWorld.y));
+  vec4 siFace = interior(vWorld.xy + refr);
+  vec4 siFlank = interior(vec2(uBox.x + (vWorld.z - 1.5) * 1.2, vWorld.y) + refr);
   float facing = smoothstep(0.25, 0.6, abs(normalize(vNormalW).z));
   vec4 si = mix(siFlank, siFace, max(facing, 1.0 - uInside * (1.0 - uFlatten)));
   float sl = lum(si.rgb);

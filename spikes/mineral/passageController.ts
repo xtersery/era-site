@@ -36,8 +36,15 @@ export interface ControllerOptions {
   initial?: number;
   /** wheel pixels (or touch pixels) that count as intent */
   threshold?: number;
-  duration?: number;
-  ease?: string;
+  /**
+   * the cinematic rhythm: (seconds, t) keys the playback passes through, in
+   * order, and a hold on the last frame. Between keys the motion is a
+   * monotone cubic — continuous in speed, slow at the ends of every phase.
+   */
+  rhythm?: { keys: readonly (readonly [number, number])[]; hold: number };
+  /** the way back is not the film: one eased return, this long */
+  returnDuration?: number;
+  returnEase?: string;
   /** reduced motion: land on the end state at once */
   reduced?: boolean;
   onChange?: (state: TransitionState) => void;
@@ -53,14 +60,59 @@ export interface PassageController {
 }
 
 const ALIGN_PX = 6;
+
+/**
+ * The film's rhythm, as briefed: recognition (the mineral, a slow dolly) ·
+ * immersion (into the material) · geological transformation · reveal, then a
+ * held frame. ~9.5 s of motion + 1 s hold. t is the scene's timeline.
+ */
+export const CINEMATIC_RHYTHM = {
+  keys: [
+    [0, 0],        // A · at rest
+    [2.5, 0.44],   // recognition: the dolly, the facets fill the view
+    [5.0, 0.62],   // immersion: through the face, inside, among the planes
+    [8.0, 0.9],    // transformation: the structure becomes mineral, then slab; the shell settles
+    [9.5, 1],      // reveal: the wall
+  ],
+  hold: 1,
+} as const;
+
+/** a monotone cubic through (x, y) keys — Fritsch–Carlson — with slow ends */
+function monotone(keys: readonly (readonly [number, number])[]) {
+  const n = keys.length;
+  const xs = keys.map((k) => k[0]), ys = keys.map((k) => k[1]);
+  const d = Array.from({ length: n - 1 }, (_, i) => (ys[i + 1]! - ys[i]!) / (xs[i + 1]! - xs[i]!));
+  const m = new Array<number>(n).fill(0);
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1]! * d[i]! <= 0 ? 0 : (d[i - 1]! + d[i]!) / 2;
+  m[0] = 0; m[n - 1] = 0; // the film starts and ends at rest
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+    const a = m[i]! / d[i]!, b = m[i + 1]! / d[i]!;
+    const h = a * a + b * b;
+    if (h > 9) { const tt = 3 / Math.sqrt(h); m[i] = tt * a * d[i]!; m[i + 1] = tt * b * d[i]!; }
+  }
+  return (x: number) => {
+    if (x <= xs[0]!) return ys[0]!;
+    if (x >= xs[n - 1]!) return ys[n - 1]!;
+    let i = 0;
+    while (x > xs[i + 1]!) i++;
+    const h = xs[i + 1]! - xs[i]!, u = (x - xs[i]!) / h;
+    const u2 = u * u, u3 = u2 * u;
+    return (2 * u3 - 3 * u2 + 1) * ys[i]! + (u3 - 2 * u2 + u) * h * m[i]! + (-2 * u3 + 3 * u2) * ys[i + 1]! + (u3 - u2) * h * m[i + 1]!;
+  };
+}
 /** a gesture this close to alignment still plays — the lock brings the section to the top */
 const PLAY_PX = 48;
 
 export function createPassageController({
-  section, apply, initial = 0, threshold = 20, duration = 1.55, ease = 'power2.inOut', reduced = false, onChange,
+  section, apply, initial = 0, threshold = 20, rhythm = CINEMATIC_RHYTHM, returnDuration = 4, returnEase = 'power2.inOut', reduced = false, onChange,
 }: ControllerOptions): PassageController {
   const state: TransitionState = { status: 'idle', progress: initial, triggered: false, locked: false, direction: 1 };
-  const proxy = { t: initial };
+  const proxy = { t: initial, time: 0 };
+  const film = monotone(rhythm.keys);
+  const filmLength = rhythm.keys[rhythm.keys.length - 1]![0];
+  /** the film's clock for a given t, so a passage can resume from where it stands */
+  const timeOf = (t: number) => { let lo = 0, hi = filmLength; for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2; if (film(mid) < t) lo = mid; else hi = mid; } return (lo + hi) / 2; };
   let tween: gsap.core.Tween | null = null;
   let lockY = 0;
   let touchY: number | null = null;
@@ -109,14 +161,28 @@ export function createPassageController({
       proxy.t = to; apply(to); set({ progress: to }); finish();
       return;
     }
-    tween = gsap.to(proxy, {
-      t: to,
-      duration: duration * Math.abs(to - proxy.t), // a partial passage takes proportionally less
-      ease,
-      overwrite: true,
-      onUpdate: () => { apply(proxy.t); state.progress = proxy.t; emit(); },
-      onComplete: finish,
-    });
+    if (direction === 1) {
+      // the film: its own rhythm, then the held frame
+      proxy.time = timeOf(proxy.t);
+      tween = gsap.to(proxy, {
+        time: filmLength + rhythm.hold,
+        duration: filmLength + rhythm.hold - proxy.time,
+        ease: 'none',
+        overwrite: true,
+        onUpdate: () => { const v = film(proxy.time); if (v !== proxy.t) { proxy.t = v; apply(v); state.progress = v; emit(); } },
+        onComplete: finish,
+      });
+    } else {
+      // the way back: one eased return
+      tween = gsap.to(proxy, {
+        t: 0,
+        duration: returnDuration * proxy.t,
+        ease: returnEase,
+        overwrite: true,
+        onUpdate: () => { apply(proxy.t); state.progress = proxy.t; emit(); },
+        onComplete: finish,
+      });
+    }
   };
 
   const scrub = (t: number) => {

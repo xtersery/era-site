@@ -173,7 +173,7 @@ function Passage({ t, onReady, photo }: PassageProps & { photo: Texture }) {
   }), []);
   const layerMats = useMemo(() => layers.map((l) => new ShaderMaterial({
     vertexShader: layerVert, fragmentShader: layerFrag, transparent: true, depthWrite: false, side: DoubleSide,
-    uniforms: { uPhoto: { value: maps.interior }, uOpacity: { value: 0 }, uSeed: { value: l.seed }, uFogDensity: { value: 0 }, uFogColor: { value: new Color('#5a524b') }, uTime: { value: 0 } },
+    uniforms: { uPhoto: { value: maps.interior }, uOpacity: { value: 0 }, uSeed: { value: l.seed }, uFogDensity: { value: 0 }, uFogColor: { value: new Color('#5a524b') }, uTime: { value: 0 }, uKey: { value: new Vector3(-0.5, 0.55, 0.75) } },
   })), [maps, layers]);
 
   const fog = useMemo(() => new FogExp2('#5a524b', 0), []);

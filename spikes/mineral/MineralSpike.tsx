@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ru } from '@/lib/utils/ru';
 
 import { sitters } from '../portraits/people';
-import { createPassageController, type PassageController, type TransitionState } from './passageController';
+import { CINEMATIC_RHYTHM, createPassageController, type PassageController, type TransitionState } from './passageController';
 import { PassageScene } from './scene/PassageScene';
 
 /**
@@ -24,7 +24,7 @@ function readParams() {
   const q = new URLSearchParams(location.search);
   const t = q.get('t');
   const d = q.get('d');
-  return { t: t === null ? null : clamp(Number(t), 0, 1), hud: q.get('hud') !== '0', duration: d === null ? null : clamp(Number(d), 0.2, 6), ease: q.get('ease') };
+  return { t: t === null ? null : clamp(Number(t), 0, 1), hud: q.get('hud') !== '0', duration: d === null ? null : clamp(Number(d), 1, 30), ease: q.get('ease') };
 }
 
 export function MineralSpike() {
@@ -67,9 +67,9 @@ export function MineralSpike() {
       apply: paint,
       initial: 0,
       threshold: 20,
-      // the phone plays the same passage, shorter
-      duration: durationParam ?? (phone ? 1.0 : 1.55),
-      ease: easeParam ?? 'power2.inOut',
+      // the film's rhythm; `?d=` scales it (the phone plays it at 0.7)
+      rhythm: (() => { const k = (durationParam ?? (phone ? 0.7 : 1)) * (durationParam !== null ? 1 / (CINEMATIC_RHYTHM.keys[CINEMATIC_RHYTHM.keys.length - 1]![0] + CINEMATIC_RHYTHM.hold) : 1); return { keys: CINEMATIC_RHYTHM.keys.map(([s, t]) => [s * k, t] as const), hold: CINEMATIC_RHYTHM.hold * k }; })(),
+      returnEase: easeParam ?? 'power2.inOut',
       reduced,
       onChange: (st) => { setStatus(st.status); (window as unknown as Record<string, unknown>)['__transition'] = st; },
     });
