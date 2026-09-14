@@ -206,7 +206,7 @@ export function Sitting({
       const left = ((seam - half) * fw) / 100;
       // it pivots on its own axis — turned toward the visitor as it enters,
       // away as it leaves — and hangs at a slight tilt, like a shard held up
-      const rotY = lerp(-15, 16, f);
+      const rotY = lerp(-24, 26, f);
       const rotZ = lerp(-7, -4, f);
       const rise = lerp(1.5, -1.5, f); // it drifts down a little as it turns
       // the same pose for the body of glass

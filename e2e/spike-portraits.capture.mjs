@@ -34,7 +34,7 @@ const strip = async (page, files, cols, out) => {
   await strip(page, tr, 5, `${OUT}/d5-transition.png`);
   // the object, close: the frame only, at three moments
   const det = [];
-  for (const [i, f] of [0.3, 0.46, 0.62].entries()) det.push(await shot(`?k=1&f=${f}`, `det-${i}`, { x: 634, y: 0, width: 806, height: 900 }));
+  for (const [i, f] of [0.3, 0.46, 0.68].entries()) det.push(await shot(`?k=1&f=${f}`, `det-${i}`, { x: 634, y: 0, width: 806, height: 900 }));
   await strip(page, det, 3, `${OUT}/d6-shard.png`);
   await ctx.close();
 }

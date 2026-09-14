@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 4 — «СЕАНС», the sitting, with the shard as a REAL BODY OF ERA MINERAL GLASS (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 3 review: the CSS/SVG shard read as a flat glass mask; a true 3D object with volume, thickness and real refraction was required — no more filters. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
+**Status: pass 5 — «СЕАНС», the sitting, with the shard as a MINERAL SCULPTURE WITH PRESENCE (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 4 review: the technology is right; the glass went too far toward invisible optical glass and read as an image distortion — the object itself must be visible. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -294,3 +294,35 @@ measurement remains the gate, and the CSS shard is the demote step.
 real content, green in the thickness, gold as reflected key, a broken edge —
 and reads as a museum slab of glass, not a crystal, not a hologram, nothing
 glows. Judge in motion on the spike. Board: sections B1 / B2 and the table.
+
+
+---
+
+## Pass 5 — PRESENCE (14.09.2026)
+
+Review of pass 4: keep the WebGL/R3F body; the visual result moved too far
+toward invisible optical glass — it reads as an image-distortion layer, not an
+object. Required: visible thickness, a stronger silhouette, clearer broken
+edges, subtle internal structure, depth separation from the portraits, visible
+side walls when turning, controlled opacity — "museum-grade translucent
+mineral sculpture", not a "transparent glass filter".
+
+**Thickness doubled:** 1.0 world unit (≈ 90 px at 1440 × 900; 0.75 on the
+phone). **Two surfaces on one geometry:** the extrude's material groups split
+the slab into faces and walls (two meshes sharing the geometry via
+`setDrawRange`). The **faces** stay ERA Mineral Glass but a body of it:
+transmission 0.9 (so the diffuse colour `#e6ebe3` shows), roughness 0.2 with
+anisotropic blur 0.22 (a little cloudier), attenuation `#3d6b58` at 3.6 (more
+green in the volume), vein normal 0.09, env 2.0. The **walls** — where the
+stone was broken — are a different material: `MeshPhysicalMaterial`
+`#b9c5bc`, roughness 0.7, clearcoat 0.35, opacity 0.94 — frosted and milky,
+lit by the key and a second cool fill from the lower right, so the thickness
+reads at every angle, not only at grazing. **A fuller turn:** rotateY −24° →
++26° (with the frosted walls it no longer goes opaque-dark). **A cast
+shadow:** a radial pool drawn once to a canvas on a plane 0.06 in front of the
+backdrop, offset down and to the right of the key, scaled to the stone and
+turning with it (peak 0.46) — the object stands in front of the picture. The
+body now sits at z 1.6.
+
+Everything else unchanged. 60 fps median, 0 % over 33 ms while scrubbing
+(1440 × 900, real Chrome). Board: B1 / B2 and the table.
