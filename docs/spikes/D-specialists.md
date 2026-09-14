@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 7 — «СЕАНС», the sitting, with the SMOKY QUARTZ BUILT FROM THE REFERENCE PHOTOGRAPH as the transition mechanism (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
+**Status: pass 8 — «СЕАНС», the sitting, with the SMOKY QUARTZ BUILT FROM THE REFERENCE PHOTOGRAPH, at the reference's density, as the transition mechanism (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -438,3 +438,21 @@ beside it. Pose: rotateY −14° → +12°, rotateZ −5° → −2°, rotateX �
 **Cost.** 60 fps median, p95 16.8 ms, 1.3 % of frames over 33 ms while
 scrubbing on 1440 × 900 (a 112 × 40 × 2 body under 6-sample transmission);
 phone emulated. Board: B1 / B2 and the construction table.
+
+
+---
+
+## Pass 8 — THE REFERENCE'S DENSITY (14.09.2026)
+
+The pass-7 brief was restated verbatim. Pass 7 already built the stone from
+the photograph; what could still make it read as «стекляшка» is that the
+reference is *dense* — nothing is seen clearly through it, only hazy light —
+and its planes are polished and flash. Pass 8 tunes the material to that:
+transmission 0.84 with a hazy volume (anisotropic blur 0.55, roughness 0.72
+under the smoke map, thickness 1.9), so the arriving portrait is a cloudy
+presence inside the stone rather than a picture behind glass; attenuation
+`#8f847b` at 3.4; the photograph's tint at 46 %, bump 0.06; the relief deeper
+(× 0.85, steeper planes) and the clearcoat harder (0.8 / 0.16) with a second
+key light, so the polished planes flash as it turns; the cool fill damped to
+0.18 to kill specular specks on the flank. Geometry, mechanism, motion and
+layout unchanged. 60 fps median, 0 % over 33 ms while scrubbing (1440 × 900).

@@ -38,8 +38,8 @@ function facets(seed: number, count: number) {
   const planes = Array.from({ length: count }, (_, i) => ({
     cx: hash(seed + i * 3) - 0.5,
     cy: hash(seed + i * 3 + 1) - 0.5,
-    ax: (hash(seed + i * 7 + 2) - 0.5) * 0.5,
-    ay: (hash(seed + i * 7 + 5) - 0.5) * 0.28,
+    ax: (hash(seed + i * 7 + 2) - 0.5) * 0.7,
+    ay: (hash(seed + i * 7 + 5) - 0.5) * 0.36,
     c: hash(seed + i * 11 + 9) * 0.12,
   }));
   return (u: number, v: number) => {
@@ -83,7 +83,7 @@ export function createQuartzGeometry({ height, depth, narrow = 1, seed = 0 }: Qu
     const v = 1 - (r + 0.5) / rows;
     const relief = side === 1 ? front(u - 0.5, v - 0.5) : back(u - 0.5, v - 0.5);
     const th = thick(r, u);
-    const z = side * (th * 0.5 + relief * depth * 0.55 * Math.pow(th / depth, 0.5));
+    const z = side * (th * 0.5 + relief * depth * 0.85 * Math.pow(th / depth, 0.5));
     pos.push(x, y, z);
     // uv in the photograph's crop box, so its smoke lands where it is in the stone
     const [l, rr] = ROWS[r]!;

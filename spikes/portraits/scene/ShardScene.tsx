@@ -94,9 +94,9 @@ function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number
   const draw = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return [c, c.getContext('2d')!] as const; };
   // the tint: the photograph lifted toward the stone's pale body
   const [tc, tg] = draw();
-  tg.fillStyle = '#efe9e0';
+  tg.fillStyle = '#ece6dd';
   tg.fillRect(0, 0, W, H);
-  tg.globalAlpha = 0.36;
+  tg.globalAlpha = 0.46;
   tg.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, W, H);
   tg.globalAlpha = 1;
   // the roughness and the bump, from the luminance
@@ -271,22 +271,22 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
         <mesh geometry={geometry}>
           <MeshTransmissionMaterial
             buffer={fbo.texture}
-            transmission={0.9}
-            thickness={phone ? 1.1 : 1.45}
+            transmission={0.84}
+            thickness={phone ? 1.4 : 1.9}
             ior={1.54}
             chromaticAberration={0.006}
-            anisotropicBlur={phone ? 0.26 : 0.34}
-            roughness={0.56}
+            anisotropicBlur={phone ? 0.4 : 0.55}
+            roughness={0.72}
             roughnessMap={maps.rough}
             map={maps.tint}
             bumpMap={maps.bump}
-            bumpScale={0.035}
-            attenuationColor="#9d9189"
-            attenuationDistance={4.8}
-            color="#ebe4da"
-            clearcoat={0.5}
-            clearcoatRoughness={0.28}
-            envMapIntensity={1.35}
+            bumpScale={0.06}
+            attenuationColor="#8f847b"
+            attenuationDistance={3.4}
+            color="#e7e0d6"
+            clearcoat={0.8}
+            clearcoatRoughness={0.16}
+            envMapIntensity={1.5}
             samples={phone ? 4 : 6}
             resolution={phone ? 512 : 1024}
             toneMapped={false}
@@ -295,7 +295,8 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
       </group>
       {/* one warm key from the upper left, a cool fill low right — the ERA studio */}
       <directionalLight position={[-6, 7, 6]} intensity={1.5} color="#ffe6b8" />
-      <directionalLight position={[5, -2, 4]} intensity={0.4} color="#7fb0a4" />
+      <directionalLight position={[3, 9, 8]} intensity={0.9} color="#fff4de" />
+      <directionalLight position={[5, -2, 4]} intensity={0.18} color="#7fb0a4" />
     </>
   );
 }
