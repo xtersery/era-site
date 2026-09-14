@@ -40,8 +40,9 @@ void main() {
   float outside = smoothstep(0.0, 0.12, max(-rowRaw, rowRaw - 1.0));
   vec2 prof = texture2D(uProfile, vec2(0.5, 1.0 - row)).rg;
   float lean = (vUv.y - uStone.y) * uSkew;
-  // the seams sit a little inside the stone's silhouette, so they are always under its body
-  float inset = uStoneSize.x * 0.22;
+  // the seams sit just inside the stone's silhouette: under the whole body the
+  // field is the arriving portrait — what the stone lets through is the next state
+  float inset = uStoneSize.x * 0.16;
   float xL = uStone.x + (prof.r - 0.5) * 2.0 * uStoneSize.x + lean + inset; // leading edge (it travels left)
   float xR = uStone.x + (prof.g - 0.5) * 2.0 * uStoneSize.x + lean - inset; // trailing edge
 

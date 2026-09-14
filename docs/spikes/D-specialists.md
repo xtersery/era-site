@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 9 — «СЕАНС», the sitting, with THE SMOKY QUARTZ STONE ITSELF (the reference's surface on its own silhouette, an object in the frame with a shadow) as the transition carrier (WebGL) — AWAITING REVIEW (14.09.2026).** Pass 8 review: the stone must remain physically present, visibly the smoky quartz, never abstracted into a translucent form — non-negotiable; keep it, embed it more organically. Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
+**Status: pass 10 — «СЕАНС», the sitting, with THE SMOKY QUARTZ STONE ITSELF as the transition carrier, now on every render path — AWAITING REVIEW (14.09.2026).** Pass 9 review: the board is approved as the visual target; the live page did not match it on the reviewer's machine ("abstract transparent transition, no readable stone"). Pass 8 review: the stone must remain physically present, visibly the smoky quartz, never abstracted into a translucent form — non-negotiable; keep it, embed it more organically. Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -496,3 +496,40 @@ gradient exceeded the canvas) and was made elliptical.
 
 **Cost.** 60 fps median, p95 16.8 ms, 0.4 % over 33 ms while scrubbing on
 1440 × 900. Board: B1 / B2 and the table.
+
+
+---
+
+## Pass 10 — LIVE = BOARD, ON EVERY PATH (14.09.2026)
+
+Review of pass 9: the board frames are approved as the target; the live
+artifact showed "an abstract transparent transition, no readable stone
+object". The bundle rendered correctly here (Playwright, real Chrome, the
+single-file artifact served locally: `data-live`, the stone drawn). So the
+failure is on the reviewer's GPU: the stone's material — drei's transmission
+with a custom refraction buffer and four maps — is the most fragile shader in
+the page, and when it fails to compile the mesh silently vanishes while the
+composite field (a trivial shader) still draws: exactly the symptom.
+
+**Two changes, both for robustness; the look is the pass-9 board's.**
+
+1. The stone is rebuilt on **three's built-in physical transmission**
+   (`MeshPhysicalMaterial`: transmission 0.72 × the photograph's transmission
+   map, thickness 1.3, ior 1.54, roughness 0.5 × map, bump 0.05, attenuation
+   `#8f847b` at 4, clearcoat 0.6 / 0.18, env 1.0). The renderer's own
+   transmission pass renders the composite field plane behind the stone, and
+   under the whole body the field is the arriving portrait (seams inset 16 %
+   of the half-width), so what the stone lets through is the next state. The
+   hidden-layer backdrop, the FBO and drei's material are gone.
+2. The **no-WebGL fallback is the photograph itself**, not a translucent
+   polygon: the PNG's alpha as `mask-image` over the arriving portrait, its
+   pixels on top at 0.94 with a drop shadow, the same pose, proportion and
+   travel (`.shard--photo`). Verified with WebGL disabled: a smoky quartz
+   crosses; the DOM reveal mask trails it.
+
+A block removal during the fallback edit dropped `readParams` and the
+constants (typecheck did not catch a runtime-only reference); restored from
+HEAD and the fallback re-rendered.
+
+**Cost.** 60 fps median, p95 16.8 ms, 0.8 % over 33 ms while scrubbing on
+1440 × 900. Board: B, B1 / B2 and the table (material and fallback rows).

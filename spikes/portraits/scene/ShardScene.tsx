@@ -1,4 +1,3 @@
-import { MeshTransmissionMaterial, useFBO } from '@react-three/drei';
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import {
@@ -7,12 +6,14 @@ import {
   LinearFilter,
   Mesh,
   MeshBasicMaterial,
+  MeshPhysicalMaterial,
   NoToneMapping,
   PlaneGeometry,
   ClampToEdgeWrapping,
   ShaderMaterial,
   SRGBColorSpace,
   TextureLoader,
+  Color,
   Vector2,
   type Texture,
 } from 'three';
@@ -32,11 +33,17 @@ import { trace } from './quartzTrace';
  * arriving behind it, both pulled toward the stone's edges and softened there
  * — the field the stone makes as it passes. Over it, the QUARTZ: a smoky
  * slab of ERA mineral glass with the reference's form — large polished facets,
- * a broken flank, smoke gathering in its thickness, cloud inside — refracting
- * the arriving portrait, which is rendered by the same camera into a buffer on
- * a layer the visible render never draws. The seam has the stone's silhouette;
- * without the stone there is no seam and no field. At rest the canvas is
- * clear and the DOM plates show. The canvas takes no pointer.
+ * a broken flank, smoke gathering in its thickness, cloud inside — letting the
+ * arriving portrait through where the stone is clear (three's own transmission
+ * pass renders the field plane behind it; under the stone the field is the
+ * arriving portrait). The seam has the stone's silhouette; without the stone
+ * there is no seam and no field. At rest the canvas is clear and the DOM
+ * plates show. The canvas takes no pointer.
+ *
+ * Built on three's built-in physical transmission rather than a custom buffer
+ * material: fewer moving parts, and it compiles on the GPUs the custom one did
+ * not — when the stone's shader fails, the stone is silently gone and only the
+ * field remains, which is the one failure this room cannot afford.
  */
 export interface ShardState {
   on: boolean;
@@ -160,7 +167,7 @@ function fit(frameAspect: number, anchorY: number) {
 }
 
 function Quartz({ portraits, state, phone, onReady }: Props) {
-  const { scene, gl, camera, size } = useThree();
+  const { scene, size } = useThree();
   const textures = usePortraitTextures(portraits);
   const env = useMemo(() => createEraEnvironment(1024, 512), []);
   const photo = useLoader(TextureLoader, quartzUrl);
@@ -169,12 +176,6 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
   const worldW = (WORLD_H * size.width) / size.height;
   const frameAspect = size.width / size.height;
 
-  // the buffer's plane: the arriving portrait alone, on the hidden layer
-  const backdrop = useMemo(() => {
-    const m = new Mesh(new PlaneGeometry(1, 1), new MeshBasicMaterial({ toneMapped: false }));
-    m.layers.set(1);
-    return m;
-  }, []);
   // the visible plane: the field around the stone
   const composite = useMemo(() => {
     const mat = new ShaderMaterial({
@@ -207,28 +208,49 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     [stoneH, narrow, phone],
   );
   const shadow = useMemo(() => createShadow(), []);
-  const fbo = useFBO(phone ? 768 : 1024, phone ? 768 : 1024, { depthBuffer: false });
+  // the stone's material: the photograph on a body of smoky glass
+  const material = useMemo(
+    () =>
+      new MeshPhysicalMaterial({
+        map: maps.tint,
+        transmission: 0.72,
+        transmissionMap: maps.trans,
+        thickness: phone ? 1.0 : 1.3,
+        ior: 1.54,
+        roughness: 0.5,
+        roughnessMap: maps.rough,
+        bumpMap: maps.bump,
+        bumpScale: 0.05,
+        attenuationColor: new Color('#8f847b'),
+        attenuationDistance: 4,
+        color: new Color('#efe9e0'),
+        clearcoat: 0.6,
+        clearcoatRoughness: 0.18,
+        envMapIntensity: 1.0,
+        toneMapped: false,
+      }),
+    [maps, phone],
+  );
   const stone = useRef<Group>(null);
   const ready = useRef(false);
 
   useEffect(() => {
     scene.environment = env;
-    scene.add(backdrop);
     scene.add(composite);
     scene.add(shadow);
     return () => {
       scene.environment = null;
-      scene.remove(backdrop);
       scene.remove(composite);
       scene.remove(shadow);
       env.dispose();
+      material.dispose();
       maps.tint.dispose(); maps.trans.dispose(); maps.rough.dispose(); maps.bump.dispose();
       profile.dispose();
       geometry.dispose();
       (composite.material as ShaderMaterial).dispose();
       textures.forEach((t) => t.dispose());
     };
-  }, [scene, env, backdrop, composite, shadow, maps, profile, geometry, textures]);
+  }, [scene, env, composite, shadow, maps, profile, geometry, material, textures]);
 
   useFrame(() => {
     const s = state.current;
@@ -245,21 +267,6 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
     const texOut = textures[s.from];
     const fIn = fit(frameAspect, s.anchorNext);
     const fOut = fit(frameAspect, s.anchorFrom);
-
-    // the buffer: the arriving portrait, fitted as its plate is
-    const bmat = backdrop.material as MeshBasicMaterial;
-    if (texIn && bmat.map !== texIn) { bmat.map = texIn; bmat.needsUpdate = true; }
-    if (texIn) { texIn.repeat.copy(fIn.repeat); texIn.offset.copy(fIn.offset); }
-    backdrop.scale.set(worldW, WORLD_H, 1);
-    const mask = camera.layers.mask;
-    camera.layers.set(1);
-    gl.setRenderTarget(fbo);
-    gl.setClearColor(0x000000, 0);
-    gl.clear();
-    gl.render(scene, camera);
-    gl.setRenderTarget(null);
-    camera.layers.mask = mask;
-    // the composite samples the same textures with its own repeat/offset
     if (texIn) { texIn.repeat.set(1, 1); texIn.offset.set(0, 0); }
 
     // the stone's pose: in front of the picture, turning as it crosses
@@ -304,32 +311,8 @@ function Quartz({ portraits, state, phone, onReady }: Props) {
   return (
     <>
       <group ref={stone} position={[0, 0, STONE_Z]}>
-        {/* smoky quartz: brown-grey smoke in the thickness, cloud inside, polished facets, no dispersion */}
-        <mesh geometry={geometry}>
-          <MeshTransmissionMaterial
-            buffer={fbo.texture}
-            transmission={0.72}
-            transmissionMap={maps.trans}
-            thickness={phone ? 1.0 : 1.3}
-            ior={1.54}
-            chromaticAberration={0.006}
-            anisotropicBlur={phone ? 0.3 : 0.4}
-            roughness={0.5}
-            roughnessMap={maps.rough}
-            map={maps.tint}
-            bumpMap={maps.bump}
-            bumpScale={0.05}
-            attenuationColor="#8f847b"
-            attenuationDistance={4}
-            color="#efe9e0"
-            clearcoat={0.6}
-            clearcoatRoughness={0.18}
-            envMapIntensity={1.0}
-            samples={phone ? 4 : 6}
-            resolution={phone ? 512 : 1024}
-            toneMapped={false}
-          />
-        </mesh>
+        {/* smoky quartz: the photograph on a body of smoky glass, clear where the stone is clear */}
+        <mesh geometry={geometry} material={material} />
       </group>
       {/* one warm key from the upper left, a cool fill low right — the ERA studio */}
       <directionalLight position={[-6, 7, 6]} intensity={1.5} color="#ffe6b8" />

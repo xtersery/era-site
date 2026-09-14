@@ -7,7 +7,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cta } from '@/data/copy';
 import { subIndex } from '@/lib/utils';
 
+import quartzUrl from '../../src/assets/smoky-quartz.png';
 import { PLACEHOLDER_LABEL, sitters } from './people';
+import { QUARTZ_ASPECT } from './scene/quartzGeometry';
 import { ShardScene, type ShardState } from './scene/ShardScene';
 
 /**
@@ -37,18 +39,6 @@ gsap.registerPlugin(CustomEase, ScrollTrigger, ScrollToPlugin);
 const MINERAL = CustomEase.create('mineral', 'M0,0 C0.52,0 0.18,1 1,1');
 
 const INDEX = '05';
-
-/**
- * The shard's outline: a tall sliver of stone, its edges uncut — no two
- * facets parallel, a chip out of the upper right, a heel at the lower left.
- * Given once in a 0…1 box (the clip) and once in a 0…100 box (the edge).
- */
-const SHARD_POINTS: readonly (readonly [number, number])[] = [
-  [0.34, -0.02], [0.70, -0.03], [0.86, 0.09], [0.79, 0.27], [0.93, 0.44], [0.88, 0.67],
-  [0.97, 0.86], [0.72, 1.03], [0.38, 1.02], [0.16, 0.90], [0.24, 0.62], [0.05, 0.43], [0.12, 0.17],
-];
-const SHARD_CLIP = SHARD_POINTS.map(([x, y], i) => `${i ? 'L' : 'M'}${x} ${y}`).join(' ') + ' Z';
-const SHARD_PATH = SHARD_POINTS.map(([x, y], i) => `${i ? 'L' : 'M'}${(x * 100).toFixed(1)} ${(y * 100).toFixed(1)}`).join(' ') + ' Z';
 const N = sitters.length;
 const PER = 100; // vh of scroll per transition
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -93,7 +83,6 @@ export function Sitting({
   const [live, setLive] = useState(false);
   const shardState = useRef<ShardState>({ on: false, f: 0, seam: 112, rotY: -20, rotZ: -7, rise: 1.5, from: 0, next: 1, anchorFrom: 0.28, anchorNext: 0.28 });
   const shardThrough = useRef<HTMLImageElement>(null);
-  const shardGlint = useRef<SVGPathElement>(null);
   const focal = useRef<HTMLDivElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
@@ -202,8 +191,10 @@ export function Sitting({
       shard.current.style.opacity = on ? '1' : '0';
       const fw = frameRef.current.clientWidth;
       const fh = frameRef.current.clientHeight;
-      const w = (half * 2 * fw) / 100;
-      const left = ((seam - half) * fw) / 100;
+      // the fallback stone keeps the photograph's proportion and sits inside the frame
+      const h = fh * (phone ? 0.72 : 0.86);
+      const w = h * QUARTZ_ASPECT * (phone ? 0.86 : 0.92);
+      const left = (seam * fw) / 100 - w / 2;
       // it pivots on its own axis — turned toward the visitor as it enters,
       // away as it leaves — and hangs at a slight tilt, like a shard held up
       const rotY = lerp(-14, 12, f);
@@ -215,22 +206,21 @@ export function Sitting({
         return img ? parseFloat(img.style.objectPosition.split(' ')[1] ?? '28') / 100 : 0.28;
       };
       shardState.current = { on, f, seam, rotY, rotZ, rise, from: k, next, anchorFrom: anchorOf(k), anchorNext: anchorOf(next) };
-      shard.current.style.transform = `translate3d(${left.toFixed(1)}px, ${((rise * fh) / 100).toFixed(1)}px, 0) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg)`;
+      shard.current.style.transform = `translate3d(${left.toFixed(1)}px, ${((rise * fh) / 100 + (fh - h) / 2).toFixed(1)}px, 0) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg)`;
       shard.current.style.width = `${w.toFixed(1)}px`;
+      shard.current.style.height = `${h.toFixed(1)}px`;
       // through it, the incoming portrait — aligned to the frame, then bent:
       // a little larger, displaced with the turn, so the light bends as it passes
       if (shardThrough.current) {
         const bend = (Math.sin((rotY * Math.PI) / 180) * 2.4 * fw) / 100;
         shardThrough.current.style.width = `${fw}px`;
         shardThrough.current.style.height = `${fh}px`;
-        shardThrough.current.style.transform = `translate(${(-left + bend).toFixed(1)}px, ${((-rise * fh) / 100).toFixed(1)}px) scale(1.045)`;
+        shardThrough.current.style.transform = `translate(${(-left + bend).toFixed(1)}px, ${((-rise * fh) / 100 - (fh - h) / 2).toFixed(1)}px) scale(1.045)`;
         shardThrough.current.src = phone ? sitters[next]!.portraitPhone : sitters[next]!.portrait;
         // the same crop as the plate it stands for, so only the bend displaces it
         const plateImg = plates.current[next]?.querySelector('img');
         if (plateImg) shardThrough.current.style.objectPosition = plateImg.style.objectPosition;
       }
-      // the lit edge follows the turn: brightest when the shard faces the key light
-      if (shardGlint.current) shardGlint.current.style.opacity = (0.35 + 0.65 * (1 - Math.abs(rotY) / 22)).toFixed(3);
     }
     // the focal line re-aims at the next pair of eyes while the light passes
     if (focal.current && eyes.current.length) {
@@ -375,33 +365,15 @@ export function Sitting({
         ))}
         {/* the shard as a body of ERA Mineral Glass; the CSS shard below is the no-WebGL fallback */}
         {!reduced && <ShardScene portraits={portraitUrls} state={shardState} phone={phone} onReady={() => setLive(true)} />}
-        <div ref={shard} className="shard" aria-hidden="true" hidden={live}>
+        <div ref={shard} className="shard shard--photo" aria-hidden="true" hidden={live}>
           <div className="shard__stone">
-          <div className="shard__back" />
-          <div className="shard__body">
+          <div className="shard__body" style={{ maskImage: `url(${quartzUrl})`, WebkitMaskImage: `url(${quartzUrl})` }}>
             <img ref={shardThrough} className="shard__through" alt="" draggable={false} />
             <div className="shard__tint" />
-            <div className="shard__sheen" />
           </div>
-          {/* the edge: an inner rim of mineral light and one roughened gold hairline */}
-          <svg className="shard__edge" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path className="shard__rim" d={SHARD_PATH} vectorEffect="non-scaling-stroke" />
-            <path ref={shardGlint} className="shard__glint" d={SHARD_PATH} vectorEffect="non-scaling-stroke" />
-          </svg>
+          <img className="shard__photo" src={quartzUrl} alt="" draggable={false} />
           </div>
         </div>
-        <svg width="0" height="0" aria-hidden="true" focusable="false">
-          <defs>
-            <clipPath id="shard-clip" clipPathUnits="objectBoundingBox">
-              <path d={SHARD_CLIP} />
-            </clipPath>
-            {/* the stone is uncut: a low-frequency wobble along its long edges */}
-            <filter id="shard-rough" x="-6%" y="-3%" width="112%" height="106%" colorInterpolationFilters="sRGB">
-              <feTurbulence type="fractalNoise" baseFrequency="0.006 0.045" numOctaves="2" seed="11" result="n" />
-              <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G" />
-            </filter>
-          </defs>
-        </svg>
         <p className="frame__caption" aria-hidden="true">{PLACEHOLDER_LABEL}</p>
       </div>
 

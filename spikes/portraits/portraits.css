@@ -207,6 +207,20 @@
   z-index: 3;
 }
 .shard[hidden] { display: none; }
+/* the fallback stone is the photograph: its alpha masks the body, its pixels sit on top */
+.shard--photo { top: 0; height: auto; }
+.shard--photo .shard__body { clip-path: none; mask-size: 100% 100%; mask-repeat: no-repeat; -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; background: transparent; }
+.shard--photo .shard__stone { filter: none; }
+.shard__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  opacity: 0.94;
+  pointer-events: none;
+  filter: drop-shadow(14px 18px 22px rgba(8, 12, 10, 0.32));
+}
 .frame { perspective: 1400px; perspective-origin: 60% 45%; }
 .shard {
   position: absolute;
