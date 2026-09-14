@@ -77,7 +77,7 @@ await run('phone', { width: 390, height: 844 }, { deviceScaleFactor: 2, isMobile
   const top = await page.evaluate(() => document.querySelector('#specialists').getBoundingClientRect().top + window.scrollY);
   await page.evaluate((y) => window.scrollTo({ top: y + 0.7 * window.innerHeight, behavior: 'instant' }), top);
   await page.waitForTimeout(400);
-  log.push(['reduced · 0.7 vh into the row →', await hud(page), '· light visible:', await page.evaluate(() => getComputedStyle(document.querySelector('.light')).opacity !== '0')]);
+  log.push(['reduced · 0.7 vh into the row →', await hud(page), '· shard visible:', await page.evaluate(() => getComputedStyle(document.querySelector('.shard')).opacity !== '0')]);
   await ctx.close();
 }
 // frame rate while scrubbing

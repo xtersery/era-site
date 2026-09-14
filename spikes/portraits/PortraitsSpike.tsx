@@ -16,10 +16,12 @@ import { PLACEHOLDER_LABEL, sitters } from './people';
  * person. The visitor never browses a staff list; she meets a specialist and
  * reads her label. At rest a calibration hairline — the FOCAL LINE — runs from
  * the typeset name across the wall to the eyes of the woman in the portrait.
- * Between specialists the same line becomes the travelling light that exposes
- * the next portrait through the current one, right to left, the direction the
- * light has in every room of this site; the words leave and arrive the same
- * way. Nothing slides, nothing fades, nothing is a card.
+ * Between specialists a SHARD of mineral glass — translucent, uncut at the
+ * edges, catching gold and mineral green — turns slowly across the frame and
+ * carries the next portrait in: the incoming portrait is seen refracted inside
+ * the shard, and lies clear behind it where it has passed. Right to left, the
+ * direction the light has in every room of this site; the words leave and
+ * arrive the same way. Nothing slides, nothing fades, nothing is a card.
  *
  * DRIVEN BY: the page's own scroll. The section is pinned for (N − 1) × 100 vh;
  * progress maps to a position t on the row of specialists; k = ⌊t⌋ is the one
@@ -33,6 +35,18 @@ gsap.registerPlugin(CustomEase, ScrollTrigger, ScrollToPlugin);
 const MINERAL = CustomEase.create('mineral', 'M0,0 C0.52,0 0.18,1 1,1');
 
 const INDEX = '05';
+
+/**
+ * The shard's outline: a tall sliver of stone, its edges uncut — no two
+ * facets parallel, a chip out of the upper right, a heel at the lower left.
+ * Given once in a 0…1 box (the clip) and once in a 0…100 box (the edge).
+ */
+const SHARD_POINTS: readonly (readonly [number, number])[] = [
+  [0.34, -0.02], [0.70, -0.03], [0.86, 0.09], [0.79, 0.27], [0.93, 0.44], [0.88, 0.67],
+  [0.97, 0.86], [0.72, 1.03], [0.38, 1.02], [0.16, 0.90], [0.24, 0.62], [0.05, 0.43], [0.12, 0.17],
+];
+const SHARD_CLIP = SHARD_POINTS.map(([x, y], i) => `${i ? 'L' : 'M'}${x} ${y}`).join(' ') + ' Z';
+const SHARD_PATH = SHARD_POINTS.map(([x, y], i) => `${i ? 'L' : 'M'}${(x * 100).toFixed(1)} ${(y * 100).toFixed(1)}`).join(' ') + ' Z';
 const N = sitters.length;
 const PER = 100; // vh of scroll per transition
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -73,7 +87,9 @@ export function Sitting({
   const plates = useRef<(HTMLElement | null)[]>([]);
   const labels = useRef<(HTMLElement | null)[]>([]);
   const names = useRef<(HTMLElement | null)[]>([]);
-  const light = useRef<HTMLDivElement>(null);
+  const shard = useRef<HTMLDivElement>(null);
+  const shardThrough = useRef<HTMLImageElement>(null);
+  const shardGlint = useRef<SVGPathElement>(null);
   const focal = useRef<HTMLDivElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
@@ -139,9 +155,12 @@ export function Sitting({
       el.style.maskImage = mask;
       (el.style as unknown as Record<string, string>)['webkitMaskImage'] = mask;
     };
-    // the light crosses the face quickly and lingers at the edges: an eased seam
-    const seam = (1 - smooth(f)) * 100;
-    const band = phone ? 9 : 6; // the width of the light, in % of the frame
+    // the shard crosses the face quickly and lingers at the edges: an eased seam.
+    // `seam` is where its centre stands, in % of the frame; the incoming portrait
+    // is clear behind its trailing edge and seen through it ahead of that
+    const seam = lerp(112, -14, smooth(f));
+    const half = phone ? 17 : 13; // half the shard's width, in % of the frame
+    const band = 4;
     for (let i = 0; i < N; i++) {
       const plate = plates.current[i];
       const label = labels.current[i];
@@ -158,8 +177,10 @@ export function Sitting({
       } else if (i === next && f > 0) {
         plate.hidden = false;
         plate.style.zIndex = '2';
-        // the next portrait develops through the light: a soft band, not a cut
-        const mask = `linear-gradient(90deg, transparent ${(seam - band).toFixed(2)}%, #000 ${(seam + band * 0.6).toFixed(2)}%)`;
+        // the next portrait lies clear where the shard has passed: the reveal's
+        // edge trails just inside the shard, so the shard is always the bridge
+        const edge = seam + half * 0.35;
+        const mask = `linear-gradient(90deg, transparent ${(edge - band).toFixed(2)}%, #000 ${(edge + band).toFixed(2)}%)`;
         plate.style.maskImage = mask;
         (plate.style as unknown as Record<string, string>)['webkitMaskImage'] = mask;
         plate.style.transform = `scale(${(1 + 0.04 * (1 - f)).toFixed(4)})`;
@@ -170,11 +191,35 @@ export function Sitting({
         label.hidden = true;
       }
     }
-    // the travelling light
-    if (light.current) {
+    // the shard: a suspended plate of mineral glass, turning as it crosses
+    if (shard.current && frameRef.current) {
       const on = f > 0.001 && f < 0.999;
-      light.current.style.opacity = on ? '1' : '0';
-      light.current.style.left = `${seam.toFixed(3)}%`;
+      shard.current.style.opacity = on ? '1' : '0';
+      const fw = frameRef.current.clientWidth;
+      const fh = frameRef.current.clientHeight;
+      const w = (half * 2 * fw) / 100;
+      const left = ((seam - half) * fw) / 100;
+      // it pivots on its own axis — turned toward the visitor as it enters,
+      // away as it leaves — and hangs at a slight tilt, like a shard held up
+      const rotY = lerp(-20, 22, f);
+      const rotZ = lerp(-7, -4, f);
+      const rise = lerp(1.5, -1.5, f); // it drifts down a little as it turns
+      shard.current.style.transform = `translate3d(${left.toFixed(1)}px, ${((rise * fh) / 100).toFixed(1)}px, 0) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg)`;
+      shard.current.style.width = `${w.toFixed(1)}px`;
+      // through it, the incoming portrait — aligned to the frame, then bent:
+      // a little larger, displaced with the turn, so the light bends as it passes
+      if (shardThrough.current) {
+        const bend = (Math.sin((rotY * Math.PI) / 180) * 2.4 * fw) / 100;
+        shardThrough.current.style.width = `${fw}px`;
+        shardThrough.current.style.height = `${fh}px`;
+        shardThrough.current.style.transform = `translate(${(-left + bend).toFixed(1)}px, ${((-rise * fh) / 100).toFixed(1)}px) scale(1.045)`;
+        shardThrough.current.src = phone ? sitters[next]!.portraitPhone : sitters[next]!.portrait;
+        // the same crop as the plate it stands for, so only the bend displaces it
+        const plateImg = plates.current[next]?.querySelector('img');
+        if (plateImg) shardThrough.current.style.objectPosition = plateImg.style.objectPosition;
+      }
+      // the lit edge follows the turn: brightest when the shard faces the key light
+      if (shardGlint.current) shardGlint.current.style.opacity = (0.35 + 0.65 * (1 - Math.abs(rotY) / 22)).toFixed(3);
     }
     // the focal line re-aims at the next pair of eyes while the light passes
     if (focal.current && eyes.current.length) {
@@ -192,7 +237,8 @@ export function Sitting({
       const section = sectionRef.current?.getBoundingClientRect().left ?? 0;
       const at = phone ? 0 : clamp(((wallEdge - section - startX) / Math.max(1, width)) * 100, 0, 100);
       focal.current.style.setProperty('--at', `${at.toFixed(2)}%`);
-      focal.current.style.opacity = f > 0.05 && f < 0.95 ? '0.55' : '1';
+      // the focal line is a line of rest; while the shard crosses, it withdraws
+      focal.current.style.opacity = f > 0.06 && f < 0.94 ? '0' : '1';
     }
     const shown = f < 0.5 ? k : next;
     if (counter.current) counter.current.textContent = `${subIndex(INDEX, shown + 1)} / ${String(N).padStart(2, '0')}`;
@@ -316,8 +362,34 @@ export function Sitting({
             />
           </figure>
         ))}
-        {/* the light that exposes the next portrait */}
-        <div ref={light} className="light" aria-hidden="true" />
+        {/* the shard: the incoming portrait seen through mineral glass with an uncut edge */}
+        <div ref={shard} className="shard" aria-hidden="true">
+          <div className="shard__stone">
+          <div className="shard__back" />
+          <div className="shard__body">
+            <img ref={shardThrough} className="shard__through" alt="" draggable={false} />
+            <div className="shard__tint" />
+            <div className="shard__sheen" />
+          </div>
+          {/* the edge: an inner rim of mineral light and one roughened gold hairline */}
+          <svg className="shard__edge" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path className="shard__rim" d={SHARD_PATH} vectorEffect="non-scaling-stroke" />
+            <path ref={shardGlint} className="shard__glint" d={SHARD_PATH} vectorEffect="non-scaling-stroke" />
+          </svg>
+          </div>
+        </div>
+        <svg width="0" height="0" aria-hidden="true" focusable="false">
+          <defs>
+            <clipPath id="shard-clip" clipPathUnits="objectBoundingBox">
+              <path d={SHARD_CLIP} />
+            </clipPath>
+            {/* the stone is uncut: a low-frequency wobble along its long edges */}
+            <filter id="shard-rough" x="-6%" y="-3%" width="112%" height="106%" colorInterpolationFilters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency="0.006 0.045" numOctaves="2" seed="11" result="n" />
+              <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+          </defs>
+        </svg>
         <p className="frame__caption" aria-hidden="true">{PLACEHOLDER_LABEL}</p>
       </div>
 

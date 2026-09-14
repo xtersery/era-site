@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 2 — «СЕАНС», the sitting, with the composition locked to a grid — AWAITING REVIEW (14.09.2026).** Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
+**Status: pass 3 — «СЕАНС», the sitting, with the MINERAL SHARD as the transition object — AWAITING REVIEW (14.09.2026).** Pass 2 review: the line transition was too literal and UI-like; replace it with a translucent, uncut mineral form that turns and carries the next portrait in. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -178,3 +178,52 @@ snap, reduced motion, the proofs) unchanged and re-run: all pass, 60 fps.
 
 **For the shoot:** the datum at 30 % is now a constraint — eyes at 28–32 % of
 a 4 : 5 frame; the crop can absorb about ±10 % of the frame height, no more.
+
+
+---
+
+## Pass 3 — THE MINERAL SHARD (14.09.2026)
+
+Review of pass 2: the transition read as a thin line dragging the next image
+— too literal, too UI-like, not ERA. Required: a semi-transparent mineral form
+with rough, unpolished edges, turning in space and carrying the next portrait
+in; not a line, wire, connector, glass bar or beam; subtle, dimensional,
+crafted; the portrait stays the hero. Transition object only; everything else
+unchanged.
+
+**The object.** A tall sliver of mineral glass, 26 % of the frame wide and
+112 % tall (34 % on the phone): a 13-point outline in a unit box (no two
+facets parallel, a chip out of the upper right, a heel at the lower left) as
+`clip-path: url(#shard-clip)`, and the whole stone under one SVG filter —
+`feTurbulence 0.006 × 0.045` + `feDisplacementMap 9 px` — so its long edges
+wobble at chip scale (a higher frequency read as torn vellum and was cut back).
+It is translucent: inside it a copy of the incoming portrait aligned to the
+frame — the same crop anchor as its plate — scaled 1.045 and displaced by
+2.4 % × sin(turn), so the light bends with the turn; a mineral tint (multiply,
+heavier in the thickness, a warm pool near the upper left); a sheen band
+(screen) where the key crosses. Along the inner edge a rim of mineral light
+(a 16 px blurred stroke clipped to the inside, soft-light); on the perimeter
+one 1.4 px gold hairline with a 3 px glow, its opacity following the turn.
+A dark back face 10 × 7 px behind gives it thickness. Colours: mineral green
+`#1f362c` / `#0b1611` in the thickness, pale gold `#f3dfae` on the edge — the
+palette of the Cases sheets.
+
+**The motion.** The frame has 1400 px of perspective. The shard's centre runs
+from 112 % to −14 % of the frame on the eased seam; it pivots on its own axis
+from −20° to +22° (turned toward the visitor as it enters, away as it leaves),
+hangs at −7° → −4°, and drifts down 3 %. Where it has passed the next portrait
+lies clear: the reveal mask's edge trails 35 % of the shard's half-width
+inside it, so the shard is always the bridge between the two portraits. The
+focal line withdraws while the shard crosses (f 0.06–0.94) and returns. The
+words are unchanged (masked lines). Reduced motion: no shard, whole states.
+
+**Cost.** Still DOM + CSS + one SVG filter, no WebGL. 60 fps median, p95
+16.7 ms, 0.4 % of frames over 33 ms while scrubbing on 1440 × 900 with the
+displacement filter live.
+
+**A bug found on the way:** the global `img { max-width: 100% }` capped the
+through-image at the shard's width, so the first build showed a dark slab;
+`max-width: none` on `.shard__through`.
+
+Board: sections B1 (ten frames), B2 (the object close at three moments) and
+the material table.

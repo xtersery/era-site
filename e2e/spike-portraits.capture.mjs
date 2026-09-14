@@ -30,8 +30,12 @@ const strip = async (page, files, cols, out) => {
   await strip(page, [`${OUT}/d1-rest-1.png`, `${OUT}/d2-rest-2.png`, `${OUT}/d3-rest-3.png`, `${OUT}/d3b-rest-4.png`], 2, `${OUT}/d0-grid.png`);
   await shot('?k=0', 'd4-focal', { x: 20, y: 120, width: 1060, height: 260 });
   const tr = [];
-  for (const [i, f] of [0, 0.18, 0.36, 0.5, 0.66, 0.82, 0.94, 1].entries()) tr.push(await shot(`?k=1&f=${f}`, `tr-${i}`));
-  await strip(page, tr, 4, `${OUT}/d5-transition.png`);
+  for (const [i, f] of [0, 0.12, 0.24, 0.36, 0.46, 0.56, 0.66, 0.78, 0.9, 1].entries()) tr.push(await shot(`?k=1&f=${f}`, `tr-${i}`));
+  await strip(page, tr, 5, `${OUT}/d5-transition.png`);
+  // the object, close: the frame only, at three moments
+  const det = [];
+  for (const [i, f] of [0.3, 0.46, 0.62].entries()) det.push(await shot(`?k=1&f=${f}`, `det-${i}`, { x: 634, y: 0, width: 806, height: 900 }));
+  await strip(page, det, 3, `${OUT}/d6-shard.png`);
   await ctx.close();
 }
 {
