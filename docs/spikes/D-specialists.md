@@ -776,3 +776,74 @@ warmer than the unlit field → unlit fill + a separate relief pass.
 the reception's light (the darkening is currently the next section's
 gradient); the diamond's scale on desktop (one book-matched pair across the
 width, as on the wall) — to be judged in motion.
+
+## Pass 15 — A NATURAL MINERAL BECOMES THE ARCHITECTURE OF ERA (15.09.2026)
+
+**Why pass 14 failed.** The user's review: the marble was treated as a flat
+image replacement — a photograph laid *under* the stone and cross-faded to.
+"This is not a texture swap. The concept depends on material continuity
+between the existing quartz object and the marble architecture." New
+reference: `docs/references/wallpapers.png`, the frontal view of the wall
+material (slabs ≈ 452 px square, seams at x 384 · 836 · 1289, y 456): grey-
+beige stone, blue-grey bands, graphite bands with a fractured, crushed-crystal
+interior, thin pale veins, ochre inclusions. Do not stretch it, do not use it
+as a flat background; reconstruct the atmosphere; the stone geometry must
+remain; the wall enters from the edge, sits in the environment, leaves
+breathing space for typography.
+
+**The comparison that defines the logic.** The quartz's smoke = the wall's
+graphite; its clear zones = the blue-grey bands; its facet ridges = the thin
+pale veins; the glints on its ridges = the ochre inclusions (gold as light).
+What differs is *state*: raw, chipped, translucent, one body — against cut,
+laid, polished, many slabs. The transition is a change of state, not of
+material.
+
+**Built.**
+- Phase 1 — the quartz stays. Geometry, photograph and place untouched to
+  the end. Glass overlay 1 → 0 by 0.35 (translucent → opaque mineral); shadow
+  lifts, breathing to rest. The wall's veining (the reference's luminance) as
+  shading in plaster and portrait, spreading out of the stone with the room's
+  light dimming (multiply pass, quieter than pass 14: vein 0.05 → 0.13, dim
+  0.03 → 0.12).
+- Phase 2 — geological transformation. The *same body* polishes: roughness
+  0.58 → 0.22, clearcoat 0.35 → 0.8 (rough 0.24 → 0.14), bump → 0, env 0.7 →
+  0.4, colour `#e4ddd3` → `#a09c98` over 0.15 → 0.6. Around it the wall's
+  albedo is the stone's own interior: a fifth map `interior` (the photograph
+  in its box with alpha, ungraded), sampled at `uStone + (uv − uStone) /
+  (1 + 2.6·grow)`, reflected at the silhouette via `uProfile` (twice at
+  most) and at the box's ends — the crystal book-matching itself — with a slow
+  warp (0.005·grow) so the folds are stone, not glass; only the dense smoke
+  expands (`density = 1 − smoothstep(0.18, 0.62, lum)`), re-coloured
+  blueBand → graphite; the front face's facet ridges, baked from the
+  geometry (`createRidgeMap`, 256 × 512, ridge where the winning plane
+  changes), ride along as pale veins (35 %). Region: an ellipse in stone
+  half-sizes, inner 0.45 + 1.2·grow, outer 1 + 3·grow, confined sideways
+  (`1 − smoothstep(0.85, 1.5, |rel.y|)`), weight ≤ 0.78, settling to 30 % by
+  e = 1. The slab arrives as a second front out of the stone ((e − 0.3)·2.2)
+  and in from the right edge ((e − 0.22)·1.7), ± 0.3 along the veins; the
+  left column last.
+- Phase 3 — marble architecture. The slab pass is a lit surface: albedo =
+  the reference cut at native scale (window x 784, 836 wide, full height,
+  mirrored once vertically → `marble.jpg` 836 × 1882, no grade, avg
+  `#87827e`; chosen so the graphite band passes through the stone's place and
+  the pale diamond centre sits under the typography column), laid on the
+  section's width (1.72 × uniform on 1440; twice the width on the phone),
+  the section's top 195 px down it (`SHEET_TOP`); normal from the luminance
+  (×3; the stone's interior has its own ×1.6 while it rules), key
+  (−0.5, 0.55, 0.75), diffuse 0.74 + 0.28, sheen pow 18 × 0.10, grain ± 1 %,
+  fall 0.95 → 1.04. The stone's skin gives way 0.55 → 0.95 to its own expanded
+  interior beneath (body `depthWrite` off in the exit; body/relief/glass
+  drawn after the field: renderOrder 5/6/7) with its facets as a multiply
+  relief (0.66 + 0.5·n·L, 0.4 → 0.85). The `fill` mesh of pass 14 is gone.
+  `.founder-opening` lays the same sheet from `−(23.32vw + 100svh)`
+  (`−50vw −(46.64vw + 100svh)` on the phone); `.sitting__marble` the same for
+  the no-WebGL and reduced-motion paths.
+
+**Measured.** Seam between the scene and the next section: luminance 115.9
+above vs 115.7 below. Scrub 60 fps median, p95 16.8 ms, 0 % over 33 ms; 10
+draw calls. Published via `scripts/artifact-copy.mjs` (717 includes intact),
+the published file tested at `?k=3&e=0.5`.
+
+**Open.** A small residual crease where the crystal's edge reflects (upper
+left, e ≈ 0.5); the settled wall keeps the reference's daylight — the
+darkening into 06 is the next section's gradient.

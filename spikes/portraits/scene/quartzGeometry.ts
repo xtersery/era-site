@@ -1,4 +1,4 @@
-import { BufferGeometry, DataTexture, Float32BufferAttribute, LinearFilter, RGFormat, UnsignedByteType } from 'three';
+import { BufferGeometry, DataTexture, Float32BufferAttribute, LinearFilter, RedFormat, RGFormat, UnsignedByteType } from 'three';
 
 import { trace } from './quartzTrace';
 
@@ -34,19 +34,55 @@ const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453
 const smooth = (t: number) => { const s = Math.min(1, Math.max(0, t)); return s * s * (3 - 2 * s); };
 
 /** a crystal's relief: a few large planes, the highest wins — ridges where they meet */
-function facets(seed: number, count: number) {
-  const planes = Array.from({ length: count }, (_, i) => ({
+function facetPlanes(seed: number, count: number) {
+  return Array.from({ length: count }, (_, i) => ({
     cx: hash(seed + i * 3) - 0.5,
     cy: hash(seed + i * 3 + 1) - 0.5,
     ax: (hash(seed + i * 7 + 2) - 0.5) * 0.7,
     ay: (hash(seed + i * 7 + 5) - 0.5) * 0.36,
     c: hash(seed + i * 11 + 9) * 0.12,
   }));
+}
+function facets(seed: number, count: number) {
+  const planes = facetPlanes(seed, count);
   return (u: number, v: number) => {
     let m = -Infinity;
     for (const p of planes) m = Math.max(m, p.ax * (u - p.cx) + p.ay * (v - p.cy) + p.c);
     return m;
   };
+}
+/** which plane wins at (u, v) — the ridges are where the winner changes */
+function facetWinner(seed: number, count: number) {
+  const planes = facetPlanes(seed, count);
+  return (u: number, v: number) => {
+    let m = -Infinity, w = 0;
+    planes.forEach((p, i) => { const h = p.ax * (u - p.cx) + p.ay * (v - p.cy) + p.c; if (h > m) { m = h; w = i; } });
+    return w;
+  };
+}
+
+/**
+ * The front face's ridges as a map in the stone's box uv — the crystal's
+ * fractures, so the wall can take them up as its first veins. One channel,
+ * 1 on a ridge (about one texel wide), 0 on a plane.
+ */
+export function createRidgeMap(seed = 0, w = 256, h = 512): DataTexture {
+  const win = facetWinner(seed, 7);
+  const idx = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) idx[y * w + x] = win(x / (w - 1) - 0.5, y / (h - 1) - 0.5);
+  const data = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      const ridge = (x + 1 < w && idx[i + 1] !== idx[i]) || (y + 1 < h && idx[i + w] !== idx[i]) || (x > 0 && idx[i - 1] !== idx[i]) || (y > 0 && idx[i - w] !== idx[i]);
+      data[i] = ridge ? 255 : 0;
+    }
+  }
+  const t = new DataTexture(data, w, h, RedFormat, UnsignedByteType);
+  t.minFilter = LinearFilter;
+  t.magFilter = LinearFilter;
+  t.needsUpdate = true;
+  return t;
 }
 
 export function createQuartzGeometry({ height, depth, narrow = 1, seed = 0 }: QuartzOptions): BufferGeometry {

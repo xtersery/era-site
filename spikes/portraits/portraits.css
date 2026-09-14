@@ -291,11 +291,12 @@
   z-index: 3;
   pointer-events: none;
   opacity: var(--exit-marble);
-  background: url('./assets/marble.jpg') 0 0 / 100vw auto repeat-y;
+  /* the sheet is 836 × 1882; the section's top sits 195 px down it → 23.32 % of its width */
+  background: url('./assets/marble.jpg') 0 -23.32vw / 100vw auto repeat-y;
 }
 .sitting__marble[hidden] { display: none; }
 @media (width < 1024px) {
-  .sitting__marble { background-size: 200vw auto; background-position: -50vw 0; }
+  .sitting__marble { background-size: 200vw auto; background-position: -50vw -46.64vw; }
 }
 
 /* ---- the next room: the founder's, opening on the clinic's wall ----------- */
@@ -312,14 +313,14 @@
   /* the same sheet, laid on the same width, continuing straight down from the section above */
   background-image: linear-gradient(180deg, rgba(8, 20, 15, 0) 0%, rgba(8, 20, 15, 0) 34%, rgba(8, 20, 15, 0.55) 62%, rgba(8, 20, 15, 0.96) 88%, #08140f 100%), url('./assets/marble.jpg');
   background-size: 100% auto, 100vw auto;
-  background-position: 0 0, 0 -100svh;
+  background-position: 0 0, 0 calc(-23.32vw - 100svh);
   background-repeat: no-repeat, repeat-y;
 }
 @media (width < 1024px) {
   .founder-opening__wall {
     /* the phone lays the sheet on twice its width, centred — as the section does */
     background-size: 100% auto, 200vw auto;
-    background-position: 0 0, -50vw -100svh;
+    background-position: 0 0, -50vw calc(-46.64vw - 100svh);
   }
 }
 .founder-opening__label {

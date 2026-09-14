@@ -37,12 +37,29 @@ const strip = async (page, files, cols, out) => {
   const det = [];
   for (const [i, f] of [0, 0.3, 0.55].entries()) det.push(await shot(`?k=1&f=${f}`, `det-${i}`, { x: 300, y: 60, width: 640, height: 780 }));
   await strip(page, det, 3, `${OUT}/d6-shard.png`);
+  // the two materials, side by side at the same scale: the quartz's smoke and the wall's graphite band
+  {
+    const data = await page.evaluate(async ({ q, w }) => {
+      const load = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = s; });
+      const [qi, wi] = await Promise.all([load(q), load(w)]);
+      const H = 700, gap = 8;
+      const qw = Math.round((qi.naturalWidth / qi.naturalHeight) * H);
+      const c = document.createElement('canvas'); c.width = qw + gap + 1100; c.height = H;
+      const g = c.getContext('2d'); g.fillStyle = '#0b1611'; g.fillRect(0, 0, c.width, c.height);
+      g.fillStyle = '#e9ebe6'; g.fillRect(0, 0, qw, H);
+      g.drawImage(qi, 0, 0, qw, H);
+      // the wall: the window the section lays on its width, at the scale the section shows it
+      g.drawImage(wi, 784, 120, 836, 532, qw + gap, 0, 1100, H);
+      return c.toDataURL('image/png');
+    }, { q: 'data:image/png;base64,' + readFileSync('src/assets/smoky-quartz.png').toString('base64'), w: 'data:image/png;base64,' + readFileSync('docs/references/wallpapers.png').toString('base64') });
+    writeFileSync(`${OUT}/d7a-materials.png`, Buffer.from(data.split(',')[1], 'base64'));
+  }
   // the exit: smoky quartz → the clinic's marble wall, in five stages
   const ex = [];
-  for (const [i, e] of [0, 0.25, 0.55, 0.8, 1].entries()) ex.push(await shot(`?k=3&e=${e}`, `ex-${i}`));
+  for (const [i, e] of [0, 0.22, 0.5, 0.75, 1].entries()) ex.push(await shot(`?k=3&e=${e}`, `ex-${i}`));
   await strip(page, ex.slice(1, 5), 2, `${OUT}/d7-exit-grid.png`);
   const exd = [];
-  for (const [i, e] of [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1].entries()) exd.push(await shot(`?k=3&e=${e}`, `exd-${i}`, { x: 300, y: 60, width: 640, height: 780 }));
+  for (const [i, e] of [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1].entries()) exd.push(await shot(`?k=3&e=${e}`, `exd-${i}`, { x: 240, y: 60, width: 760, height: 780 }));
   await strip(page, exd, 4, `${OUT}/d8-exit-stone.png`);
   // the entry into the next section: the live page scrolled past the pin
   await page.goto(base + q('?'), { waitUntil: 'networkidle' }); await settle(page);
@@ -67,7 +84,7 @@ const strip = async (page, files, cols, out) => {
   for (const [i, f] of [0, 0.3, 0.5, 0.7, 0.85, 1].entries()) mt.push(await shot(`?k=2&f=${f}`, `mt-${i}`));
   await strip(page, mt, 6, `${OUT}/m4-transition.png`);
   const me = [];
-  for (const [i, e] of [0, 0.3, 0.55, 0.8, 1].entries()) me.push(await shot(`?k=2&e=${e}`, `me-${i}`));
+  for (const [i, e] of [0, 0.25, 0.5, 0.75, 1].entries()) me.push(await shot(`?k=2&e=${e}`, `me-${i}`));
   await strip(page, me, 5, `${OUT}/m5-exit.png`);
   await m.close();
 }

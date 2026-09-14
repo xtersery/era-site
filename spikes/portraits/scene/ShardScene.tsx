@@ -29,7 +29,7 @@ import compositeVert from './composite.vert?raw';
 import marbleFrag from './marble.frag?raw';
 import reliefFrag from './relief.frag?raw';
 import reliefVert from './relief.vert?raw';
-import { createEdgeProfile, createQuartzGeometry, QUARTZ_ASPECT } from './quartzGeometry';
+import { createEdgeProfile, createQuartzGeometry, createRidgeMap, QUARTZ_ASPECT } from './quartzGeometry';
 import { trace } from './quartzTrace';
 
 /**
@@ -108,6 +108,9 @@ const FOV = 30;
 /** the camera distance at which a plane WORLD_H tall exactly fills the view */
 const CAM_Z = WORLD_H / 2 / Math.tan((FOV / 2) * (Math.PI / 180));
 const STONE_Z = 1.5;
+/** the wall sheet: 836 × 1882 (height / width), the section's top 195 px down it */
+const SHEET_ASPECT = 1882 / 836;
+const SHEET_TOP = 195 / 1882;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const smooth = (t: number) => { const x = clamp(t, 0, 1); return x * x * (3 - 2 * x); };
 
@@ -148,6 +151,10 @@ function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number
   tg.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, W, H);
   tg.filter = 'none';
   tg.globalAlpha = 1;
+  // the interior as it is: the photograph in its box, alpha outside the
+  // silhouette, no grade — what the wall takes up from the stone
+  const [ic, ig] = draw();
+  ig.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, W, H);
   // luminance → transmission, roughness, bump
   const [lc, lg] = draw();
   lg.fillStyle = '#6a6a6a';
@@ -185,7 +192,7 @@ function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number
     t.wrapS = t.wrapT = ClampToEdgeWrapping;
     return t;
   };
-  return { tint: tex(tc, true), trans: tex(xc, false), rough: tex(rc, false), bump: tex(bc, false), bodyAlpha: tex(ac, false), clearAlpha: tex(cc, false) };
+  return { tint: tex(tc, true), interior: tex(ic, true), trans: tex(xc, false), rough: tex(rc, false), bump: tex(bc, false), bodyAlpha: tex(ac, false), clearAlpha: tex(cc, false) };
 }
 
 /** the wall as the scene sees it: the same light mineral surface as the CSS, drawn once */
@@ -261,6 +268,7 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
   const env = useMemo(() => createEraEnvironment(1024, 512), []);
   const maps = useMemo(() => createQuartzMaps(photo, trace.box), [photo]);
   const profile = useMemo(() => createEdgeProfile(), []);
+  const ridge = useMemo(() => createRidgeMap(5), []);
   const worldW = (WORLD_H * size.width) / size.height;
   // the frame's box in world units
   const frameW = worldW * frame.w, frameH = WORLD_H * frame.h;
@@ -279,11 +287,16 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
     const uniforms = () => ({
       uMarble: { value: marble.sheet },
       uLuma: { value: marble.luma },
+      uStoneTex: { value: maps.interior },
+      uProfile: { value: profile },
+      uRidge: { value: ridge },
       uStone: { value: new Vector2(0.45, 0.6) },
+      uStoneSize: { value: new Vector2(0.1, 0.3) },
       uAspect: { value: 1.6 },
       uE: { value: 0 },
       uSheetW: { value: 1 },
-      uSheetV: { value: 0.625 },
+      uSheetV: { value: 0.28 },
+      uSheetTop: { value: SHEET_TOP },
       uPass: { value: 0 },
     });
     // pass 0: the veins as shading in what is there (multiply); pass 1: the slab
@@ -298,17 +311,7 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
     const g = new Group();
     g.add(a, b);
     return Object.assign(g, { shade, slab });
-  }, [marble]);
-  // what the stone settles into: the same relief, in the wall's own slab — its
-  // map is the sheet behind it, aligned so the veins run through the stone as
-  // they run through the wall. The stone is found to have been part of it.
-  const fill = useMemo(() => {
-    const map = marble.sheet.clone();
-    map.needsUpdate = true;
-    // unlit, so it is the wall's colour exactly; the quartz's own body, left
-    // faint over it, is the relief
-    return new MeshBasicMaterial({ map, transparent: true, opacity: 0, toneMapped: false });
-  }, [marble]);
+  }, [marble, maps, profile, ridge]);
   // and its relief: the facets' shading multiplied into the slab
   const relief = useMemo(
     () => new ShaderMaterial({ vertexShader: reliefVert, fragmentShader: reliefFrag, transparent: true, depthWrite: false, blending: MultiplyBlending, premultipliedAlpha: true, uniforms: { uK: { value: 0 } } }),
@@ -439,19 +442,19 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
       scene.remove(shadow);
       field.shade.dispose(); field.slab.dispose();
       marble.sheet.dispose(); marble.luma.dispose();
-      fill.dispose(); relief.dispose();
+      relief.dispose(); ridge.dispose();
       (wall.material as MeshBasicMaterial).map?.dispose();
       env.dispose();
       body.dispose();
       fragmentBody.dispose();
       glass.dispose();
-      maps.tint.dispose(); maps.trans.dispose(); maps.rough.dispose(); maps.bump.dispose();
+      maps.tint.dispose(); maps.interior.dispose(); maps.trans.dispose(); maps.rough.dispose(); maps.bump.dispose();
       profile.dispose();
       geometry.dispose();
       (composite.material as ShaderMaterial).dispose();
       textures.forEach((t) => t.dispose());
     };
-  }, [scene, env, wall, composite, shadow, field, marble, fill, relief, maps, profile, geometry, body, fragmentBody, glass, textures]);
+  }, [scene, env, wall, composite, shadow, field, marble, relief, ridge, maps, profile, geometry, body, fragmentBody, glass, textures]);
 
   useFrame(({ clock }) => {
     const s = state.current;
@@ -488,15 +491,15 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
 
     // the exit: the field grows out of the stone, and the stone settles into it
     const e = clamp(s.exit, 0, 1);
-    // the sheet is square: laid on the section's width on desktop, on twice it on the phone
+    // the sheet (836 × 1882, a vertical mirror pair) is laid on the section's
+    // width on desktop, on twice it on the phone, its top SHEET_TOP down
     const sheetW = phone ? 0.5 : 1;
-    const sheetV = (size.height / size.width) * sheetW;
+    const sheetV = ((size.height / size.width) * sheetW) / SHEET_ASPECT;
     for (const fm of [field.shade.uniforms, field.slab.uniforms]) {
       fm['uE']!.value = e;
       fm['uAspect']!.value = size.width / size.height;
       fm['uSheetW']!.value = sheetW;
       fm['uSheetV']!.value = sheetV;
-      (fm['uStone']!.value as Vector2).set(place.x, 1 - place.y);
     }
     field.visible = e > 0.001;
     // the plane sits in front of the frame; scaled back so it covers the
@@ -506,17 +509,23 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
     field.position.set(0, 0, 0.9);
     // the portrait loses its light before the marble reaches it
     u['uVeil']!.value = smooth((e - 0.05) / 0.55);
-    // the stone: its glass goes first; then its body gives way to the same
-    // relief in the wall's slab, the veins continuing from the wall behind;
-    // its shadow lifts as it comes to rest against the surface
+    // the stone: its glass goes first (translucent → opaque mineral); then the
+    // same body on the same geometry polishes — rough edges to a polished
+    // surface, its smoke deepening to the wall's graphite; late, its skin gives
+    // way to its own interior, expanded into the wall beneath (the field), its
+    // facets kept as shading. Its shadow lifts as it comes to rest.
     const settle = smooth((e - 0.1) / 0.7);
-    glass.opacity = 1 - smooth(e / 0.4);
-    body.opacity = 0.86 * (1 - smooth((e - 0.3) / 0.5));
-    relief.uniforms['uK']!.value = smooth((e - 0.35) / 0.45);
-    body.roughness = 0.58 + 0.35 * settle;
-    body.envMapIntensity = 0.7 * (1 - settle);
-    body.bumpScale = 0.04 * (1 - settle);
-    fill.opacity = smooth((e - 0.32) / 0.4);
+    const polish = smooth((e - 0.15) / 0.45);
+    glass.opacity = 1 - smooth(e / 0.35);
+    body.opacity = 0.86 * (1 - smooth((e - 0.55) / 0.4));
+    body.depthWrite = e < 0.05;
+    body.roughness = 0.58 - 0.36 * polish;
+    body.clearcoat = 0.35 + 0.45 * polish;
+    body.clearcoatRoughness = 0.24 - 0.1 * polish;
+    body.bumpScale = 0.04 * (1 - polish);
+    body.envMapIntensity = 0.7 - 0.3 * polish;
+    body.color.setStyle('#e4ddd3').lerp(new Color('#a09c98'), polish);
+    relief.uniforms['uK']!.value = smooth((e - 0.4) / 0.45);
     fragmentBody.opacity = 0.62 * (1 - smooth(e / 0.5));
     (shadow.material as MeshBasicMaterial).opacity = 1 - smooth(e / 0.5);
 
@@ -533,16 +542,14 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
     const z = (STONE_Z + 0.25 * swing) * rest + 0.96 * settle;
     mesh.position.set(stoneX, stoneY + bob, z);
     mesh.rotation.set(rotX, rotY, rotZ);
-    // the slab on the stone continues the wall behind it: its map is the
-    // sheet, aligned to where the stone is SEEN — the stone stands ahead of
-    // the field plane, so it is projected a little larger than it is placed
-    if (fill.map) {
+    // the field needs the stone where it is SEEN: it stands ahead of the plane
+    {
       const m = CAM_Z / (CAM_Z - z);
-      const x0 = 0.5 + ((stoneX - stoneW / 2) * m) / worldW, y0 = 0.5 + ((stoneY + bob - stoneH / 2) * m) / WORLD_H;
-      fill.map.repeat.set(((stoneW * m) / worldW) * sheetW, ((stoneH * m) / WORLD_H) * sheetV);
-      fill.map.offset.set(0.5 - sheetW / 2 + x0 * sheetW, 1 - sheetV * (1 - y0));
+      for (const fm of [field.shade.uniforms, field.slab.uniforms]) {
+        (fm['uStone']!.value as Vector2).set(0.5 + (stoneX * m) / worldW, 0.5 + ((stoneY + bob) * m) / WORLD_H);
+        (fm['uStoneSize']!.value as Vector2).set((stoneW * m) / (2 * worldW), (stoneH * m) / (2 * WORLD_H));
+      }
     }
-    mesh.scale.set(1 + 0.012 * swing, 1 + 0.012 * swing, (1 + 0.012 * swing) * (1 - 0.6 * settle));
     // the fragments: each on its own slow drift, a little parallax with the change
     fragments.forEach((fr, i) => {
       const g = fragmentRefs.current[i];
@@ -588,10 +595,10 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
       ))}
       <group ref={stone} position={[0, 0, STONE_Z]}>
         {/* smoky quartz: the body (the photograph, opaque in the smoke), and the glass over its clear zones */}
-        <mesh geometry={geometry} material={fill} scale={[1.0, 1.0, 0.98]} renderOrder={-2} />
-        <mesh geometry={geometry} material={relief} scale={[1.0, 1.0, 0.99]} renderOrder={-1} />
-        <mesh geometry={geometry} material={body} />
-        {!bodyOnly && <mesh geometry={geometry} material={glass} scale={[1.004, 1.004, 1.004]} renderOrder={1} />}
+        {/* drawn after the field, so the body composites over its own expanded interior and the relief shades both */}
+        <mesh geometry={geometry} material={body} renderOrder={5} />
+        <mesh geometry={geometry} material={relief} scale={[1.0, 1.0, 0.99]} renderOrder={6} />
+        {!bodyOnly && <mesh geometry={geometry} material={glass} scale={[1.004, 1.004, 1.004]} renderOrder={7} />}
       </group>
       {/* one warm key from the upper left, a cool fill low right — the ERA studio */}
       <directionalLight position={[-6, 7, 6]} intensity={1.5} color="#ffe6b8" />
