@@ -1,6 +1,6 @@
 # Spike D — Специалисты / the pinned portrait gallery
 
-**Status: pass 12 — «СЕАНС», the sitting, with the SMOKY QUARTZ AS A RESIDENT OF THE LAYOUT (on the wall/frame boundary, the name crossing it, the change coming out of it) — AWAITING REVIEW (14.09.2026).** The stone renders on the reviewer's machine since the packaging fix. Pass 9 review: the board is approved as the visual target; the live page did not match it on the reviewer's machine ("abstract transparent transition, no readable stone"). Pass 8 review: the stone must remain physically present, visibly the smoky quartz, never abstracted into a translucent form — non-negotiable; keep it, embed it more organically. Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
+**Status: pass 13 — «СЕАНС», the sitting, with the SMOKY QUARTZ AS ENVIRONMENT (on the wall/frame boundary, quieter, the sentence crossing it, fragments at the edges, the change coming out of it) — AWAITING REVIEW (14.09.2026).** The stone renders on the reviewer's machine since the packaging fix. Pass 9 review: the board is approved as the visual target; the live page did not match it on the reviewer's machine ("abstract transparent transition, no readable stone"). Pass 8 review: the stone must remain physically present, visibly the smoky quartz, never abstracted into a translucent form — non-negotiable; keep it, embed it more organically. Pass 6 review: the convex-hull stone still read as an abstract translucent strip; the reference (`src/assets/smoky-quartz.png`) must be the source of form, material and character — asymmetric, volumetric, naturally broken edges, bodily, dense, smoky grey-brown. Pass 5 review: the previous stones read as a strip, a pasted shard, or vanished into a wipe; a reference asset was supplied (`src/assets/парящий_дымчатый_кварц.png`) and one rule: if the stone can be removed and the transition still works, the concept is wrong. Pass 1 review: the concept holds; the text placement drifted between states; «далее — [name]» to be removed.
 One direction only, as briefed: a pinned portrait gallery. Not productionised;
 the greyscale room (`src/sections/specialists/`, horizontal pin) is untouched
 and remains the `none`-tier fallback until this is approved.
@@ -657,3 +657,47 @@ whole label by 0.5 while the picture changes until 0.85.
 (1440 × 900); 7 draw calls; the interaction proof passes. Published through
 `scripts/artifact-copy.mjs` (716 shader includes intact). The diagnostic
 stays on desktop (`?diag=0` hides it) and is off on the phone (`?diag=1`).
+
+
+---
+
+## Pass 13 — THE MINERAL ENVIRONMENT (14.09.2026)
+
+Brief: the crystal felt like a separate 3D object placed next to the layout.
+Keep it; integrate it: move it to the boundary between the portrait and the
+text panel, partially entering from the image's edge, slightly behind the
+typography; reduce its dominance (more translucent, lower contrast, smokier,
+softer, lit by the room); add subtle fragments of the same mineral at the
+viewport's edges with slow drift and depth; keep it the transition mediator —
+"the image is revealed through a natural mineral layer"; layering: portrait
+→ fragments → crystal → text → UI. "The woman is the hero."
+
+**Placement.** `LAYOUT.desktop.place` x 0.455, y 0.6, h 0.64 (the boundary
+is at 0.44: the stone's left third over the wall, two-thirds entering from
+the image's edge); phone x 0.2, y 0.56, h 0.3. The name stays on the wall;
+the sentence's measure widened to 40ch (`.sitter__body` 38 rem, the facts
+kept to the 22 rem column) so its longer lines cross the stone's edge — one
+secondary text layer in front of it, plus the focal line. The fallback
+photograph stands at the same place at 0.8 opacity.
+
+**Dominance.** The colour map: the photograph at 78 % over `#8f8479` (its own
+shadowed taupe) with `contrast(0.82) saturate(0.82) brightness(1.04)`; body
+alpha 1 − 0.66 × clear, opacity 0.86, roughness 0.58, bump 0.04, clearcoat
+0.35 / 0.24, env 0.7; glass roughness 0.46, clearcoat 0.2, env 0.45; the
+shadow's peak 0.3; the change's scale pulse 1.012.
+
+**Fragments.** Three on desktop (x 0.985 / y 0.72 / h 0.26 at z 0.55; x 0.905
+/ y 0.03 / h 0.18 at z 0.35; x 0.06 / y 1.03 / h 0.2 at z 0.3), two on the
+phone; the same geometry with a clone of the body material (opacity 0.62,
+env 0.5, clearcoat 0.2; no glass layer); each bobs 0.08 and turns a few
+degrees on its own period (33 / 45 / 57 s) and shifts (0.012 + 0.008 z) of
+the width with the change (alternating direction). Behind the crystal, in
+front of the picture. A first placement at x 1.02 / y −0.03 was off-frame
+entirely.
+
+**Transition** as pass 12 (the front from the stone; words out 0 → 0.2, in
+0.22 → 0.5). With the stone on the boundary the front starts at the image's
+own edge.
+
+**Measured.** 60 fps median, p95 16.8 ms, 1.3 % over 33 ms (1440 × 900);
+10 draw calls. Published via `scripts/artifact-copy.mjs`.

@@ -128,12 +128,16 @@ function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number
   const img = photo.image as HTMLImageElement;
   const W = 512, H = Math.round(512 / (box.w / box.h));
   const draw = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return [c, c.getContext('2d')!] as const; };
-  // the colour: the photograph, lifted a little toward the pale body
+  // the colour: the photograph, a little smokier and quieter — toward the
+  // taupe of its own shadowed zones, contrast eased, so it sits in the light
+  // of the room rather than in its own
   const [tc, tg] = draw();
-  tg.fillStyle = '#e6dfd5';
+  tg.fillStyle = '#8f8479';
   tg.fillRect(0, 0, W, H);
-  tg.globalAlpha = 0.86;
+  tg.globalAlpha = 0.78;
+  tg.filter = 'contrast(0.82) saturate(0.82) brightness(1.04)';
   tg.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, W, H);
+  tg.filter = 'none';
   tg.globalAlpha = 1;
   // luminance → transmission, roughness, bump
   const [lc, lg] = draw();
@@ -152,7 +156,7 @@ function createQuartzMaps(photo: Texture, box: { x: number; y: number; w: number
     const b = Math.round(l * 255);
     // the body: opaque in the smoke, thinning where the stone is clear — so the
     // portrait behind shows through the clear zones with no transmission pass at all
-    const ba = Math.round((1 - 0.5 * clear) * 255);
+    const ba = Math.round((1 - 0.66 * clear) * 255);
     // the glass layer over it: present only where the stone is clear
     const ca = Math.round(Math.pow(clear, 1.2) * 0.9 * 255);
     trans[i] = trans[i + 1] = trans[i + 2] = t; trans[i + 3] = 255;
@@ -201,8 +205,8 @@ function createShadow(): Mesh {
   ctx.translate(128, 256);
   ctx.scale(1, 2);
   const g = ctx.createRadialGradient(0, 0, 8, 0, 0, 120);
-  g.addColorStop(0, 'rgba(8, 12, 10, 0.5)');
-  g.addColorStop(0.55, 'rgba(8, 12, 10, 0.22)');
+  g.addColorStop(0, 'rgba(8, 12, 10, 0.3)');
+  g.addColorStop(0.55, 'rgba(8, 12, 10, 0.13)');
   g.addColorStop(1, 'rgba(8, 12, 10, 0)');
   ctx.fillStyle = g;
   ctx.fillRect(-128, -128, 256, 256);
@@ -301,19 +305,28 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
         map: maps.tint,
         alphaMap: maps.bodyAlpha,
         transparent: true,
+        opacity: 0.86,
         depthWrite: true,
-        roughness: 0.5,
+        roughness: 0.58,
         roughnessMap: maps.rough,
         bumpMap: maps.bump,
-        bumpScale: 0.05,
-        color: new Color('#efe9e0'),
-        clearcoat: 0.6,
-        clearcoatRoughness: 0.18,
-        envMapIntensity: 1.0,
+        bumpScale: 0.04,
+        color: new Color('#e4ddd3'),
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.24,
+        envMapIntensity: 0.7,
         toneMapped: false,
       }),
     [maps],
   );
+  // the fragments at the edges: the same stone, further off, quieter still
+  const fragmentBody = useMemo(() => {
+    const m = body.clone();
+    m.opacity = 0.62;
+    m.envMapIntensity = 0.5;
+    m.clearcoat = 0.2;
+    return m;
+  }, [body]);
   const glass = useMemo(
     () =>
       new MeshPhysicalMaterial({
@@ -323,18 +336,34 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
         transmission: 0.9,
         thickness: phone ? 1.0 : 1.3,
         ior: 1.54,
-        roughness: 0.35,
+        roughness: 0.46,
         roughnessMap: maps.rough,
         attenuationColor: new Color('#8f847b'),
         attenuationDistance: 4,
         color: new Color('#ffffff'),
-        clearcoat: 0.3,
-        clearcoatRoughness: 0.2,
-        envMapIntensity: 0.6,
+        clearcoat: 0.2,
+        clearcoatRoughness: 0.24,
+        envMapIntensity: 0.45,
         toneMapped: false,
       }),
     [maps, phone],
   );
+  // the fragments: where they lie in the section (fractions), their size, their depth, their own slow drift
+  const fragments = useMemo(
+    () =>
+      (phone
+        ? [
+            { x: 1.03, y: 0.3, h: 0.16, z: 0.5, rot: [0.2, -0.6, 0.9], seed: 1 },
+            { x: -0.03, y: 0.92, h: 0.13, z: 0.35, rot: [-0.3, 0.5, -1.2], seed: 2 },
+          ]
+        : [
+            { x: 0.985, y: 0.72, h: 0.26, z: 0.55, rot: [0.25, -0.7, 0.95], seed: 1 },
+            { x: 0.905, y: 0.03, h: 0.18, z: 0.35, rot: [-0.4, 0.4, -1.1], seed: 2 },
+            { x: 0.06, y: 1.03, h: 0.2, z: 0.3, rot: [0.3, 0.9, 0.5], seed: 3 },
+          ]) as { x: number; y: number; h: number; z: number; rot: [number, number, number]; seed: number }[],
+    [phone],
+  );
+  const fragmentRefs = useRef<(Group | null)[]>([]);
   const stone = useRef<Group>(null);
   const ready = useRef(false);
 
@@ -352,6 +381,7 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
       (wall.material as MeshBasicMaterial).map?.dispose();
       env.dispose();
       body.dispose();
+      fragmentBody.dispose();
       glass.dispose();
       maps.tint.dispose(); maps.trans.dispose(); maps.rough.dispose(); maps.bump.dispose();
       profile.dispose();
@@ -359,7 +389,7 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
       (composite.material as ShaderMaterial).dispose();
       textures.forEach((t) => t.dispose());
     };
-  }, [scene, env, wall, composite, shadow, maps, profile, geometry, body, glass, textures]);
+  }, [scene, env, wall, composite, shadow, maps, profile, geometry, body, fragmentBody, glass, textures]);
 
   useFrame(({ clock }) => {
     const s = state.current;
@@ -401,7 +431,18 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
     const z = STONE_Z + 0.25 * swing;
     mesh.position.set(stoneX, stoneY + bob, z);
     mesh.rotation.set(rotX, rotY, rotZ);
-    mesh.scale.setScalar(1 + 0.015 * swing);
+    mesh.scale.setScalar(1 + 0.012 * swing);
+    // the fragments: each on its own slow drift, a little parallax with the change
+    fragments.forEach((fr, i) => {
+      const g = fragmentRefs.current[i];
+      if (!g) return;
+      const ph = fr.seed * 1.7;
+      const fx = (fr.x - 0.5) * worldW + (0.012 + 0.008 * fr.z) * worldW * (f - 0.5) * (i % 2 ? -1 : 1);
+      const fy = (0.5 - fr.y) * WORLD_H + 0.08 * Math.sin(t * 0.19 + ph) * breathe;
+      g.position.set(fx, fy, fr.z);
+      g.rotation.set(fr.rot[0] + 0.04 * Math.sin(t * 0.11 + ph) * breathe, fr.rot[1] + 0.06 * Math.sin(t * 0.14 + ph) * breathe, fr.rot[2]);
+      g.scale.setScalar((fr.h * WORLD_H) / stoneH);
+    });
     shadow.position.set(stoneX + stoneW * 0.3, stoneY - WORLD_H * 0.05 + bob, 0.04);
     shadow.rotation.set(0, 0, rotZ);
     shadow.scale.set(stoneW * 2.0, stoneH * 1.25, 1);
@@ -427,6 +468,12 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
 
   return (
     <>
+      {/* the mineral environment: fragments of the same stone at the edges, behind the crystal, in front of the picture */}
+      {fragments.map((fr, i) => (
+        <group key={fr.seed} ref={(el) => { fragmentRefs.current[i] = el; }} position={[(fr.x - 0.5) * worldW, (0.5 - fr.y) * WORLD_H, fr.z]}>
+          <mesh geometry={geometry} material={fragmentBody} />
+        </group>
+      ))}
       <group ref={stone} position={[0, 0, STONE_Z]}>
         {/* smoky quartz: the body (the photograph, opaque in the smoke), and the glass over its clear zones */}
         <mesh geometry={geometry} material={body} />

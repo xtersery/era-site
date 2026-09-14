@@ -14,8 +14,8 @@ import { ShardScene, type SceneDiag, type ShardState, type StonePlace } from './
 
 /** the frame's box and the stone's place, in fractions of the section */
 const LAYOUT = {
-  desktop: { frame: { x: 0.44, y: 0, w: 0.56, h: 1 }, place: { x: 0.355, y: 0.56, h: 0.74, narrow: 0.92 } as StonePlace },
-  phone: { frame: { x: 0, y: 0, w: 1, h: 0.55 }, place: { x: 0.24, y: 0.55, h: 0.36, narrow: 0.9 } as StonePlace },
+  desktop: { frame: { x: 0.44, y: 0, w: 0.56, h: 1 }, place: { x: 0.455, y: 0.6, h: 0.64, narrow: 0.92 } as StonePlace },
+  phone: { frame: { x: 0, y: 0, w: 1, h: 0.55 }, place: { x: 0.2, y: 0.56, h: 0.3, narrow: 0.9 } as StonePlace },
 } as const;
 
 /** what a visitor's browser can do, probed once */

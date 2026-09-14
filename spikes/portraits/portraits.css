@@ -85,7 +85,7 @@
 .sitter__body {
   position: absolute;
   left: var(--gutter);
-  width: min(var(--column), calc(100% - var(--gutter) - var(--space-lg)));
+  width: min(38rem, calc(100% - var(--gutter) - var(--space-lg)));
   top: calc(var(--datum) + 28px);
   display: flex;
   flex-direction: column;
@@ -123,7 +123,7 @@
   font-size: clamp(1.25rem, 1.5vw, 1.6rem);
   line-height: 1.28;
   letter-spacing: -0.005em;
-  max-width: 30ch;
+  max-width: 40ch;
   text-wrap: pretty;
   color: var(--ink);
 }
@@ -136,7 +136,7 @@
   border-top: 1px solid var(--line);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
-  max-width: 46ch;
+  max-width: var(--column);
 }
 .sitter__facts dt { color: var(--mute); }
 .sitter__facts dd { margin: 0; color: var(--ink); }
@@ -223,6 +223,7 @@
   top: 0;
   left: 0;
   z-index: 2;
+  opacity: 0.8;
   pointer-events: none;
   will-change: transform;
 }

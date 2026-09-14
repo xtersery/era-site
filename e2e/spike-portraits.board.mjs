@@ -1,4 +1,4 @@
-// Builds the Spike D pass-12 review board (self-contained HTML, captures embedded as JPEG).
+// Builds the Spike D pass-13 review board (self-contained HTML, captures embedded as JPEG).
 import { chromium } from '@playwright/test';
 import { readFileSync, writeFileSync } from 'node:fs';
 const CAP = 'spikes/portraits/__captures__';
@@ -60,8 +60,8 @@ ul{padding-left:1.2em;color:var(--mute);max-width:80ch}li{margin:6px 0}li b{colo
 .dark code{color:#f3dfae}
 </style></head>
 <body><div class="wrap">
-<header><div><div class="eyebrow">ЭРА · Spike D · Специалисты · pass 12 · the resident quartz</div>
-<h1>«Сеанс» — the sitting<small>Закреплённая портретная галерея: одна стена, один портрет в масштабе человека, одна встреча за раз. Проход 12 — кварц остаётся: постоянный элемент композиции на границе стены и кадра, имя проходит перед ним, смена портрета выходит из него. Слова — почти сразу.</small></h1>
+<header><div><div class="eyebrow">ЭРА · Spike D · Специалисты · pass 13 · the mineral environment</div>
+<h1>«Сеанс» — the sitting<small>Закреплённая портретная галерея: одна стена, один портрет в масштабе человека, одна встреча за раз. Проход 13 — кварц становится средой: на границе стены и кадра, тише, дымчатее, за строкой текста; осколки того же камня по краям, в глубине. Женщина — герой; минерал — язык.</small></h1>
 <p class="concept">One wall of a light room. One portrait at a time, at the scale of a person. The visitor never browses a staff list — she meets a specialist and reads her label. At rest, <b>the focal line</b> — a calibration hairline — runs from the typeset name across the wall to the eyes of the woman in the portrait. Between specialists <b>a slab of smoky quartz</b> crosses the frame and is the change itself: ahead of it the portrait being left is compressed into its leading edge; inside it the arriving portrait is seen bent through the smoke; behind it the arriving portrait is drawn out of its trailing edge and settles. The seam has the stone's silhouette. Remove the stone and nothing happens. Nothing slides, nothing fades, nothing is a card.</p>
 <p class="lede">Deliberately absent: cards, thumbnails, a row of faces, arrows, avatars, a grid, any carousel motion, blur, any lens on a real face. Two other directions were argued and dropped: the <i>double page</i> (name as a masthead, a page-turn between people — a slider in disguise) and a <i>focus pull</i> between two portraits at different depths (blur on a real face: an effect, and against the site's rule).</p></div>
 <div class="spike"><b>The working spike</b><code>docs/spikes/boards/specialists-sitting-spike.html</code> · or <code>npm run dev</code> → <code>/spikes/portraits/</code> · <code>?k=&amp;f=</code> freezes a state</div></header>
@@ -84,28 +84,28 @@ ${fig('A1', 'At rest on 05.1. Every resting state is a complete editorial page: 
 ${fig('A2', 'The focal line, close: the name, the wall, the edge of the frame where ink becomes gold, the ring before her eye.', 'detail', await img('d4-focal', 'Фокальная линия — деталь', 1400))}
 </section>
 
-<section><h2>B · The stone stays; the change comes out of it</h2>
-<p class="sub"><b>Layering.</b> The scene is now the section's own layer, not the frame's: the canvas covers the whole section and paints the wall (a plane matching the CSS surface) and the frame (the portrait, pixel for pixel the DOM plate at rest), with the stone standing in front of both at the wall/frame boundary — centre at 35.5 % of the width, 56 % of the height, 74 % of the section tall at the photograph's proportion — and its shadow falling on wall and portrait alike. Above the canvas sit the words: the wall label, the label (name, role, sentence, facts, CTA), the row, the focal line. So the name crosses <i>in front of</i> the stone; the body column is narrowed to 22 rem so the sentence and the facts stay on the wall and only the name reaches the mineral. The DOM plates and wall remain beneath the canvas for the no-WebGL path, where the photograph itself stands at the same place.</p>
-<p class="sub"><b>The transition.</b> The frame is one field around a moving front. At f = 0 the frame is the current portrait. From the first moment of a change the field under the stone is the arriving portrait — what the stone lets through in its clear zones is the next state. Then a front leaves the stone's right edge (and a second one its left, which on desktop is off the frame at once) and crosses the frame on an eased curve, gone past the far edge by 85 %: ahead of it the departing portrait is compressed toward it and softened; behind it the arriving portrait is drawn out of the stone and settles with distance; the front's shape is the stone's own edge, rounding off beyond its ends. The stone itself turns 7° as the front leaves it, comes 0.25 toward the visitor and settles back over the first 70 %; at rest it breathes: ±3° over 27 s, a tilt and a lean drifting, a 0.05 bob. Reduced motion: no breath, whole states.</p>
-<p class="sub"><b>Timing of the words.</b> Pass 11: the label she is leaving lifted away over the first half of the travel and the next label was set over the second half — the name arrived at 50 % at the earliest and the facts at 100 %. Now: the leaving label lifts away over f 0 → 0.2; the next is set from its name down over f 0.22 → 0.5; the count and the index switch at 0.21; the focal line re-aims over 0.15 → 0.5. The name is on the wall by f ≈ 0.28 and the whole label by 0.5, while the picture is still changing until 0.85 — the words lead the image.</p>
-${fig('B1', 'Ten frames of one scroll step, f = 0 · 0.1 · 0.2 · 0.3 · 0.42 · 0.55 · 0.68 · 0.8 · 0.9 · 1. The stone stays; the front leaves it; the new name is set by the fourth frame, the whole label by the fifth, the picture settles by the ninth.', '05.2 → 05.3', await img('d5-transition', 'Кварц остаётся, смена выходит из него — десять кадров', 1600))}
-${fig('B2', 'The stone on the boundary, close: at rest with the name crossing it; the front leaving its edge; midway.', 'f = 0 · 0.3 · 0.55', await img('d6-shard', 'Кварц на границе крупно', 1600))}
+<section><h2>B · The mineral environment; the change comes out of the stone</h2>
+<p class="sub"><b>Placement.</b> The crystal moved from the text column to the boundary: centre at 45.5 % of the width (the boundary is at 44 %), 60 % of the height, 64 % of the section tall — its left third over the wall, its right two-thirds entering from the image's edge, its top and bottom in view. It is not inside the text area; the words that cross it are the sentence's longer lines (the sentence's measure widened to 40ch) and the focal line, the name staying on the wall. The fallback photograph stands at the same place.</p>
+<p class="sub"><b>Dominance.</b> The surface is now the photograph pulled toward its own shadowed taupe (22 % of <code class="mono">#8f8479</code>) with contrast 0.82 and saturation 0.82; the body's opacity 0.86 and its alpha thinning to 34 % in the clear zones; clearcoat 0.35, environment 0.7; the glass layer's roughness 0.46 and environment 0.45; the shadow at 0.3. The viewer meets the portrait first; the stone is what the light does at the edge of it.</p>
+<p class="sub"><b>The environment.</b> Three fragments of the same body — the same geometry and photograph, opacity 0.62, environment 0.5 — at the extreme edges: one at the right edge half outside (26 % tall), one at the top right (18 %), one at the lower-left corner (20 %), at depths 0.3–0.55 between the picture and the crystal. Each on its own slow drift (bob and a few degrees over 33–57 s) and a slight parallax with the change. Phone: two, at the right and lower-left edges.</p>
+<p class="sub"><b>The transition</b> is pass 12's, the stone staying: under the stone the field is the arriving portrait from the first moment; a front leaves the stone's edge and crosses the frame, the departing portrait compressed ahead of it and the arriving one drawn out behind it; the stone turns 7° and settles; the words lead (out over f 0 → 0.2, in from the name over 0.22 → 0.5). With the stone on the boundary the front now starts at the image's own edge: the image is revealed through the mineral, not by a crystal crossing it.</p>
+${fig('B1', 'Ten frames of one scroll step, f = 0 · 0.1 · 0.2 · 0.3 · 0.42 · 0.55 · 0.68 · 0.8 · 0.9 · 1.', '05.2 → 05.3', await img('d5-transition', 'Смена выходит из минерала — десять кадров', 1600))}
+${fig('B2', 'The boundary, close: at rest, the front leaving the stone, midway.', 'f = 0 · 0.3 · 0.55', await img('d6-shard', 'Граница крупно', 1600))}
 <table><tr><th>layer, back to front</th><th>what</th></tr>
-<tr><td class="k">0 · ground</td><td>the wall's surface (CSS, <code class="mono">.sitting::before</code>) and the DOM plates in the frame — the no-WebGL state</td></tr>
-<tr><td class="k">2 · the scene</td><td>one canvas over the section: the wall plane, the field plane in the frame, the stone (body + glass) with its shadow</td></tr>
-<tr><td class="k">4 · the focal line</td><td>from the name to her eyes, across the wall and the stone</td></tr>
-<tr><td class="k">5 · the words</td><td>the label, the wall label, the row — the name in front of the stone</td></tr></table>
+<tr><td class="k">0 · ground</td><td>the wall's surface (CSS) and the DOM plates in the frame — the no-WebGL state</td></tr>
+<tr><td class="k">2 · the scene</td><td>the wall plane · the field plane (the portrait) · the fragments (z 0.3–0.55) · the crystal (z 1.5) with its shadow</td></tr>
+<tr><td class="k">4 · the focal line</td><td>from the name to her eyes, across the stone</td></tr>
+<tr><td class="k">5 · the words</td><td>the label — the sentence crossing the stone — the wall label, the row</td></tr></table>
 <table><tr><th>the stone</th><th>how</th></tr>
-<tr><td class="k">place</td><td>x 35.5 %, y 56 %, h 74 % of the section (phone: x 24 %, y 55 %, h 36 %); z 1.5 in a 30° camera at the distance where the section exactly fills the view</td></tr>
-<tr><td class="k">body · glass</td><td>as pass 11: the photograph as colour with an alpha map thinning in the clear zones (a stock physical material, no transmission pass), and a transmission layer over the clear zones only</td></tr>
-<tr><td class="k">rest</td><td>rotY −4° ± 3°, rotZ −4° ± 1.2°, rotX −2° ± 1.5°, bob 0.05 — periods 27 s / 37 s / 48 s / 20 s</td></tr>
-<tr><td class="k">change</td><td>+7° rotY, +0.25 toward the visitor, scale 1.015 — a sine over f 0 → 0.7</td></tr>
-<tr><td class="k">the front</td><td>from the stone's right edge (inset 14 % of its half-width) to 1.6 frame widths on smoothstep(f / 0.85); shape = the stone's edge profile, lag = beyond² × 0.5; wake 0.16, pull 0.05; settle over 0.85 → 1</td></tr>
-<tr><td class="k">cost</td><td>60 fps median, p95 16.8 ms, 0.4 % over 33 ms while scrubbing on 1440 × 900; 7 draw calls</td></tr></table>
+<tr><td class="k">place</td><td>x 45.5 %, y 60 %, h 64 % of the section (phone: x 20 %, y 56 %, h 30 %); z 1.5</td></tr>
+<tr><td class="k">surface</td><td>the photograph at 78 % over <code class="mono">#8f8479</code>, contrast 0.82, saturation 0.82, brightness 1.04; alpha 1 − 0.66 × clear; opacity 0.86; roughness 0.58 × map; bump 0.04; clearcoat 0.35 / 0.24; env 0.7</td></tr>
+<tr><td class="k">glass</td><td>over the clear zones: transmission 0.9, thickness 1.3, ior 1.54, roughness 0.46 × map, attenuation <code class="mono">#8f847b</code> at 4, clearcoat 0.2, env 0.45</td></tr>
+<tr><td class="k">fragments</td><td>same geometry and maps; opacity 0.62, env 0.5, clearcoat 0.2; no glass; positions and sizes above; drift periods 33 / 45 / 57 s; parallax (0.012 + 0.008 z) × (f − 0.5) of the width</td></tr>
+<tr><td class="k">cost</td><td>60 fps median, p95 16.8 ms while scrubbing on 1440 × 900; 10 draw calls</td></tr></table>
 </section>
 
 <section><h2>C · Another resting state — 05.3</h2>
-${fig('C1', 'At rest on 05.3: the stone in its place, the name crossing it, the focal line to her eye.', '1440 × 900', await img('d3-rest-3', 'Состояние покоя — специалист 05.3'))}
+${fig('C1', 'At rest on 05.3: the stone on the boundary, the sentence crossing it, the fragments at the edges.', '1440 × 900', await img('d3-rest-3', 'Состояние покоя — специалист 05.3'))}
 ${fig('C2', '05.4 — a one-line role, a short sentence: the same grid.', '1440 × 900', await img('d3b-rest-4', 'Состояние покоя — специалист 05.4'))}
 </section>
 
