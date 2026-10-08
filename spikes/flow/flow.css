@@ -1,0 +1,462 @@
+/*
+ * The flow page — Услуги → Кейсы, with Стоимость on the top navigation.
+ *
+ * Nothing here styles the two sections; they bring their own stylesheets
+ * unchanged. This file is the page around them: the ground, the header, the
+ * neighbours, the price layer and the readout — and one accommodation the
+ * composition makes for its own fixed header (`--flow-offset`).
+ */
+
+/* The page ground is the Кейсы mineral: any sub-pixel line at the seam where
+   the two pin-spacers meet is then in the family of the tones on either side,
+   and cannot flash a foreign colour through. */
+.flowpage {
+  --flow-offset: calc(var(--header-height) - var(--space-md));
+
+  /* ---- the blend's inputs, written by the page's one scrubbed timeline ---- */
+  --bone: #ece8df; /* = `.radial`'s ground */
+  --cases-edge: #0b1712; /* the ribbon's ground at its top edge; set per viewport */
+  --seam-k: 0; /* 0 bone … 1 Кейсы edge — the one tone both layers are painted from */
+  --a-reach: 18%; /* how far up Услуги the atmosphere reaches */
+  --a-shift: 0svh; /* the atmosphere's lag behind the leaving content */
+  --b-opacity: 1; /* the veil over the top of Кейсы */
+
+  /* ---- the second blend, Кейсы → Специалисты ---- */
+  --cases-foot: #0c1713; /* the ribbon's ground at its bottom edge; set per viewport */
+  --wall: #e9ebe6; /* = `.sitting`'s wall */
+  --seam2-k: 0; /* 0 archive foot … 1 wall */
+  --c-opacity: 0; /* the veil at the foot of Кейсы: off for the whole pin */
+  --d-height: 58svh; /* the veil over the head of Специалисты: it lifts, shrinking from below */
+  --d-opacity: 1;
+}
+/* The blends' inputs above are the resting values. The scrubbed ones are
+   written by the page's timelines on the elements that paint them (the
+   veils, the atmosphere, the walls, the hush) — never on this root, where a
+   change per scroll frame would restyle the whole page. So the tones derived
+   from them are declared on those elements too, where the live values are. */
+.flowpage .radial__exit,
+.flowpage .flow-veil {
+  --seam-tone: color-mix(in srgb, var(--cases-edge) calc(var(--seam-k) * 100%), var(--bone));
+  /* a cooler graphite that the atmosphere passes through before the forest */
+  --seam-graphite: color-mix(in srgb, #222d29 calc(var(--seam-k) * 100%), var(--bone));
+  --seam2-tone: color-mix(in srgb, var(--wall) calc(var(--seam2-k) * 100%), var(--cases-foot));
+}
+html,
+body {
+  background: #050d0a;
+}
+
+/* The global reduced-motion reset makes every style write a 0.01 ms transition
+   (`transition-duration: 0.01ms !important` on `*`). A pin-spacer whose height
+   is written and then measured by the NEXT trigger in the same synchronous
+   ScrollTrigger.refresh() pass would then be read at its old size, and the
+   Кейсы pin would start ~4.6k px early. The spacers must resize instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .pin-spacer {
+    transition-duration: 0s !important;
+  }
+}
+
+/* ---- the top navigation ------------------------------------------------- */
+
+/* On the wireframe header's model: fixed, light ink, `difference` over any
+   room, mono index carrying the architectural numbers. Pointer events only on
+   the links, so the bar itself never shadows the sections' grips. */
+.flowpage { --bar: 1; } /* the bar's presence: the full page holds it at 0 while the hero's own header is up */
+.flowbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: var(--z-header);
+  opacity: var(--bar);
+  visibility: var(--bar-visibility, visible);
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  padding-inline: var(--gutter);
+  color: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+.flowbar a {
+  pointer-events: auto;
+  color: inherit;
+  text-decoration: none;
+}
+.flowbar__mark {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height-compact);
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.flowbar__index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+.flowbar__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: var(--control-height-compact);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  opacity: 0.72;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.flowbar__link:hover,
+.flowbar__link:focus-visible {
+  opacity: 1;
+}
+.flowbar__no {
+  opacity: 0.6;
+}
+/* Стоимость is in the index but set apart: the one entry that is not a place
+   on the vertical path. */
+.flowbar__utility {
+  margin-left: var(--space-md);
+  padding-left: var(--space-md);
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+}
+.flowbar__cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height-compact);
+  padding: 0 var(--space-sm);
+  border: 1px solid currentColor;
+  font-family: var(--font-text);
+  font-size: 0.9375rem;
+}
+@media (max-width: 1023.98px) {
+  /* the phone keeps the wordmark, the CTA and the one utility entry */
+  .flowbar__index li:not(.flowbar__utility) {
+    display: none;
+  }
+  .flowbar__utility {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* ---- room for the header ------------------------------------------------ */
+
+/* The sections were built without a header over them. Under a fixed 64 px bar
+   their top-anchored wall labels (and the Кейсы text that hangs from the same
+   line) move down by the header's extra height — a uniform offset, the same
+   accommodation production will make; nothing inside either composition
+   changes relative to itself. */
+.flowpage .radial__label,
+.flowpage .ribbon__label,
+.flowpage .wall__label {
+  top: calc(var(--space-md) + var(--flow-offset));
+}
+/* the founder's plate hangs below the header by the same offset (in the flow since the read) */
+.flowpage .founder__column {
+  margin-top: calc(9svh + var(--flow-offset));
+}
+.flowpage .browse {
+  top: calc(var(--space-lg) + 3.2rem + var(--flow-offset));
+}
+@media (max-width: 1023.98px) {
+  .flowpage .radial__label {
+    top: calc(var(--space-sm) + var(--flow-offset));
+  }
+  .flowpage .browse {
+    top: auto;
+  }
+  .flowpage .rail {
+    top: calc(var(--space-lg) + 1rem + var(--flow-offset));
+  }
+  /* the founder's plates on the phone hang from the same label line */
+  .flowpage .founder__column {
+    margin-top: 0;
+    padding-top: calc(var(--space-md) + 2.4rem + var(--flow-offset));
+  }
+}
+
+/* ---- the blend --------------------------------------------------------- */
+
+/* Above the meeting line: the atmosphere inside Услуги. Painted here, not in
+   the section's stylesheet — Услуги only provides the inert box. It is the
+   GROUND that changes, never the content: the layer sits under the states and
+   the dial (z 0, over the section's own bone), so ink stays ink until the
+   ground has deepened to meet it. Transparent → graphite → the seam tone,
+   from `--a-reach` up the section down to its edge; a solid band at the
+   bottom so the parallax lag (`--a-shift`: the ground moves a little slower
+   than the content over it) never changes the tone at the clipped edge. At
+   rest the seam tone IS the bone, so this paints nothing. */
+.flowpage .radial__exit {
+  --band: 10svh;
+
+  inset: calc(-1 * var(--band)) 0 0 0;
+  z-index: 0;
+  opacity: 1;
+  transform: translateY(var(--a-shift));
+  background: linear-gradient(
+    to bottom,
+    transparent calc(100% - var(--a-reach) - var(--band)),
+    color-mix(in srgb, var(--seam-graphite) 42%, transparent) calc(100% - var(--a-reach) * 0.55 - var(--band)),
+    color-mix(in srgb, var(--seam-tone) 88%, var(--seam-graphite)) calc(100% - var(--a-reach) * 0.14 - var(--band)),
+    var(--seam-tone) calc(100% - var(--band)),
+    var(--seam-tone) 100%
+  );
+}
+
+/* Below the meeting line: the same tone carried into the top of Кейсы and
+   released downward into the archive's own ground over half a viewport, so
+   the section arrives as atmosphere and its label and rail surface out of it
+   as the tone deepens. Gone (`--b-opacity` 0) before Кейсы pins. */
+.flow-cases {
+  position: relative;
+}
+.flow-veil {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52svh;
+  z-index: 7; /* over the ribbon's label (6) and words (5); never over the layer */
+  pointer-events: none;
+  opacity: var(--b-opacity);
+  background: linear-gradient(
+    to bottom,
+    var(--seam-tone) 0,
+    var(--seam-tone) 24%,
+    color-mix(in srgb, var(--seam-tone) 62%, transparent) 50%,
+    color-mix(in srgb, var(--seam-tone) 22%, transparent) 76%,
+    transparent 100%
+  );
+}
+
+/* ---- the second blend: Кейсы → Специалисты ----------------------------- */
+
+/* The foot of Кейсы: the archive's own dark rising to meet the second seam
+   tone at the bottom edge, then lightening with it. A sibling in the same
+   wrapper as the head veil, at the wrapper's foot — where the section stands
+   from the moment its pin releases. Off (`--c-opacity` 0) for the whole pin,
+   since the spacer's foot would otherwise show over the last case; when it
+   comes on, its tone is still the archive's, so nothing appears. */
+.flow-veil--foot {
+  top: auto;
+  bottom: 0;
+  height: 64svh;
+  opacity: var(--c-opacity);
+  /* a long, soft rise — light over dark is read easily, so no solid band beyond the edge */
+  background: linear-gradient(
+    to top,
+    var(--seam2-tone) 0,
+    var(--seam2-tone) 5%,
+    color-mix(in srgb, var(--seam2-tone) 72%, transparent) 22%,
+    color-mix(in srgb, var(--seam2-tone) 40%, transparent) 46%,
+    color-mix(in srgb, var(--seam2-tone) 14%, transparent) 72%,
+    transparent 100%
+  );
+}
+
+/* The head of Специалисты: the same tone carried down over the wall AND the
+   portrait, released into the room over half a viewport. The portrait
+   surfaces as the tone lightens and takes the frame as the veil LIFTS — it
+   shrinks from below, so its edge band stays on the meeting line until
+   Кейсы has left, and it is nothing when the section pins. */
+.flow-sitting {
+  position: relative;
+}
+.flow-veil--head {
+  height: var(--d-height);
+  z-index: 8; /* over the wall's words (5) and the frame */
+  opacity: var(--d-opacity);
+  background: linear-gradient(
+    to bottom,
+    var(--seam2-tone) 0,
+    var(--seam2-tone) 6%,
+    color-mix(in srgb, var(--seam2-tone) 78%, transparent) 26%,
+    color-mix(in srgb, var(--seam2-tone) 44%, transparent) 54%,
+    color-mix(in srgb, var(--seam2-tone) 14%, transparent) 80%,
+    transparent 100%
+  );
+}
+
+/* ---- the third blend: Основатель → Отзывы -------------------------------- */
+
+/* The foot of Основатель: the deep forest rising from below into the marble
+   as the room leaves — the marble, then its shadow, then the forest. A
+   sibling in the founder's wrapper, at the wrapper's foot (where the section
+   stands from the moment its pin releases); off (`--f-k` 0) for the whole
+   pin, deepening with the scroll after it. Nothing of the room is faded: the
+   veil lies on the wall's foot and the words leave with the scroll. At the
+   meeting line it is the head of Отзывы's own shade, so the line is one tone
+   on both sides. */
+.flowpage { --f-k: 0; --f-reach: 12svh; --forest-2: #0f1f19; }
+.flow-founder {
+  position: relative;
+}
+.flow-veil--founder {
+  top: auto;
+  bottom: 0;
+  height: var(--f-reach);
+  z-index: 4; /* over the wall, the plate and her — the atmosphere of the next room */
+  opacity: var(--f-k);
+  background: linear-gradient(
+    to top,
+    var(--forest-2) 0,
+    var(--forest-2) 4%,
+    color-mix(in srgb, var(--forest-2) 78%, transparent) 20%,
+    color-mix(in srgb, var(--forest-2) 46%, transparent) 46%,
+    color-mix(in srgb, var(--forest-2) 16%, transparent) 74%,
+    transparent 100%
+  );
+}
+
+/* ---- the corridor: Адрес → Заявка ---------------------------------------- */
+
+/* The light leaving the open room. Three things the page owns, written by one
+   scrubbed timeline. THE DIM — over the whole of Адрес, MULTIPLY with a warm
+   greige (`--p-dim`): the paper loses its light and goes greige while ink
+   stays ink and every word stays readable. THE DUSK — one tone, `--dusk`,
+   interpolated from the dimmed bone to the black (`--p-k`), painted on BOTH
+   sides of the meeting line: solid at the foot of Адрес (a veil in the
+   room's wrapper, fading upward over `--p-reach`) and at the head of Заявка
+   (its own hush, dusk → black over half a viewport — `spikes/inquiry/`). So
+   the line is one tone at every position and the page darkens as a whole,
+   never as an edge. THE WALLS — `Corridor`, the sides of the viewport. */
+.flowpage {
+  --p-k: 0;
+  --p-dim: 0;
+  --p-reach: 10svh;
+  --black: #070707;
+  --greige-dim: #9c9689; /* the multiply tint */
+}
+/* the dusk, on the two elements painted from it (written there by the corridor's timeline) */
+.flowpage .flow-veil--place,
+.flowpage .talk__hush {
+  --bone-dim: color-mix(in srgb, #908878 calc(var(--p-dim) * 100%), var(--bone)); /* ≈ the bone under the tint */
+  --dusk: color-mix(in srgb, var(--black) calc(var(--p-k) * 100%), var(--bone-dim));
+}
+.flow-place {
+  position: relative;
+}
+.flow-veil--place-dim {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: var(--greige-dim);
+  mix-blend-mode: multiply;
+  opacity: var(--p-dim);
+}
+.flow-veil--place {
+  top: auto;
+  bottom: 0;
+  height: var(--p-reach);
+  z-index: 5; /* over the dim, the map plate and the words — the atmosphere of the next room */
+  opacity: 1;
+  background: linear-gradient(
+    to top,
+    var(--dusk) 0,
+    var(--dusk) 4%,
+    color-mix(in srgb, var(--dusk) 70%, transparent) 20%,
+    color-mix(in srgb, var(--dusk) 38%, transparent) 44%,
+    color-mix(in srgb, var(--dusk) 14%, transparent) 70%,
+    transparent 100%
+  );
+}
+
+/* The portraits spike's own diagnostic panel has no place on the composed page. */
+.flowpage .diag {
+  display: none;
+}
+
+/* ---- the neighbours ----------------------------------------------------- */
+
+.flow-stub {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-md) var(--gutter);
+  background: #08140f;
+  color: #98a39c;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  text-align: center;
+}
+.flow-stub p {
+  margin: 0;
+}
+
+/* ---- the price layer ---------------------------------------------------- */
+
+/* Its own scroller over the page; the page beneath is held and never moves. */
+.pricelayer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  background: #ece8df;
+  color: #0d0c0b;
+  outline: none;
+}
+.pricelayer__bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  min-height: var(--header-height);
+  padding-inline: var(--gutter);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #625d55;
+}
+.pricelayer__back {
+  appearance: none;
+  border: 0;
+  background: none;
+  margin: 0;
+  padding: 0;
+  min-height: var(--control-height-compact);
+  font: inherit;
+  color: #0d0c0b;
+  cursor: pointer;
+}
+.pricelayer__back:focus-visible {
+  outline: 1px solid #0d0c0b;
+  outline-offset: 4px;
+}
+.pricelayer__where {
+  margin: 0;
+}
+.pricelayer__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 1023.98px) {
+  .pricelayer__where {
+    display: none;
+  }
+}
+
+/* ---- readout ------------------------------------------------------------ */
+
+.flowhud {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: var(--z-overlay);
+  font: 11px/1.4 var(--font-mono);
+  color: #98a39c;
+  background: rgba(5, 13, 10, 0.85);
+  padding: 4px 8px;
+  pointer-events: none;
+}

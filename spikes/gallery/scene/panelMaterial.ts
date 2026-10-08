@@ -1,4 +1,4 @@
-import { Color, DoubleSide, ShaderMaterial, Vector2, type Texture } from 'three';
+import { Color, DoubleSide, ShaderMaterial, Vector4, type Texture } from 'three';
 
 /**
  * One case panel on the rail.
@@ -9,11 +9,16 @@ import { Color, DoubleSide, ShaderMaterial, Vector2, type Texture } from 'three'
  * forward, which is the whole "unfold" moment.
  *
  * Extended for ERA: the two states of the case live on this one sheet, sampled
- * with the same uv and mixed by opacity only (no scale, no offset, no warp — the
- * face cannot move); the archive recedes into the mineral dark with depth, along
- * its own curved surface; the sheet keeps a soft mineral edge and a warm key;
- * and the case the visitor has arrived at carries one fine gold edge — light,
- * not decoration — which is how she knows it is the one she can take out.
+ * through the same fit and cut by one vertical divider (`uSplit`: «до» to its
+ * left, «после» to its right) — a clip, never a scale, offset or warp, so the
+ * face cannot move; a single photograph is the same sheet with the divider
+ * withdrawn (`uPaired` 0). The photograph sits in the 4 : 5 sheet by a fit the
+ * CPU computes from its size (`uFitA` / `uFitB`: uv · xy + zw) — cover around
+ * a focus, or contain on the sheet's own dark paper for the clinic's diptychs.
+ * The archive recedes into the mineral dark with depth, along its own curved
+ * surface; the sheet keeps a soft mineral edge and a warm key; and the case the
+ * visitor has arrived at carries one fine gold edge — light, not decoration —
+ * which is how she knows it is the one she can take out.
  */
 export function createPanelMaterial(
   after: Texture,
@@ -31,11 +36,17 @@ export function createPanelMaterial(
     uniforms: {
       uAfter: { value: after },
       uBefore: { value: before },
-      /** 0 «после» · 1 «до» */
-      uReveal: { value: 0 },
-      /** pointer in sheet space, and how much of the reveal it owns */
-      uField: { value: new Vector2(0.5, 0.5) },
-      uFieldAmount: { value: 0 },
+      /** the photograph's place in the sheet: uv · xy + zw (identity until it has loaded) */
+      uFitA: { value: new Vector4(1, 1, 0, 0) },
+      uFitB: { value: new Vector4(1, 1, 0, 0) },
+      /** 1 = the whole photograph on the sheet's paper (contain); 0 = it fills the sheet (cover) */
+      uContain: { value: 0 },
+      /** 1 = a «до / после» pair lives on this sheet; 0 = one photograph */
+      uPaired: { value: 0 },
+      /** the divider, in sheet uv.x — «до» to its left */
+      uSplit: { value: 0.5 },
+      /** how much of the sheet the divider owns: 0 on the rail («после» only), 1 open */
+      uSplitAmount: { value: 0 },
       /** 1 = wrapped around the rail, 0 = flat (focused) */
       uBend: { value: 1 },
       /** the rail's radius — the curvature the sheet is wrapped to */
@@ -55,6 +66,7 @@ export function createPanelMaterial(
       /** how dark a sheet may get at the fog's full reach: the recession is clamped */
       uFogAmount: { value: fog.amount },
       uDark: { value: new Color('#07120e') },
+      uPaper: { value: new Color('#101c17') },
       uWarm: { value: new Color('#f7e4b1') },
       uGold: { value: new Color('#d3b478') },
     },
@@ -81,9 +93,12 @@ export function createPanelMaterial(
       precision highp float;
       uniform sampler2D uAfter;
       uniform sampler2D uBefore;
-      uniform float uReveal;
-      uniform vec2 uField;
-      uniform float uFieldAmount;
+      uniform vec4 uFitA;
+      uniform vec4 uFitB;
+      uniform float uContain;
+      uniform float uPaired;
+      uniform float uSplit;
+      uniform float uSplitAmount;
       uniform float uOpacity;
       uniform float uDim;
       uniform float uEdge;
@@ -93,6 +108,7 @@ export function createPanelMaterial(
       uniform float uFogReach;
       uniform float uFogAmount;
       uniform vec3 uDark;
+      uniform vec3 uPaper;
       uniform vec3 uWarm;
       uniform vec3 uGold;
       varying vec2 vUv;
@@ -100,22 +116,31 @@ export function createPanelMaterial(
 
       // the far end of a receding sheet also thins out, so it dissolves into the ground
       float edgeAlpha(float full, float fog) { return full * (1.0 - fog * 0.35); }
+      float inside(vec2 p) { vec2 s = step(vec2(0.0), p) * step(p, vec2(1.0)); return s.x * s.y; }
 
       void main() {
         vec2 uv = vUv;
-        vec3 after = texture2D(uAfter, uv).rgb;
-        vec3 before = texture2D(uBefore, uv).rgb;
-
-        // the pointer opens the earlier state as a soft field, feathered to nothing
-        vec2 d = (uv - uField) / vec2(0.46, 0.56);
-        float field = 1.0 - smoothstep(0.55, 1.0, length(d));
-        float mixAmount = clamp(max(uReveal, field * uFieldAmount), 0.0, 1.0);
-
-        // OPACITY ONLY — both states are sampled at exactly the same uv
-        vec3 col = mix(after, before, mixAmount);
-
         // one warm key falling across the sheet from the upper left
         float key = smoothstep(1.2, -0.1, uv.x + (1.0 - uv.y));
+
+        // the photograph in its fit — the same fit for both states of a pair
+        vec2 uvA = uv * uFitA.xy + uFitA.zw;
+        vec2 uvB = uv * uFitB.xy + uFitB.zw;
+        vec3 after = texture2D(uAfter, clamp(uvA, 0.0, 1.0)).rgb;
+        vec3 before = texture2D(uBefore, clamp(uvB, 0.0, 1.0)).rgb;
+
+        // the divider: «до» to its left, «после» to its right — a clip, one pixel soft
+        float aa = fwidth(uv.x) * 0.75;
+        float left = 1.0 - smoothstep(uSplit - aa, uSplit + aa, uv.x);
+        float mixAmount = left * uSplitAmount * uPaired;
+
+        // OPACITY ONLY — both states are sampled through the same fit
+        vec3 col = mix(after, before, mixAmount);
+
+        // a photograph that does not fill the sheet sits on the sheet's own paper
+        float paper = uContain * (1.0 - inside(uvA));
+        col = mix(col, uPaper + uWarm * key * 0.04, paper);
+
         col += uWarm * key * 0.07;
 
         // the back of a sheet is the back of a plate: dark mineral glass, no image —

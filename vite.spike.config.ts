@@ -17,6 +17,8 @@ const resolvePath = (segment: string) => fileURLToPath(new URL(segment, import.m
 export default defineConfig({
   plugins: [react()],
   base: './',
+  // review artifacts keep the debug tooling (`src/lib/env.ts → debugTools`); the site build does not
+  define: { 'import.meta.env.VITE_ERA_DEBUG': JSON.stringify('1') },
   resolve: {
     alias: {
       '@': resolvePath('./src'),

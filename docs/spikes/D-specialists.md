@@ -847,3 +847,338 @@ the published file tested at `?k=3&e=0.5`.
 **Open.** A small residual crease where the crystal's edge reflects (upper
 left, e ≈ 0.5); the settled wall keeps the reference's daylight — the
 darkening into 06 is the next section's gradient.
+
+## Pass 16 — THE OPTICAL PLATE, AND ONE CONTINUOUS PASSAGE (18.09.2026)
+
+Two corrections on the user's brief: the smoky quartz was too heavy and
+competed with the face; the exit was still pass 15's stepped stone → polish
+→ field → slab, not the latest approved choreography (Spike E: one
+continuous dolly-in).
+
+**The object** — `scene/OpticScene.tsx` replaces `ShardScene.tsx` in
+`Sitting` (the old file stays for `spikes/mineral/`, which imports its wall
+and shadow). A thin asymmetrical vertical slice of glass
+(`scene/plateGeometry.ts`: an extruded outline a little wider at the foot,
+its head cut at an angle, one long edge barely bowed; thickness 1.2 % of its
+height; 0.68 of the section tall on desktop, 0.34 on the phone) at the same
+place on the wall/frame boundary. A real transmission body
+(`MeshPhysicalMaterial`, transmission 0.96, ior 1.5, roughness 0.07,
+clearcoat 1; the forest green `#3d6b58` only as attenuation over the plate's
+own thickness — a tint, never a fill); its side faces a second material,
+champagne `#d9c59d` with a low emissive — one fine line of light. The
+fragments and the photograph are gone. It breathes, answers the pointer
+with ≤ 2.2° of tilt (a shift of reflection, never a turn) and turns a few
+degrees as the change leaves it: the front of the specialist change still
+comes out of it (`composite.frag`, the plate's own straight profile). The
+no-WebGL fallback is a CSS slice (`.shard--plate`: clip-path, backdrop
+blur, gold inset edges), no longer the photograph.
+
+**The passage** — the pin's last viewport is no longer scrubbed. At 05.4's
+rest one gesture plays a film through `spikes/hero-stone/passage/
+passageGateway.ts` (the Lenis-aware gateway: rests at the row's end and the
+pin's end, gestures read in the capture phase, the document held and placed
+on the far rest at t 0.5 under the opaque frame; `sync` scrubs only a free
+scroll; a momentum overshoot past the row's end snaps back to the rest).
+Clock: Spike E's four phases scaled ×0.82 — `PASSAGE_RHYTHM` 0 → 1.72 s
+(0.44) → 2.71 s (0.62) → 4.84 s (0.9) → 5.9 s (1), hold 0.8 s; 6.7 s in all
+against 8.2 s (0.7× on the phone; the way back 1.15× faster). One monotone
+cubic, so the speed is continuous — measured: 50 samples between t 0.02 and
+0.98, none without progress.
+
+What the film is, adapted to glass (`optic.frag`): the camera dollies
+toward the plate on one monotone path, always looking down −z; the plate
+quiets and holds; as its edges leave the frame (t 0.36–0.44) an OPTICAL
+PLANE riding ahead of the camera takes the view — the same refracted room
+(the portrait and the wall, bent by a slow field of swells measured against
+the view, tinted by the smoke); the bending grows and softens (t 0.44–0.66)
+while the picture recedes into the plaster (t 0.44–0.58 — no face is ever
+seen through the glass); caught champagne light stretches along the wall's
+35° vein flow into long strands (t 0.48–0.74); the veins resolve first
+where the stone is dark, the slab where it is pale (t 0.6–0.9), the
+strands taking the veins' places; and the view opens out (t 0.56–0.92) onto
+the sheet at its own scale — exactly where `.founder-opening__wall` lays it,
+so scrolling on continues the wall. No crossfade between two pictures: the
+plane begins as what the glass shows and ends as what the wall is.
+
+The DOM keeps pass 15's `exit(t)`: the words lift 0.05–0.45, the wall label
+and row fade 0.15–0.6, the focal line withdraws; the CSS marble fallback
+0.3–0.8. Reduced motion: no scene, no film — the gesture lands on the end
+state at once. Proof: `e2e/spike-flow.handoff.mjs` (the flow page, 218
+checks) — armed at 05.4's rest, plays to the end in 6.6 s, rests at the
+pin's end, scrolls on into the founder's wall, plays home on a gesture up.
+Live in the flow: https://claude.ai/artifact/9Y6Kgcw3ur4B2VppFaLE7g
+(version 4). Awaiting review; open: the joints of the sheet at close range
+in the middle of the film (the asset's own seams), and the phone
+composition of the plate.
+
+## Pass 17 — THE WATER VEIL, AND THE WATER BECOMING THE WALL (18.09.2026)
+
+The pass-16 glass plate was rejected: artificial, decorative, apart from the
+identity. The brief: a very thin sheet of water running over an almost
+invisible plane in the same zone — natural, quiet, precise, physical, macro
+skincare cinematography, not a fountain — and the transition growing out of
+that water itself: water → refraction → veins → material, one continuous
+movement, scrubbed by ordinary Lenis scroll over ~80–120 vh.
+
+**Removed.** `OpticScene.tsx`, `optic.frag`, `plateGeometry.ts` (deleted);
+the gateway integration and `PASSAGE_RHYTHM` from `Sitting`; the CSS plate.
+`ShardScene.tsx` (the quartz) stays on disk only because `spikes/mineral/`
+imports its wall helper; nothing on the page mounts it. Nothing hidden runs.
+
+**The water** — `scene/WaterScene.tsx` + `scene/water.frag`: one full-view
+transparent plane at z 0.5, one draw call, no simulation and no extra pass.
+In section space the stream is a shape: a centre line on the wall/frame
+boundary (x 0.452) that meanders a little, a half-width (0.65 % of the width
+≈ 19 px at 1440) that breathes with the flow; over it a height field — a
+meniscus across, fine ripples along, running down and faster the lower they
+are (gravity) — whose per-pixel slope bends the room behind (the wall tone
+and the portrait with its cover fit are the shader's own inputs, so the
+refraction is exact) and catches one warm key as a champagne highlight
+(pow 28 + a soft gloss term). Water is clear; the forest green exists only as
+a shade in its thickness. Seven drops fall beside it on incommensurate clocks
+(9–14 s periods, accelerating `u²` falls, stretching as they speed up);
+micro-drops cling within a few widths of the thread. The pointer moves the
+key a hair and nudges the refraction; nothing follows it. No-WebGL fallback:
+a CSS thread on the same line (`.shard--water`).
+
+**The passage** — the pin's last **110 vh**, `EXIT = 110`, scrubbed (`e` →
+`uT`), reversible, no gesture, no hold: the same water at every t.
+0–0.22 the thread as it is · 0.22–0.45 it widens ×2.6, the drops spread and
+the surface deepens · 0.45–0.68 it widens to the whole plane; the thread's
+ripples give way to broad, slow runnels whose scale grows (the view coming
+closer, `zoom` 1 → 3.2); the picture recedes into the plaster 0.24–0.58,
+before the water reaches her (no face is ever seen through water) ·
+0.6–0.82 the runnel field turns onto the wall's 35° vein flow and the caught
+light stretches along it · 0.64–0.84 the wall's dark rises in the water's
+shadow · 0.66–0.92 the wall itself rises as the surface UNDER the water —
+its veins first (luma-weighted), its pale slab last — so the water refracts
+the stone (the joints wobble) · 0.86–1 the water settles onto it: relief,
+refraction and wet light go to nothing, and what is left is the sheet exactly
+where `.founder-opening__wall` lays it (Δ 0.4 luminance at the line). The DOM
+keeps pass 15's `exit(t)`: words lift 0.05–0.45, label and row 0.15–0.6.
+
+Proof: `e2e/spike-flow.handoff.mjs` (223 checks) — 1.10 vh inside the pin,
+pinned throughout, the wall continues into the founder's room, wheel up
+re-enters the passage. 61 fps, 3 draw calls, standalone. Live in the flow:
+https://claude.ai/artifact/9Y6Kgcw3ur4B2VppFaLE7g (version 5). Awaiting
+review; open: the thread's presence over the flat wall (it lives on its
+highlight there), and the phone composition.
+
+## Pass 18 — WATER AS LIGHT: THE GLINTS, SETTLING INTO THE WALL (18.09.2026)
+
+Brief: rebuild the exit on `docs/references/water-glints-ref.png` — soft
+water glints, flowing reflections, the feeling of natural moisture, no
+waterfall, no close-up drops, no CGI gloss — and end on the project's
+existing marble (the Spike E passage's language, the same
+`wallpapers.png`-derived sheet the founder's wall lays); longer and nobler;
+scroll-driven with a soft finish: one deliberate scroll and the page carries
+the scene to its next state, never a snap.
+
+**The accent** — `scene/glints.frag` (in `WaterScene.tsx`; the pass-17
+stream and drops are gone). Water is light: a slow caustic network (the
+edges of a warped, drifting Voronoi field, two scales, softened) lies on the
+boundary and the picture's backdrop — a band centred at x 0.49, half-width
+0.125 of the section, feathered, cut off before her face at x 0.64 — one
+warm key as champagne, added to what it falls on (less on what is already
+light), the faintest forest in the cells between the light, the backdrop
+bending by a hair beneath it. `PASSAGE.glint` 0.5 is its intensity at rest.
+No object; the specialist change still comes out of that line.
+
+**The passage** — the pin's last **130 vh** (`EXIT = 130` in
+`PortraitsSpike.tsx`), scrubbed by the page's scroll; t = e. 0.16–0.44 the
+picture recedes into the plaster (before the light reaches her) · 0.24–0.56
+the light spreads over the whole view, quieter as it does · 0.34–0.8 the
+network grows (the view coming closer) · 0.5–0.86 its motion slows to
+stillness · 0.54–0.86 the cells turn onto the wall's 35° vein flow and draw
+out along it, the light thinning into lines — light sliding on a surface, a
+liquid settling · 0.6–0.86 the wall's dark rises in the light's shadows (the
+cells between the threads take the luma) · 0.66–0.9 the wall's structure
+rises inside the light as a pale mineral depth first · 0.78–0.95 then its
+own colour · 0.74–0.94 the glints settle where the slab is pale and go out.
+The last frames are the sheet exactly as `.founder-opening__wall` lays it.
+
+**The soft finish** — in the pin's `snap` (`PortraitsSpike.tsx`): past
+`AUTO_FINISH` (0.22) of the passage the page carries the scene to its end,
+short of it back to 05.4's rest; from the end, a scroll up past the mirror
+point brings it home. `FINISH` { min 1.4, max 2.6 } s, `power2.inOut`,
+0.08 s after the wheel stops. The wheel is never captured. Measured: one
+deliberate scroll to e ≈ 0.3 → the end in 3.2 s, monotone; a short scroll →
+the rest; from the end, up → the rest.
+
+Proof: `e2e/spike-flow.handoff.mjs` (232 checks, 1440 / 1280 / tablet /
+phone / reduced). Live in the flow:
+https://claude.ai/artifact/9Y6Kgcw3ur4B2VppFaLE7g (version 6). Awaiting
+review.
+
+## Pass 19 — THE PASSAGE ENDS IN THE FOUNDER'S ROOM (18.09.2026)
+
+Brief (in Russian): the transition must lead not into a marble surface but
+into a NEW SECTION «Основатель» — water glints → the light mineralises →
+the project's own marble (warm light onyx, cream-and-sand, soft gold veins,
+the material the hero is made of) → the founder's room opens on that same
+marble. Scroll-driven, Lenis, a soft pick-up after the first meaningful
+scroll, no hard snap, no long manual winding; the room opens by staging
+(label → name → statement → paragraphs), the portrait comes out of the
+material, nothing is a card or a slide.
+
+**The material decision.** The brief's marble is the hero's onyx
+(`docs/references/stone.png` → `spikes/hero-stone/assets/onyx-tiles.jpg`),
+not the blue-grey `wallpapers.png` sheet passes 15–18 (and Spike E) ended
+on: «случайного нового материала, не совпадающего с hero» decides it. The
+scene and the founder's room import the hero's own file, so the three are one
+material by construction. `assets/marble.jpg` / `marble-luma.jpg` stay only
+for `ShardScene` (Spike E's imports).
+
+**The wall's placement** (`WALL` in `spikes/founder/Founder.tsx`; the same
+numbers in `.founder__wall` and `.sitting__marble`): the sheet covers the
+viewport from its top, centred, at 1.8× the hero's cover — the visitor stands
+at the wall the hero showed whole; one slab seam runs down the middle of a
+16 : 10 view, the outer seams fall at its edges. The scene lays `uSheet`
+with the same rule (`WaterScene.tsx`), so the last frame of the passage and
+the room's CSS wall are the same pixels (proof: Δlum 0.2–1.2 over a 12 px
+patch across the hand).
+
+**The passage** (`glints.frag`, phases in `uT` over `EXIT` 130 vh): as
+before to the spread (veil 0.16–0.44, spread 0.24–0.56, closer 0.34–0.8),
+then the MINERALISATION — the cells still (0.48–0.84) and draw out along the
+35° flow (0.5–0.8) while the light stops being light: `key` shifts
+champagne → gold and the threads become pigment IN the stone (`gilt`, a
+multiply toward vein gold, mixed in by `draw × (1 − settle)`) — the wall's
+structure rises inside them, veins first (`veins` = where the stone is
+darker than its broad surround, from the onyx's own mipmap; no luma file),
+the pale slab last (0.58–0.92), its colour 0.74–0.97, and the gilt threads
+settle into the veins and go out 0.8–0.97. The last frames are the onyx.
+
+**The room** — `spikes/founder/` (`Founder.tsx`, `founder.css`, `copy.ts`):
+`<section id="founder">` on the onyx; she is the hero-stone cutout
+(`portrait.webp` — alpha, light-wrapped for this wall — the same generated
+test woman as every other stand-in, labelled `[Плейсхолдер — заменить на
+реальную съёмку]`) standing at the section's foot, her halo multiplied into
+the stone, the plate's cut edges dissolved; the column cols 8–12, the name's
+baseline on the 25 % datum (the specialists' grid), role, the record's
+plaque as the statement, two PROPOSED paragraphs in her voice (spike-only,
+`copy.ts`, flagged and named «пример» in the mono source line — philosophy,
+no credentials, no outcomes), the bracketed facts in one mono row, the CTA
+«Записаться на консультацию» + «Отзывы пациенток ↓». A reading light
+(`.founder__light`, the wall's own pale) rises on the column. Short desktop
+viewports (≤ 820 px): the name on one line, the read denser. Phone: label,
+name, role, statement in the first viewport with her at its foot (64 svh);
+the read continues on the wall below.
+
+**The scroll** — one continuous pin: the Специалисты pin now spans
+row + `EXIT` 130 + `OPEN` 110 vh (`OPEN` exported by `Founder.tsx`). The
+founder's section STANDS UNDER the specialists' last frame — `place()` sets
+its top margin to −(the sitting's height + OPEN) before every ScrollTrigger
+measurement — and pins itself (`top top`, `+= OPEN`) exactly where the wall
+is complete, for the same OPEN vh (proof: 16920 = 16920, 17910 = 17910 at
+1440 × 900). Over the opening's first beat Специалисты LETS GO of the wall:
+`--hand` → the section's opacity 1 → 0 (`.sitting`, z 2 over the founder's
+z 1); two identical sheets, nothing visible changes. Then `BEATS`
+(`Founder.tsx`) stage the room from `o` (the founder trigger's progress):
+light 0.04–0.34 · she 0.08–0.5 (a masked wipe from her head down along the
+veins' flow, 145°, feathered a third of her width, with a hair of settling
+scale — never a fade) · label 0.3–0.42 · name 0.38–0.58 · role 0.5–0.62 ·
+statement 0.54–0.72 · paragraphs 0.64–0.84 · facts 0.74–0.9 · CTA 0.8–0.94
+— every line set from its top down through a mask, as the specialists' are.
+Reduced motion: two states in the scene, the hand, every beat at 1.
+
+**The soft finish** now carries THROUGH the wall into the opened room: past
+`AUTO_FINISH` 0.22 of the water stage the page takes the scene to the end
+of the opening (`FINISH` 1.6–3.4 s, `power2.inOut`); short of it, back to
+05.4. From the opened room a short scroll up re-opens it; one past
+`AUTO_RETURN` 0.5 of the opening closes the room and carries the scene home
+through the wall and the water. Measured: one deliberate scroll (e ≈ 0.16)
+→ the opened room in 3.8 s, monotone; 4 wheel steps up → re-opened; 12 →
+home to 05.4.
+
+Proof: `e2e/spike-flow.handoff.mjs` — 265/265 (the passage block rewritten;
+1440 / 1280 / 820 touch / 390 / reduced). Standalone: `/spikes/portraits/`
+(`?o=` freezes the room alone; `?k=3&e=` a moment of the passage). Board:
+`docs/spikes/boards/founder-room.html` (`e2e/spike-founder.board.mjs`) ·
+https://claude.ai/artifact/UcM8J63qaKeNUXnQZJQnZS. Live in the flow:
+https://claude.ai/artifact/9Y6Kgcw3ur4B2VppFaLE7g (version 8).
+Awaiting review. Open: the founder's real portrait (a different woman, in
+this light, on this wall) and her text; whether the wall's 1.8× is the
+scale the clinic's wall should have.
+
+## Pass 19b — the approved marble back on the founder's wall (18.09.2026)
+
+Brief: replace the founder's marble with the previously approved one (the
+Spike E artifact's — `docs/references/wallpapers.png`); touch nothing else —
+not the water transition, not the composition, not the scroll.
+
+Pass 19's reading of «тёплый светлый оникс … не совпадающего с hero» as the
+hero's onyx was wrong: the approved marble is the `wallpapers.png` sheet.
+`WALL` (`Founder.tsx`) is now `{ aspect 1882/836, width 1 (phone 2), top
+195/836 }` — pass 18's placement of `spikes/portraits/assets/marble.jpg`,
+native scale, the section's top 195 px down the sheet, on the viewport's
+width — and `.founder__wall`, `.sitting__marble` and the scene's `uSheet` lay
+it by that one rule, so the passage's last frame and the room's wall are
+still one surface (Δlum 3.7 / 0.0 across the hand). The passage's phases,
+the mineralisation, the pins, the beats and the soft finish are as in pass
+19. One integration change: on the phone the read below the first viewport
+lands on the marble's graphite band, so the room's existing reading light
+now also lies over the read (`.founder__light`, phone rule) — a light, not a
+darkening; the veins stay visible. Proof: 1440 + 390 runs pass. Artifact
+version 9; board version 2.
+
+## Pass 19c — the founder's room read on a plate (18.09.2026)
+
+Brief: the marble is right but was lightened by overlays and the words,
+the CTA and the header sank into it. Keep the marble exactly as it is — no
+haze, glow, veil or global filter — and make everything readable: the
+text on a local translucent charcoal plate (35–55 %, a subtle backdrop
+blur), white type; a deep-green CTA with a fine gold edge and a soft warm
+halo; the top navigation readable through a delicate local layer.
+
+Done, in `spikes/founder/` only: the reading light (`.founder__light`, the
+pass-19 ivory radial) is REMOVED — nothing lies over the marble any more.
+The column (label · name · role · statement · paragraphs · facts · CTA) is
+one plate `rgba(9, 12, 11, 0.5)`, `backdrop-filter: blur(6px)`, no border,
+no shadow, 40 rem max, `top 9svh` (+ the flow header offset); type white
+`#f5f2eb`, secondary `0.74` white, hairlines `0.22` white. The plate is a
+beat of its own (`BEATS.plate` 0.24–0.4, a masked line like the words) so
+at the hand the wall is still the bare sheet (Δlum 0.9 / 0.0). The CTA:
+`#10271d`, `inset 0 0 0 1px` gold `0.78`, a 34 px gold halo at 0.45,
+white; hover lifts both. The stand-in's caption sits on its own small piece
+of the plate. Under the page's fixed header a 22 svh band of the room's
+dark (0.74 → 0) — `.founder::before`, set with the plate — so the
+`difference`-drawn mark, index and «Записаться» read at once; nothing else
+on the wall. Phone: the two groups (name … statement; the read) are plates
+and she stands clear between them. Proof 1440 / 390 pass; artifact
+version 10, board version 3.
+
+## The founder's room — the real profile and the read (06.10.2026)
+
+The stand-in and the proposed copy are gone. She is the clinic's founder,
+**Ахундова Алина Вадимовна**, врач-дерматовенеролог, косметолог, more than
+8 years in aesthetic medicine (`src/data/specialists.ts → founder`, the one
+source). The photograph is `docs/references/founder1.png`, a cutout on a
+transparent ground, re-encoded as `src/assets/founder/founder.webp` (232 KB,
+never edited). It stands on the wall exactly as the stand-in did, with her
+own silhouette as the shadow zone.
+
+Her biography is kept word for word and divided into chapters, each with a
+mono marker, one editorial anchor (a year, a place, a subject — a label,
+never a new fact) and her text: 06.1 Начало пути · 06.2 Образование · 06.3
+Обучение · 06.4 Спикер · 06.5 Философия (the statement in the display serif,
+one sentence, its last clause on its own line), then the CTA.
+
+The read is the page. The opening pin (`OPEN` 110 vh) and the wall are
+unchanged; its beats now end at the experience line and the read's first
+lines. After the pin the section is as tall as the text (≈ 2.55 viewports
+at 1440 × 900). She stands in a sticky stage, one viewport tall, inside a
+track that spans the whole section. She is released exactly when the
+section's foot reaches the viewport's foot, which is the frame where the
+Отзывы blend (`BLEND3`, `spikes/flow/`) begins. Two mechanics:
+
+- after its pin ScrollTrigger holds the section with a translateY of the pin's
+  length, and sticky resolves before that transform, so the stage sticks
+  `--pin-shift` higher once the pin is behind;
+- the band under the header rides above the column, and a deeper head over
+  the column's span only (`--head-k`, 0 at rest and through the pin)
+  dissolves the read before it reaches the nav.
+
+The phone and tablet (< 1024) keep the approved composition in plain flow.
+No inner scroller, no wheel capture. Body text is full white on the plate:
+≥ 6.3 : 1 against the plate's 95th-percentile brightness across the read.

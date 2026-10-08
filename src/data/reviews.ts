@@ -18,7 +18,7 @@ export const reviews: readonly Review[] = [
     isPlaceholder: true,
     author: ru('[Имя] К.'),
     date: '03.2026',
-    categoryId: 'biorevitalisation',
+    categoryId: 'injection',
     quote: ru(
       'Никто не заметил, что я что-то делала. Заметили, что я отдохнула. Это именно то, чего я хотела.',
     ),

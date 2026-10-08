@@ -1,0 +1,17 @@
+# Only for `vercel` CLI uploads (a Git deployment uploads what is committed).
+.env
+.env.*
+!.env.example
+.references/
+.venv-assets/
+dist/
+dist-spike/
+e2e/__screenshots__/
+e2e/.results/
+docs/spikes/boards/
+spikes/**/__captures__/
+# the clinic's original photographs (see .gitignore) — never part of the site
+public/images/*.HEIC
+public/images/*.heic
+public/images/*.JPG
+public/images/specialists/

@@ -5,6 +5,9 @@ import type { PriceRow } from '@/types';
  * Price list — FORMAT EXAMPLES ONLY. Numbers demonstrate `12 000 ₽` and range
  * formatting; they are not quotes and carry no relation to the clinic's prices.
  * Names in brackets are replaced by the client's nomenclature.
+ *
+ * Superseded by the clinic's real list in `priceList.ts`; this module is read
+ * only by the wireframe's `src/sections/Pricing` until integration.
  */
 export const placeholder = true;
 
@@ -64,7 +67,7 @@ export const pricing: readonly PriceRow[] = [
   },
   {
     id: 'bio-1',
-    categoryId: 'biorevitalisation',
+    categoryId: 'injection',
     isPlaceholder: true,
     name: ru('Биоревитализация, 1 процедура'),
     duration: ru('45 мин'),

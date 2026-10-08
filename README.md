@@ -45,6 +45,108 @@ npm run refs:sync  # clone/refresh .references/
 
 `npm run build` runs the typecheck first, so a passing build is type-clean.
 
+### Environment
+
+Copy `.env.example` to `.env.local` and fill in the Sanity project (see
+_Reviews CMS_ below). Without it the site still runs: the reviews room shows
+its sample records in development and no reviews in production.
+
+---
+
+## Reviews CMS (Sanity)
+
+The five reviews in **07 — Отзывы** are curated by hand in a Sanity Studio
+that lives in a sibling repository, `../studio-era`. Nothing is scraped from
+Yandex Maps or 2ГИС — the clinic copies a review it has the right to show
+and records where it was published.
+
+The website reads through `@sanity/client` (`src/lib/sanity.ts`, loaded on
+demand, no token, CDN reads only). The reviews room never sees the CMS: it
+calls `getReviews()` from `src/lib/reviews/` and receives `Review[]`, the same
+shape whatever the source (`types.ts`). The GROQ query lives in
+`src/lib/reviews/sanityProvider.ts` — never in a component.
+
+### Environment variables
+
+| Variable                 | Value                                                |
+| ------------------------ | ---------------------------------------------------- |
+| `VITE_SANITY_PROJECT_ID` | the project id from `../studio-era/sanity.config.ts` |
+| `VITE_SANITY_DATASET`    | `production` (the default when unset)                |
+
+Both are public read-side values, but they stay out of the code: `.env.local`
+locally, the host's environment in production. **The site's origin must be
+allowed on the Sanity project** or the browser blocks the read (the room then
+falls back as if the CMS were down):
+
+```bash
+cd ../studio-era
+npx sanity cors add http://localhost:5173 --no-credentials
+npx sanity cors add https://<the production domain> --no-credentials
+```
+
+### Opening the Studio
+
+```bash
+cd ../studio-era
+npm install
+npm run dev        # → http://localhost:3333
+```
+
+The Studio is a separate app with its own login (the clinic's Sanity account).
+Deploy a hosted copy with `npm run deploy` so the clinic owner needs no
+terminal.
+
+### Creating a review
+
+1. In the Studio choose **Отзыв → создать** (the «+» next to the type).
+2. Fill in the fields — all titles are Russian:
+   - **Автор** — as the platform shows it: a first name and an initial («Анна М.»).
+   - **Оценка** — 1 … 5.
+   - **Дата отзыва** — the date it was published on the platform.
+   - **Текст отзыва** — verbatim, unedited.
+   - **Источник** — Яндекс Карты · 2ГИС · Вручную.
+   - **Ссылка на отзыв** — the review's own page, if there is one
+     (the room links the source label to it).
+3. **Показывать на сайте** (`featured`) — tick it for a review that should be
+   one of the five on the page. Off by default.
+4. **Порядок** (`priority`) — an optional whole number; lower comes first.
+   Leave it empty to order by date among the unnumbered.
+5. **Опубликован** (`published`) — on by default; untick to hide a review
+   from the site without deleting it.
+6. Press **Publish**. Until then the document is a draft and the site does
+   not see it — the site reads the `published` perspective only.
+
+### How the site chooses the five
+
+One query, one rule (`src/lib/reviews/sanityProvider.ts`):
+
+```groq
+*[_type == "review" && published == true && featured == true]
+  | order(priority asc, date desc)
+  [0...5]
+  { "id": _id, author, rating, date, text, source, sourceUrl }
+```
+
+- only published documents (drafts are invisible), `published == true`
+  **and** `featured == true`;
+- `priority` ascending — numbered reviews first, in that order; reviews
+  without a number after them;
+- ties and unnumbered reviews by `date`, newest first;
+- at most five. The site shows them in exactly this order — the Studio
+  decides, the site does not re-rank.
+
+A row missing a required field or with a malformed value is dropped rather
+than shown broken.
+
+### When Sanity is unavailable
+
+`getReviews()` never throws. The chain is: Sanity → (the reserved platform
+provider, empty until an official channel exists) → in **development** the
+sample records from `src/data/reviews-sample.ts`, labelled as samples by the
+room → in **production** an empty list: the room keeps its intro and its foot
+and shows no voices. Placeholders are never presented as reviews in
+production. The client makes one retry and gives up after 8 s.
+
 ---
 
 ## Stack

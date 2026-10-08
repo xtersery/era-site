@@ -2,11 +2,21 @@ import { useSyncExternalStore } from 'react';
 
 import { isBrowser } from '@/lib/env';
 
-const subscribe = (query: string) => (onChange: () => void) => {
-  if (!isBrowser) return () => {};
-  const list = window.matchMedia(query);
-  list.addEventListener('change', onChange);
-  return () => list.removeEventListener('change', onChange);
+// One subscribe function per query: `useSyncExternalStore` re-subscribes
+// whenever the function's identity changes, i.e. on every render otherwise.
+const subscribers = new Map<string, (onChange: () => void) => () => void>();
+const subscribe = (query: string) => {
+  let fn = subscribers.get(query);
+  if (!fn) {
+    fn = (onChange: () => void) => {
+      if (!isBrowser) return () => {};
+      const list = window.matchMedia(query);
+      list.addEventListener('change', onChange);
+      return () => list.removeEventListener('change', onChange);
+    };
+    subscribers.set(query, fn);
+  }
+  return fn;
 };
 
 /**

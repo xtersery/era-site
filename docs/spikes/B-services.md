@@ -278,3 +278,43 @@ Reference implementation: `spikes/radial/` (`ServicesRadial`). Production work
 on Services starts from it (tokens, `useGSAP`, `lib/stage`, ScrollTrigger driven
 by Lenis, the `none` tier keeping the greyscale list) and is a separate,
 approval-gated step.
+
+## Pass 8 — 02 → 03, the continued surface: WITHDRAWN (18.09.2026)
+
+Built 17.09 as a Услуги → Стоимость handover on one bone ground and one grid
+(`spikes/radial/Pricing.tsx`, `.spike-pricing`, `?after=`). Withdrawn the next
+day by an information-architecture decision, not by a visual verdict:
+**Стоимость is utility, кейсы are the story** — the vertical page runs
+Услуги → Кейсы and never passes through the price list; Стоимость is reached
+deliberately from the top navigation. The radial spike is back to the
+approved section between two stubs (the lower stub now says 04 — Кейсы); the
+Стоимость scaffold moved to `spikes/flow/` where it is the content of the
+price layer. What pass 8 established that still holds: the pin's snap does not
+fight the exit (pull-back 0 px), and the 100 vh between unpin and the next
+pin is ordinary scrolling in which both sections share the screen.
+
+The handover itself — Услуги → Кейсы — is Spike F: `docs/spikes/F-flow.md`.
+
+## Content — the clinic's real directions (06.10.2026)
+
+The seven placeholder categories are replaced by the founder's structure
+(`src/data/services.ts`, the one source for the dial, the states, the
+prototype's selects and filters): 02.1 Инъекционная косметология · 02.2
+Контурная пластика · 02.3 Аппаратная косметология · 02.4 Лечение и качество
+кожи · 02.5 Anti-age программы · 02.6 Коррекция тела · 02.7 Индивидуальные
+программы. Each state: set title lines, one lead, one paragraph, Длительность /
+Курс / Метод. Individual procedures stay inside their direction (detail pages /
+CMS later), never extra states. Images are the clinic's references
+(`docs/references/<direction>.png` → `src/assets/services/*.jpg`, re-encoded
+only); the detail inset is a macro cut from the state's own image (it was
+another state's image).
+
+Layout adjustments forced by real text length, nothing else: the title holds
+its set lines (`nowrap`) and is capped by its column (`12.6cqi` → 50 px at
+1440 instead of 57) so «Индивидуальные» clears the image; the meta measure
+takes the paragraph's 44ch so the values hold one line. Pin, snap, 85 vh per
+state, dial, controls and the exit into Кейсы are untouched.
+
+Open: `контурная_пластика.png` carries baked-in promotional lettering
+(«…губы, о которых давно мечтали») — a promise the copy rules forbid; needs a
+clean version of the same photograph.

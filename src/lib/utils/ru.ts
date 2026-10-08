@@ -14,7 +14,7 @@ export const NNBSP = ' ';
  * Kept deliberately conservative: over-gluing makes rag worse, not better.
  */
 const SHORT_WORDS =
-  /(^|[\s(«„])(а|и|в|во|к|ко|с|со|о|об|у|на|не|ни|но|по|за|из|до|от|для|при|без|над|под|про|же|бы|ли|то|как|что|или|уже|ещё|все|всё|это|эти|мы|вы|я|их|им|ей|ему|её|его|им|то)\s+/giu;
+  /(?<=^|[\s(«„])(а|и|в|во|к|ко|с|со|о|об|у|на|не|ни|но|по|за|из|до|от|для|при|без|над|под|про|же|бы|ли|то|как|что|или|уже|ещё|все|всё|это|эти|мы|вы|я|их|им|ей|ему|её|его|им|то)\s+/giu;
 
 /** Glue short words to the next word and the long dash to the previous one. */
 export function ru(text: string): string {
@@ -22,9 +22,8 @@ export function ru(text: string): string {
     text
       // «слово — слово»: NBSP before the dash, normal space after.
       .replace(/\s+—\s+/gu, `${NBSP}— `)
-      // Run twice so chains like «и в» glue both joints.
-      .replace(SHORT_WORDS, (_m, lead: string, word: string) => `${lead}${word}${NBSP}`)
-      .replace(SHORT_WORDS, (_m, lead: string, word: string) => `${lead}${word}${NBSP}`)
+      // The lead is a lookbehind, so chains like «но и с» glue every joint in one pass.
+      .replace(SHORT_WORDS, (_m, word: string) => `${word}${NBSP}`)
       // Number + unit / abbreviation.
       .replace(/(\d)\s+(мин|ч|лет|год|года|шт|мл|см|мм|%|₽)/gu, `$1${NBSP}$2`)
   );

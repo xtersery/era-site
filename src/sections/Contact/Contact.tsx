@@ -47,10 +47,7 @@ export function Contact({ id, className }: SectionProps) {
           <MetaList
             layout="table"
             className="contact__facts"
-            items={[
-              ['Метро', contact.metro],
-              ['Парковка', contact.parking],
-            ]}
+            items={contact.parking ? [['Парковка', contact.parking]] : []}
           />
 
           <table className="contact__hours">

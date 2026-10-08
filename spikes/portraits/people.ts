@@ -1,74 +1,57 @@
 import { specialists } from '@/data/specialists';
-import { ru } from '@/lib/utils/ru';
 import type { Specialist } from '@/types';
 
-import p1 from './assets/p1.jpg';
-import p1m from './assets/p1@phone.jpg';
-import p2 from './assets/p2.jpg';
-import p2m from './assets/p2@phone.jpg';
-import p3 from './assets/p3.jpg';
-import p3m from './assets/p3@phone.jpg';
-import p4 from './assets/p4.jpg';
-import p4m from './assets/p4@phone.jpg';
+import sp1 from './assets/sp1.jpg';
+import sp1m from './assets/sp1@phone.jpg';
+import sp2 from './assets/sp2.jpg';
+import sp2m from './assets/sp2@phone.jpg';
+import sp3 from './assets/sp3.jpg';
+import sp3m from './assets/sp3@phone.jpg';
+import sp4 from './assets/sp4.jpg';
+import sp4m from './assets/sp4@phone.jpg';
 
 /**
- * The four specialists of the prototype (placeholders from `src/data/`) with
- * what the gallery needs beyond the record: a stand-in portrait, where the
- * subject's nearer eye sits in it (for the focal line), and where the crop
- * should anchor when the frame is taller than 4 : 5.
+ * The four specialists (the records in `src/data/specialists.ts`) with what the
+ * gallery needs beyond the record: the portrait, where her nearer eye sits in
+ * it (for the focal line), and where the crop anchors on the phone.
  *
- * STAND-INS: four crops and grades of the ONE generated test portrait. Real
- * specialists are real photography — four different women, one grade, one
- * light — and every frame here is labelled as a placeholder.
+ * THE CLINIC'S OWN PHOTOGRAPHS — `docs/references/sp1–4.HEIC` (3284 × 4938),
+ * kept whole as masters in `public/images/specialists/sp1–4.jpg`; the plates
+ * here are the same frames resized only (1100 × 1654, 640 × 962): no crop, no
+ * retouch, no grade. The mapping is fixed by the client and keyed by id, never by order:
+ * sp1 → Корягина, sp2 → Сон, sp3 → Коргачева, sp4 → Воронина.
  */
 export interface Sitter {
   readonly person: Specialist;
   readonly portrait: string;
   readonly portraitPhone: string;
-  /** the nearer eye, as fractions of the 4 : 5 image */
+  /** the nearer eye, as fractions of the image */
   readonly eye: { x: number; y: number };
-  /** object-position y for a frame taller than the image */
+  /** object-position y on the phone (and wherever the crop cannot reach the datum) */
   readonly anchorY: number;
-  /** the approach line — a placeholder in the client's voice */
-  readonly approach: string;
-  /** what she works with most — a short editorial line */
-  readonly focus: string;
 }
 
-const APPROACH = [
-  ru('[Фраза о подходе: почему меньше — это точнее, и что для неё значит естественный результат.]'),
-  ru('[Фраза о подходе: о пропорциях лица и о том, чего она никогда не делает.]'),
-  ru('[Фраза о подходе: об аппаратных методиках как о работе со временем, а не против него.]'),
-  ru('[Фраза о подходе: о сопровождении курса и о том, что уход — это дисциплина.]'),
-];
-const FOCUS = [
-  ru('качество кожи · инъекционные методики · шея и декольте'),
-  ru('контурная коррекция · anti-age программы · пропорции'),
-  ru('аппаратные методики · лифтинг · программы для кожи'),
-  ru('уходовые программы · сопровождение курсов · домашний протокол'),
-];
+/** width / height of every portrait plate (the photographs are 2 : 3) */
+export const PORTRAIT_ASPECT = 2 / 3;
 
-const plates: readonly [string, string][] = [
-  [p1, p1m],
-  [p2, p2m],
-  [p3, p3m],
-  [p4, p4m],
-];
-const eyes = [
-  { x: 0.5, y: 0.3 },
-  { x: 0.22, y: 0.3 },
-  { x: 0.4, y: 0.29 },
-  { x: 0.6, y: 0.29 },
-];
+const plates: Readonly<Record<string, readonly [string, string]>> = {
+  koryagina: [sp1, sp1m],
+  son: [sp2, sp2m],
+  korgacheva: [sp3, sp3m],
+  voronina: [sp4, sp4m],
+};
+// measured on each photograph; the phone anchors keep the whole head and the
+// shoulders in the 55 vh frame (the head sits lower in sp2, higher in sp4)
+const framing: Readonly<Record<string, Pick<Sitter, 'eye' | 'anchorY'>>> = {
+  koryagina: { eye: { x: 0.427, y: 0.35 }, anchorY: 0.62 },
+  son: { eye: { x: 0.415, y: 0.418 }, anchorY: 0.95 },
+  korgacheva: { eye: { x: 0.448, y: 0.352 }, anchorY: 0.75 },
+  voronina: { eye: { x: 0.452, y: 0.324 }, anchorY: 0.5 },
+};
 
-export const sitters: readonly Sitter[] = specialists.map((person, i) => ({
-  person,
-  portrait: plates[i]![0],
-  portraitPhone: plates[i]![1],
-  eye: eyes[i]!,
-  anchorY: 0.28,
-  approach: APPROACH[i]!,
-  focus: FOCUS[i]!,
-}));
-
-export const PLACEHOLDER_LABEL = ru('[Плейсхолдер — заменить на реальную съёмку]');
+export const sitters: readonly Sitter[] = specialists.map((person) => {
+  const plate = plates[person.id];
+  const frame = framing[person.id];
+  if (!plate || !frame) throw new Error(`No portrait for specialist «${person.id}»`);
+  return { person, portrait: plate[0], portraitPhone: plate[1], ...frame };
+});

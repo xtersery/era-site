@@ -217,27 +217,25 @@
   z-index: 2;
 }
 .shard[hidden] { display: none; }
-/* the no-WebGL stone: the photograph, resident at the stone's place */
-.shard--photo {
+/* the no-WebGL light: a soft band of thrown light on the boundary, breathing */
+.shard--glints {
   position: absolute;
   top: 0;
   left: 0;
+  height: 100%;
   z-index: 2;
-  opacity: 0.8;
   pointer-events: none;
   will-change: transform;
+  background:
+    radial-gradient(60% 30% at 40% 30%, rgba(255, 240, 200, 0.28), transparent 70%),
+    radial-gradient(50% 26% at 60% 62%, rgba(255, 236, 190, 0.22), transparent 70%),
+    radial-gradient(40% 20% at 48% 85%, rgba(255, 240, 205, 0.18), transparent 70%);
+  mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+  animation: glints-breathe 9s ease-in-out infinite alternate;
 }
-.shard--photo[hidden] { display: none; }
-.shard__photo {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
-  opacity: 0.96;
-  pointer-events: none;
-  filter: drop-shadow(16px 20px 24px rgba(8, 12, 10, 0.34));
-}
+@keyframes glints-breathe { from { opacity: 0.7; } to { opacity: 1; } }
+.shard--glints[hidden] { display: none; }
 
 /* ---- the focal line ---------------------------------------------------- */
 .focal {
@@ -282,67 +280,28 @@
 }
 
 /* ---- the exit: the words give way as the section settles into the wall ---- */
-.sitting { --exit-fade: 1; --exit-marble: 0; }
+.sitting { --exit-fade: 1; --exit-marble: 0; --hand: 0; }
 .wall__label, .wall__foot, .frame__caption { opacity: var(--exit-fade); }
-/* without the scene the wall still arrives: the sheet itself, laid as the scene lays it */
+/* The founder's room stands under this one's last frame, on the same sheet;
+   at the end of the passage this room lets go of the wall — its opacity —
+   and what shows through is the identical sheet, then the room opening on it. */
+.sitting {
+  z-index: 2;
+  opacity: calc(1 - var(--hand));
+}
+/* without the scene the wall still arrives: the sheet itself, laid as the founder's room lays it */
 .sitting__marble {
   position: absolute;
   inset: 0;
   z-index: 3;
   pointer-events: none;
   opacity: var(--exit-marble);
-  /* the sheet is 836 × 1882; the section's top sits 195 px down it → 23.32 % of its width */
-  background: url('./assets/marble.jpg') 0 -23.32vw / 100vw auto repeat-y;
+  /* = `.founder__wall` (WALL in spikes/founder): the sheet on the viewport's width, its top 23.32 % of that up */
+  background: url('./assets/marble.jpg') 50% -23.32vw / 100vw auto repeat-y;
 }
 .sitting__marble[hidden] { display: none; }
 @media (width < 1024px) {
-  .sitting__marble { background-size: 200vw auto; background-position: -50vw -46.64vw; }
-}
-
-/* ---- the next room: the founder's, opening on the clinic's wall ----------- */
-.founder-opening {
-  position: relative;
-  min-height: 160svh;
-  overflow: hidden;
-  color: #eae6dc;
-  background: #08140f;
-}
-.founder-opening__wall {
-  position: absolute;
-  inset: 0;
-  /* the same sheet, laid on the same width, continuing straight down from the section above */
-  background-image: linear-gradient(180deg, rgba(8, 20, 15, 0) 0%, rgba(8, 20, 15, 0) 34%, rgba(8, 20, 15, 0.55) 62%, rgba(8, 20, 15, 0.96) 88%, #08140f 100%), url('./assets/marble.jpg');
-  background-size: 100% auto, 100vw auto;
-  background-position: 0 0, 0 calc(-23.32vw - 100svh);
-  background-repeat: no-repeat, repeat-y;
-}
-@media (width < 1024px) {
-  .founder-opening__wall {
-    /* the phone lays the sheet on twice its width, centred — as the section does */
-    background-size: 100% auto, 200vw auto;
-    background-position: 0 0, -50vw calc(-46.64vw - 100svh);
-  }
-}
-.founder-opening__label {
-  position: absolute;
-  top: var(--space-md);
-  left: var(--gutter);
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--text-meta);
-  color: rgba(234, 230, 220, 0.82);
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
-}
-.founder-opening__line {
-  position: absolute;
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: var(--space-lg);
-  margin: 0;
-  max-width: 44ch;
-  font-family: var(--font-mono);
-  font-size: var(--text-meta);
-  color: #98a39c;
+  .sitting__marble { background-size: 200vw auto; background-position: 50% -46.64vw; }
 }
 
 /* ---- stubs and readout ------------------------------------------------- */

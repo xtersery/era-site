@@ -1,0 +1,415 @@
+/*
+ * 03 — Стоимость, the scaffold behind the price layer of the flow spike.
+ *
+ * Kept on the Services grid on purpose: `--rail` is the Services state body's
+ * left edge (`cx 0.012W + rBody 0.648W − bodyW/2 0.3W = 0.36W`) and `--edge`
+ * its right edge (0.96W), so the section still belongs to the same page it is
+ * opened over. Bone ground, hairline rows, static tabular prices. Not a
+ * production section and not a proposal for one.
+ */
+
+.spike-pricing {
+  --rail: 36vw; /* = the Services state body's left edge */
+  --edge: 4vw; /* = 100vw − 0.96W, its right edge */
+
+  position: relative;
+  background: #ece8df;
+  color: #0d0c0b;
+  padding: 0 var(--edge) 14svh 0;
+}
+
+/* The full-measure rule the section opens on — the one escalation from the
+   Services state's internal hairlines, and the only "ornament". */
+.spike-pricing__label {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin: 0 0 12svh var(--gutter);
+  padding-top: var(--space-sm);
+  border-top: 1px solid rgba(13, 12, 11, 0.32);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #625d55;
+}
+
+/* The content box: the box the Services state occupies, so the two share a grid. */
+.spike-pricing__body {
+  margin-left: var(--rail);
+}
+
+.spike-pricing__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 3.95vw, 4.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.spike-pricing__lead {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  max-width: 30ch;
+  margin: var(--space-md) 0 0;
+}
+
+.spike-pricing__table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+/* ---- the local index: a sticky rail of the seven categories ------------- */
+
+.spike-pricing__index {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-top: var(--space-2xl);
+  background: #ece8df;
+  border-bottom: 1px solid rgba(13, 12, 11, 0.32);
+}
+
+.spike-pricing__index ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spike-pricing__index-link {
+  appearance: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6em;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #625d55;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: underline 1px transparent;
+  text-underline-offset: 6px;
+  transition: color 0.4s var(--ease-out), text-decoration-color 0.4s var(--ease-out);
+}
+
+.spike-pricing__index-link[aria-current='true'] {
+  color: #0d0c0b;
+  text-decoration-color: #0d0c0b;
+}
+
+.spike-pricing__index-link:hover {
+  color: #0d0c0b;
+}
+
+.spike-pricing__index-link:focus-visible {
+  outline: 1px solid #0d0c0b;
+  outline-offset: 2px;
+}
+
+.spike-pricing__index-no {
+  color: #8a847a;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- a category: numbered serif head, then its table -------------------- */
+
+.spike-pricing__category {
+  /* clears the sticky index when jumped to */
+  scroll-margin-top: calc(44px + var(--space-lg));
+  margin-top: var(--space-3xl);
+}
+
+.spike-pricing__category-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+  padding-bottom: var(--space-xs);
+}
+
+.spike-pricing__category-no {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #8a847a;
+  font-variant-numeric: tabular-nums;
+}
+
+.spike-pricing__category-head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 2.2vw, 2.3rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  outline: none;
+}
+
+.spike-pricing__group th {
+  font-weight: 400;
+  padding: var(--space-lg) 0 var(--space-xs);
+  text-align: left;
+}
+
+.spike-pricing__group-title {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #0d0c0b;
+}
+
+.spike-pricing__group-title::before {
+  content: '— ';
+  color: #8a847a;
+}
+
+.spike-pricing__group-sub {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #625d55;
+  max-width: 62ch;
+}
+
+/* a nested heading (Morpheus8 → Тело, ROBOLEX → Курс): quieter, indented */
+.spike-pricing__group--d1 th {
+  padding-top: var(--space-md);
+  padding-left: var(--space-md);
+}
+
+.spike-pricing__group--d1 .spike-pricing__group-title {
+  color: #625d55;
+}
+
+.spike-pricing__row {
+  border-top: 1px solid rgba(13, 12, 11, 0.18);
+}
+
+.spike-pricing__table tbody:last-child .spike-pricing__row:last-child {
+  border-bottom: 1px solid rgba(13, 12, 11, 0.18);
+}
+
+.spike-pricing__row th,
+.spike-pricing__row td {
+  padding-block: var(--space-sm);
+  vertical-align: baseline;
+  font-weight: 400;
+}
+
+.spike-pricing__name {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  text-wrap: pretty;
+  padding-right: var(--space-lg);
+}
+
+/* ---- notes: gifts, offers, information — secondary lines, never banners -- */
+
+.spike-pricing__note {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: 1.45;
+  color: #625d55;
+}
+
+.spike-pricing__note--gift,
+.spike-pricing__note--offer {
+  position: relative;
+  padding-left: 14px;
+}
+
+/* champagne as light: a 1 px tick, the only gold on the bone ground */
+.spike-pricing__note--gift::before,
+.spike-pricing__note--offer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  bottom: 0.2em;
+  width: 1px;
+  background: #cfaf72;
+}
+
+.spike-pricing__kicker {
+  margin-right: 0.6em;
+  color: #8a847a;
+}
+
+.spike-pricing__kicker::after {
+  content: ' ·';
+}
+
+.spike-pricing__row--note th,
+.spike-pricing__row--note td {
+  padding-block: var(--space-xs);
+}
+
+.spike-pricing__row--note {
+  border-top-style: dotted;
+}
+
+.spike-pricing__badge {
+  display: inline-block;
+  margin-left: 0.7em;
+  padding: 1px 7px;
+  border: 1px solid rgba(13, 12, 11, 0.5);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  vertical-align: 0.12em;
+  white-space: nowrap;
+}
+
+/* Static numbers — prices never count up. Tabular so the column aligns. */
+.spike-pricing__price {
+  width: 12rem;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.0625rem;
+}
+
+.spike-pricing__price--note {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: #625d55;
+}
+
+.spike-pricing__colophon {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  color: #8a847a;
+  max-width: 62ch;
+  margin: var(--space-lg) 0 0;
+}
+
+.spike-pricing__handoff {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid rgba(13, 12, 11, 0.25);
+}
+
+/* Desktop: the index hangs in the empty left rail as a vertical list — a
+   zero-height sticky box, so it never covers the column it indexes. */
+@media (min-width: 1024px) {
+  .spike-pricing__index {
+    top: var(--space-xl);
+    height: 0;
+    margin-top: var(--space-2xl);
+    margin-left: calc(var(--gutter) - var(--rail));
+    width: calc(var(--rail) - 2 * var(--gutter));
+    border-bottom: 0;
+    background: none;
+  }
+
+  .spike-pricing__index ol {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .spike-pricing__category {
+    scroll-margin-top: var(--space-xl);
+  }
+
+  .spike-pricing__category:first-of-type {
+    margin-top: var(--space-2xl);
+  }
+}
+
+/* Phone: the state box is 0.86W centred, so the rails become 7vw and the two
+   rails collapse into one column — the label simply sits above the title. */
+@media (max-width: 1023.98px) {
+  .spike-pricing {
+    --rail: 0;
+    --edge: 7vw;
+    padding-left: 7vw;
+  }
+
+  .spike-pricing__label {
+    margin-left: 0;
+    margin-bottom: 9svh;
+    gap: var(--space-sm);
+  }
+
+  .spike-pricing__title {
+    font-size: 2.5rem;
+  }
+
+  .spike-pricing__lead {
+    font-size: 1.05rem;
+  }
+
+  .spike-pricing__index {
+    margin-top: var(--space-xl);
+    margin-inline: -7vw;
+    padding-inline: 7vw;
+  }
+
+  /* one line that scrolls sideways: the rail, not a wrap of seven lines */
+  .spike-pricing__index ol {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .spike-pricing__index ol::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* the rail ends with the gutter, so the last entry is never clipped */
+  .spike-pricing__index li:last-child {
+    padding-right: 7vw;
+  }
+
+  .spike-pricing__category {
+    margin-top: var(--space-2xl);
+  }
+
+  .spike-pricing__category-head {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .spike-pricing__category-head h3 {
+    font-size: 1.6rem;
+  }
+
+  .spike-pricing__name {
+    font-size: 1.125rem;
+    padding-right: var(--space-sm);
+  }
+
+  /* the price stays on the service's own line, right-aligned beside it */
+  .spike-pricing__price {
+    width: auto;
+    font-size: 1.0625rem;
+  }
+
+  .spike-pricing__group--d1 th {
+    padding-left: var(--space-sm);
+  }
+
+  .spike-pricing__handoff {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+}
+

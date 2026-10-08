@@ -1,0 +1,99 @@
+/*
+ * «До / после» — the divider over a pair of photographs.
+ * Colours come through component properties so a room can set the line in its
+ * own light; the defaults are the neutral tokens of the greyscale phase.
+ */
+.compare {
+  --compare-line: var(--color-text);
+  --compare-ring: var(--color-text);
+  --compare-ring-fill: color-mix(in srgb, var(--color-bg) 35%, transparent);
+  --compare-tag: var(--color-text-muted);
+  --compare-focus: var(--color-focus);
+  --compare-handle-y: 50%;
+  --compare-tag-x: 14px;
+  --compare-tag-y: 12px;
+  --split: 0.5;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: ew-resize;
+  /* a horizontal drag is ours; a vertical one still scrolls the page */
+  touch-action: pan-y;
+}
+
+/* the two photographs: one box, one fit, one position — the comparison is a clip, never a move */
+.compare__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--compare-focus, 50% 50%);
+  display: block;
+  pointer-events: none;
+}
+.compare__img--before {
+  clip-path: inset(0 calc((1 - var(--split)) * 100%) 0 0);
+}
+
+.compare__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--split) * 100%);
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--compare-line);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* the ring: 28 px to see, 44 px to take hold of */
+.compare__handle {
+  position: absolute;
+  left: calc(var(--split) * 100%);
+  top: var(--compare-handle-y);
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  cursor: ew-resize;
+  outline: none;
+  /* the ring itself always drags, even where the page could otherwise scroll */
+  touch-action: none;
+}
+.compare__ring {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--compare-ring);
+  background: var(--compare-ring-fill);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--compare-ring-fill) 60%, transparent);
+  transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.compare:hover .compare__ring,
+.compare[data-dragging] .compare__ring { transform: scale(1.08); }
+.compare__handle:focus-visible .compare__ring {
+  outline: 1px solid var(--compare-focus);
+  outline-offset: 4px;
+}
+
+/* the two labels, in the upper corners, stepping aside when the divider reaches them */
+.compare__tag {
+  position: absolute;
+  top: var(--compare-tag-y);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.06em;
+  color: var(--compare-tag);
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.compare__tag--before { left: var(--compare-tag-x); }
+.compare__tag--after { right: var(--compare-tag-x); }
+.compare__tag[data-hidden] { opacity: 0; }

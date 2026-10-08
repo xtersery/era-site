@@ -50,10 +50,14 @@ const gripBox = async (p, sel) => { const b = await p.locator(sel).boundingBox()
   const held = await hud(page);
   await page.mouse.wheel(0, 300); await page.waitForTimeout(600);
   log.push(['scroll 300 px while open → rail unchanged:', (await hud(page)).split('·')[1] === held.split('·')[1]]);
-  // before / after on the open sheet
-  await page.click('.sheetinfo__btn >> nth=0'); await page.waitForTimeout(500);
-  log.push(['«До» pressed →', await page.evaluate(() => document.querySelector('.sheetinfo__btn[aria-pressed="true"]')?.textContent)]);
-  await page.click('.sheetinfo__btn >> nth=2'); await page.waitForTimeout(400);
+  // before / after on the open sheet — a pair only; a single photograph has no states (see spike-gallery.media.mjs)
+  if (await page.$('.sheetinfo__btn')) {
+    await page.click('.sheetinfo__btn >> nth=0'); await page.waitForTimeout(700);
+    log.push(['«До» pressed →', await page.evaluate(() => document.querySelector('.sheetinfo__btn[aria-pressed="true"]')?.textContent), '· divider at', await page.evaluate(() => document.querySelector('[role=slider]')?.getAttribute('aria-valuenow'))]);
+    await page.click('.sheetinfo__btn >> nth=2'); await page.waitForTimeout(700);
+  } else {
+    log.push(['single photograph open → no «До · Сравнить · После», no divider:', await page.evaluate(() => !document.querySelector('.sheetcompare'))]);
+  }
   // return with «×»: the page was scrolled meanwhile, so it is put back where the case was opened
   const posBefore = (await hud(page)).match(/pos ([\d.]+)/)?.[1];
   const scrolledTo = await page.evaluate(() => window.scrollY);
@@ -71,8 +75,8 @@ const gripBox = async (p, sel) => { const b = await p.locator(sel).boundingBox()
   await page.click('.sheetinfo__back'); await page.waitForTimeout(1500);
   log.push(['«Назад в архив» →', await hud(page)]);
   // keyboard: open from the index, close with Escape
-  await page.click('.rail button >> nth=6'); await page.waitForTimeout(1700);
-  log.push(['index 04.7 →', await hud(page)]);
+  await page.click('.rail button >> nth=3'); await page.waitForTimeout(1700);
+  log.push(['index 04.4 →', await hud(page)]);
   await page.keyboard.press('Escape'); await page.waitForTimeout(1500);
   log.push(['Escape →', await hud(page)]);
   // leaving the section while a case is open closes it, and the page is never trapped

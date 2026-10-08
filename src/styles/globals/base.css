@@ -9,9 +9,14 @@ html {
   -webkit-hyphens: manual;
 }
 
-/* Lenis owns easing when it is live; native smooth behaviour would fight it. */
+/* Lenis owns easing when it is live; native smooth behaviour would fight it.
+   `!important`: ScrollTrigger caches whether the viewport is `smooth` when it
+   first meets it (before this attribute lands) and then restores an INLINE
+   `scroll-behavior: smooth` on <html> after every refresh — which would make
+   every programmatic scroll animate, and its own snap tweens read a lagging
+   position and kill themselves. The stylesheet must win. */
 html[data-scroll='lenis'] {
-  scroll-behavior: auto;
+  scroll-behavior: auto !important;
 }
 
 body {

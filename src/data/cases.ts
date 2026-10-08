@@ -12,11 +12,11 @@ export const placeholder = true;
 export const cases: readonly CaseRecord[] = [
   {
     id: 'case-1',
-    categoryId: 'biorevitalisation',
+    categoryId: 'injection',
     isPlaceholder: true,
     title: ru('Биоревитализация, курс 3 процедуры'),
     resultAfter: ru('через 6 недель'),
-    specialistId: 'specialist-1',
+    specialistId: '', // placeholder case — never attributed to a real specialist
     course: ru('3 процедуры'),
     commentary: ru(
       '[Комментарий специалиста — одно-два предложения: какая была задача и чего намеренно не делали.]',
@@ -31,7 +31,7 @@ export const cases: readonly CaseRecord[] = [
     isPlaceholder: true,
     title: ru('Контурная коррекция средней трети'),
     resultAfter: ru('через 3 недели'),
-    specialistId: 'specialist-2',
+    specialistId: '', // placeholder case — never attributed to a real specialist
     commentary: ru(
       '[Комментарий специалиста — о пропорциях и мере: почему объёма меньше, чем просили.]',
     ),
@@ -45,7 +45,7 @@ export const cases: readonly CaseRecord[] = [
     isPlaceholder: true,
     title: ru('Коррекция мимических морщин'),
     resultAfter: ru('через 2 недели'),
-    specialistId: 'specialist-1',
+    specialistId: '', // placeholder case — never attributed to a real specialist
     commentary: ru('[Комментарий специалиста — о сохранённой естественной мимике.]'),
     status: 'visualisation',
     beforeLabel: ru('Визуализация «до» — лоб и область глаз, крупно'),
@@ -57,7 +57,7 @@ export const cases: readonly CaseRecord[] = [
     isPlaceholder: true,
     title: ru('Работа с качеством кожи, курс'),
     resultAfter: ru('через 3 месяца'),
-    specialistId: 'specialist-3',
+    specialistId: '', // placeholder case — never attributed to a real specialist
     course: ru('5 процедур'),
     commentary: ru('[Комментарий специалиста — о тоне и текстуре без макияжа.]'),
     status: 'visualisation',
@@ -68,5 +68,7 @@ export const cases: readonly CaseRecord[] = [
 
 export const CASE_STATUS_LABEL: Readonly<Record<CaseRecord['status'], string>> = {
   'real-consented': ru('Реальный кейс · публикуется с согласия пациента'),
+  // the clinic's own photograph, consent not yet documented in the project — a bracket, not a claim
+  'real-pending': ru('Реальный кейс · [согласие пациента — подтверждается]'),
   visualisation: 'Визуализация',
 };

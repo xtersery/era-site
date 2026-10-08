@@ -610,3 +610,66 @@ edge; 04.2 turned away behind-left, 04.3 edge-on, the slates beyond. Nothing
 else in the geometry changed; all proofs unchanged.
 
 Board: `docs/spikes/boards/cases-ribbon-turn.html` (fig. 1c and the verdict).
+
+
+---
+
+## Pass 8 — THE CLINIC'S PHOTOGRAPHS (19.09.2026)
+
+The stand-ins are gone. The archive now hangs the clinic's own case photographs
+from `public/images/` (inventoried by eye, not by filename order):
+
+| file | as shot | read as | on the rail |
+| --- | --- | --- | --- |
+| `case1.HEIC` | 4090 × 4090 | the clinic's own side-by-side diptych, one file | 04.1 · single, whole |
+| `case2_before / _after.HEIC` | 3213 × 5712 | one sitting, one dress, the patient lying — a confirmed pair | 04.2 · **pair** |
+| `case3_before / _after.JPG` | 960 × 1280 | the same woman (earring, hair), different framing and light — a confirmed pair, loosely aligned | 04.3 · **pair** |
+| `case4.HEIC` | 4808 × 4808 | a diptych, one file | 04.4 · single, whole |
+| `case5.HEIC` | 4200 × 4200 | a diptych, one file | 04.5 · single, whole |
+
+`scripts/case-assets.sh` (sips: format, orientation, crop, size — nothing else)
+writes `spikes/gallery/assets/` in two tiers, 1280 px for the open sheet and
+800 px for the rail and the phone. case2 was shot with the phone turned; both
+frames are turned −90° so the face is upright and cut to ONE 4 : 5 rectangle
+around the lips, so «до» and «после» share a viewport. The diptychs stay one
+image each: a slider is not manufactured out of a collage, and their halves do
+not align anyway. They sit whole on the sheet's own dark paper (`contain`);
+the pairs fill the sheet (`cover`, one focus for both frames).
+
+**The data model.** `CaseRecord.media?: CaseMedia` — `single { image }` or
+`beforeAfter { before, after }`, each with a neutral Russian `alt` and a `fit`
+(`src/types/content.ts`). The records (`spikes/gallery/casesReal.ts`) name
+only what the photograph shows — «Губы —», «Кожа лица —», «Профиль лица —» —
+and bracket everything that is not in project data: procedure, timing, doctor,
+commentary. A third status, `real-pending`, renders «Реальный кейс · [согласие
+пациента — подтверждается]»: these are real patients, and neither «Визуализация»
+nor «публикуется с согласия» would be true today. **Open: the clinic confirms
+consent and the copy.** The eight spike-only stand-ins (`cases8.ts`) and the
+pointer field are removed.
+
+**The divider.** One `CompareSlider` (`src/components/ui/CompareSlider/`,
+token-driven, lit by `gallery.css` in champagne) laid exactly on the open
+sheet's projected box — the scene cuts the two textures at the same `split`
+(`uSplit`, a one-pixel-soft `step` in sheet uv, never a mix or a move). The
+whole surface drags (`touch-action: pan-y`, so a vertical swipe still scrolls;
+the ring itself `none`), the ring is `role="slider"` 0–100 with arrows / Shift /
+Home / End, labels «до» · «после» inside the photograph step aside at the
+edges, «До · Сравнить · После» stay as the three named positions. On the rail a
+pair shows «после» only and says «до / после» on its label; the divider exists
+only while a case is open — nothing on a moving sheet is draggable. A single
+photograph has no divider, no controls, no states.
+
+**Textures.** 7 rail-tier textures up front (≈ 1.25 MB, mipmapped); the open
+case loads its 1280 px photographs on demand and the previous case's are
+disposed — not on the phone, where the rail tier already exceeds the sheet.
+
+**Measured** (`e2e/spike-gallery.media.mjs`, Chrome 1440 × 900 and 390 × 844
+touch): all 14 paths resolve at their sizes; divider box = sheet box within
+1.5 px; drag → 25 / 70, arrows 2 %, Shift 10 %, Home / End; touch drag → 80;
+a vertical swipe on the open sheet scrolls the page; no horizontal overflow;
+left of the divider is the «до» frame and right the «после» frame (mean |Δ|
+0.30 / 0.05 against the frames, 37 / 41 against the other); browse, hover
+lift, «×», «Назад в архив», Esc, scroll-away close and the flow's compression
+unchanged (`spike-gallery.interact.mjs`, `spike-flow.handoff.mjs`,
+`spike-full.mjs` all pass). The ring is now five sheets — 176° of the turn,
+the geometry untouched; it closes again as the clinic adds cases.

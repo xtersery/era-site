@@ -19,12 +19,22 @@ export default defineConfig({
     timezoneId: 'Europe/Moscow',
     trace: 'off',
   },
-  webServer: {
-    command: 'npm run dev -- --port 5173 --strictPort',
-    url: 'http://localhost:5173',
-    reuseExistingServer: true,
-    timeout: 60_000,
-  },
+  webServer: [
+    {
+      command: 'npm run dev -- --port 5173 --strictPort',
+      url: 'http://localhost:5173',
+      reuseExistingServer: true,
+      timeout: 60_000,
+    },
+    {
+      // the site + a MOCK Telegram for the lead test (e2e/production.spec.ts);
+      // never reused, so a lead can only ever reach the mock
+      command: 'node e2e/lead-stack.mjs',
+      url: 'http://127.0.0.1:5174',
+      reuseExistingServer: false,
+      timeout: 60_000,
+    },
+  ],
   projects: [
     {
       name: 'desktop-1440',

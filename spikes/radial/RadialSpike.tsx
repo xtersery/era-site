@@ -1,13 +1,11 @@
 import gsap from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { services } from '@/data/services';
 import { subIndex } from '@/lib/utils';
-
-import portrait from '../hero/assets/portrait-test.png';
-import skin from '../hero/assets/skin-plate.jpg';
+import { debugQuery } from '@/lib/env';
 
 /**
  * Services — 2D radial editorial system. Working spike of the section logic.
@@ -45,15 +43,6 @@ const MINERAL = CustomEase.create('mineral', 'M0,0 C0.52,0 0.18,1 1,1');
 const N = services.length; // 7
 const STEP = 360 / N;
 const DAMP = 0.35; // a state's own rotation relative to its angle on the wheel
-const IMAGES: readonly (readonly [string, string])[] = [
-  [portrait, '62% 20%'],
-  [skin, '60% 45%'],
-  [portrait, '20% 30%'],
-  [skin, '45% 60%'],
-  [portrait, '70% 55%'],
-  [skin, '30% 40%'],
-  [portrait, '40% 10%'],
-];
 
 const rad = (deg: number) => (deg * Math.PI) / 180;
 const mod = (v: number, m: number) => ((v % m) + m) % m;
@@ -80,7 +69,7 @@ function layout(w: number, h: number): Wheel {
 }
 
 function readParams() {
-  const q = new URLSearchParams(location.search);
+  const q = debugQuery();
   const t = q.get('t');
   const drive = q.get('drive');
   return {
@@ -92,7 +81,15 @@ function readParams() {
   };
 }
 
-export function ServicesRadial({ start = 0, still = null, drive = 'snap', dist = 85, onTurn }: { start?: number; still?: number | null; drive?: Drive; dist?: number; onTurn?: (turn: number) => void }) {
+/**
+ * `exit` is opt-in and off by default — with it unset this component renders
+ * exactly what Spike B approved. When a composing page sets it (the flow spike,
+ * `spikes/flow/`), the section additionally renders `.radial__exit`: an inert,
+ * fully transparent layer the PAGE owns and drives, used to blend the bone
+ * ground into whatever room follows while the section is leaving. Services
+ * itself never touches it.
+ */
+export function ServicesRadial({ start = 0, still = null, drive = 'snap', dist = 85, exit = false, onTurn }: { start?: number; still?: number | null; drive?: Drive; dist?: number; exit?: boolean; onTurn?: (turn: number) => void }) {
   const scrollDriven = drive !== 'drag' && still === null;
   const sectionRef = useRef<HTMLElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
@@ -376,8 +373,6 @@ export function ServicesRadial({ start = 0, still = null, drive = 'snap', dist =
       {/* the states — the outer ring; on the phone the state itself takes the swipe */}
       <div className="radial__states" onPointerDown={onPointerDown('swipe')} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
         {services.map((s, k) => {
-          const [img, pos] = IMAGES[k]!;
-          const [detail] = IMAGES[(k + 2) % N]!;
           const isActive = k === active;
           return (
             <article
@@ -390,7 +385,7 @@ export function ServicesRadial({ start = 0, still = null, drive = 'snap', dist =
             >
               <div className="state__text">
                 <p className="state__no">{subIndex('02', k + 1)} <span>/ 07</span></p>
-                <h3 className="state__title">{s.name}</h3>
+                <h3 className="state__title">{s.title.map((line, i) => <Fragment key={line}>{i > 0 && <br />}{line}</Fragment>)}</h3>
                 <p className="state__promise">{s.promise}</p>
                 <p className="state__copy">{s.description}</p>
                 <dl className="state__meta">
@@ -406,9 +401,9 @@ export function ServicesRadial({ start = 0, still = null, drive = 'snap', dist =
               <div className="state__field">
                 <div className="state__recess" />
                 <div className="state__hair" />
-                <div className="state__image" role="img" aria-label={`Кампания — ${s.imageLabel}`} style={{ backgroundImage: `url(${img})`, ['--pos' as string]: pos }} />
+                <div className="state__image" role="img" aria-label={`Кампания — ${s.imageLabel}`} style={{ backgroundImage: `url(${s.image})`, ['--pos' as string]: s.imagePosition }} />
                 <div className="state__glass" />
-                <div className="state__detail" style={{ backgroundImage: `url(${detail})` }} />
+                <div className="state__detail" style={{ backgroundImage: `url(${s.image})`, ['--pos' as string]: s.detailPosition }} />
                 <p className="state__caption">Кампания — {s.imageLabel}</p>
               </div>
             </article>
@@ -416,13 +411,19 @@ export function ServicesRadial({ start = 0, still = null, drive = 'snap', dist =
         })}
       </div>
 
+      {exit && <div className="radial__exit" aria-hidden="true" />}
+
       <p className="radial__keys" aria-hidden="true">{scrollDriven ? (L.current.phone ? 'листайте — направления сменяются' : 'прокрутка — направления · ← → — по одному') : L.current.phone ? 'свайп — следующее направление' : '↑ ↓ — направления · дугу можно тянуть'}</p>
       <p className="sr-only" aria-live="polite">Услуга {subIndex('02', active + 1)} — {activeService.name}</p>
     </section>
   );
 }
 
-/** the spike page: the section between two honest stubs, so page scroll is visibly untouched */
+/**
+ * The spike page: the section between two honest stubs, so page scroll is
+ * visibly untouched. The neighbour below is Кейсы — Стоимость is not in the
+ * vertical flow (see `spikes/flow/`, `docs/spikes/F-flow.md`).
+ */
 export function RadialSpike() {
   const { a, t, hud, drive, dist } = useMemo(readParams, []);
   const [turn, setTurn] = useState(a);
@@ -435,7 +436,7 @@ export function RadialSpike() {
         </>
       )}
       <ServicesRadial start={a} still={t} drive={drive} dist={dist} onTurn={setTurn} />
-      {t === null && <section className="stub stub--after" aria-label="Заглушка следующей секции"><p>03 — Стоимость · [заглушка соседней секции]</p></section>}
+      {t === null && <section className="stub stub--after" aria-label="Заглушка следующей секции"><p>04 — Кейсы · [заглушка соседней секции]</p></section>}
       {hud && t === null && (
         <div className="hud" aria-hidden="true">
           2D radial · {drive} · {dist}vh/state · turn {turn.toFixed(3)} · active {subIndex('02', mod(Math.round(turn), N) + 1)}

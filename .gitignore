@@ -49,6 +49,17 @@ node_modules/.vite/
 # Local Claude Code state (project skills and CLAUDE.md ARE committed)
 .claude/settings.local.json
 
+# Vercel CLI state
+.vercel/
+
+# The clinic's original photographs — the SOURCE for scripts/case-assets.sh,
+# never referenced by the site. `public/` is copied verbatim into `dist/`, so
+# anything here that is committed is published at a public URL.
+public/images/*.HEIC
+public/images/*.heic
+public/images/*.JPG
+public/images/specialists/
+
 # Heavy local media that should live in asset storage, not git
 public/video/*.mp4
 public/video/*.webm
@@ -70,3 +81,4 @@ spikes/**/portrait-test.jpg
 docs/spikes/boards/
 dist-spike/
 spikes/cases/assets/
+.venv-assets/

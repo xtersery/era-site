@@ -5,6 +5,6 @@ export {
   type ScrollToOptions,
 } from './smoothScroll';
 export { ScrollProvider } from './ScrollProvider';
-export { useSmoothScroll } from './scrollContext';
+export { useSmoothScroll, ScrollContext } from './scrollContext';
 export { useHorizontalPin } from './useHorizontalPin';
 export { useChapterTriggers } from './useChapterTriggers';

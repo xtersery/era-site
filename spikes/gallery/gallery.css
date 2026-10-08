@@ -75,6 +75,8 @@
   transition: opacity 320ms ease, transform 420ms cubic-bezier(0.52, 0, 0.18, 1), color 320ms ease;
 }
 .grip__verb { color: #d3b478; }
+/* a pair says so on its label — a quiet word, not a badge */
+.grip__pair { color: #8d9a92; }
 .grip[data-near] .grip__tag,
 .grip:hover .grip__tag,
 .grip:focus-visible .grip__tag { opacity: 1; transform: translateY(0); }
@@ -241,7 +243,7 @@
 .sheetinfo__promise { margin: 2px 0 0; font-size: 1.0625rem; color: #e4e0d6; }
 .sheetinfo__meta {
   display: grid;
-  grid-template-columns: 10ch 1fr;
+  grid-template-columns: 12ch 1fr;
   row-gap: 4px;
   margin: 6px 0 0;
   padding-top: 10px;
@@ -318,6 +320,29 @@
 .sheetclose[data-visible] { opacity: 1; pointer-events: auto; }
 .sheetclose:hover { border-color: #d3b478; background: #d3b478; color: #08140f; }
 .sheetclose:focus-visible { outline: 1px solid #d3b478; outline-offset: 4px; }
+
+/* the «до / после» divider, laid exactly on the open sheet (the scene cuts the two states at the same split) */
+.sheetcompare {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 420ms ease 120ms;
+  /* the archive's light: a champagne hairline and ring on the photograph, the labels in the wall's ivory */
+  --compare-line: rgba(247, 228, 177, 0.92);
+  --compare-ring: rgba(247, 228, 177, 0.95);
+  --compare-ring-fill: rgba(5, 13, 10, 0.42);
+  --compare-tag: rgba(234, 230, 220, 0.86);
+  --compare-focus: #d3b478;
+  --compare-handle-y: 56%;
+  /* inside the photograph, clear of the sheet's mineral edge */
+  --compare-tag-x: 7%;
+  --compare-tag-y: 5.5%;
+}
+.sheetcompare[data-visible] { opacity: 1; pointer-events: auto; }
+.sheetcompare .compare__tag { text-shadow: 0 1px 12px rgba(5, 13, 10, 0.9); }
 
 /* the open sheet's own wall label */
 .sheettag {

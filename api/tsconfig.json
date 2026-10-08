@@ -1,0 +1,15 @@
+{
+  // Vercel compiles `api/*.ts` with the NEAREST tsconfig — this one. It emits
+  // JavaScript, so the `.ts` import paths `server/` uses (for `node --test`)
+  // must be rewritten to `.js` on the way out, and the checks are the repo's
+  // strict ones (tsconfig.node.json), not Vercel's defaults.
+  "extends": "../tsconfig.node.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "rewriteRelativeImportExtensions": true,
+    "sourceMap": true
+  },
+  "include": ["./**/*.ts", "../server/**/*.ts"],
+  "exclude": ["../server/**/*.test.ts"]
+}

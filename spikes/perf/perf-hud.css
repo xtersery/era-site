@@ -1,0 +1,18 @@
+/* `?perfDebug=1` — dev tooling, never the page's UI */
+.perf-hud {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 1000;
+  margin: 0;
+  padding: 8px 10px;
+  font: 11px/1.5 ui-monospace, 'JetBrains Mono Variable', monospace;
+  color: #ece8df;
+  background: rgb(7 7 7 / 0.72);
+  pointer-events: none;
+  white-space: pre;
+}
+
+.perf-hud[data-bad='1'] {
+  color: #ffb4a8;
+}

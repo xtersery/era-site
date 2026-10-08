@@ -1,0 +1,10 @@
+/*
+ * The full page — nothing here styles a room. Only what the composition of
+ * the hero's page inside the flow's page needs.
+ */
+
+/* The hero's page ground is the bone; inside the flow's page it is simply the
+   first block. */
+.flowpage .hs-page {
+  position: relative;
+}

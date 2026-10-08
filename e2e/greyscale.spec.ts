@@ -1,5 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
+// The greyscale wireframe — a dev page since the full experience became the root.
+const WIREFRAME = '/spikes/wireframe/';
+
 const SECTION_IDS = [
   'hero',
   'manifesto',
@@ -27,7 +30,7 @@ test.describe('greyscale prototype', () => {
     });
     page.on('pageerror', (err) => errors.push(err.message));
 
-    await page.goto('/');
+    await page.goto(WIREFRAME);
     await page.waitForLoadState('networkidle');
 
     // Fonts settled before screenshots.
@@ -68,7 +71,7 @@ test.describe('greyscale prototype', () => {
   test('all visible text is Russian; no Latin words except the brand/proper nouns', async ({
     page,
   }) => {
-    await page.goto('/');
+    await page.goto(WIREFRAME);
     const text = await page.evaluate(() => document.body.innerText);
     // Allowed Latin tokens.
     const allow = new Set([
@@ -87,7 +90,7 @@ test.describe('greyscale prototype', () => {
   });
 
   test('no male references in placeholder copy', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(WIREFRAME);
     const text = (await page.evaluate(() => document.body.innerText)).toLowerCase();
     for (const word of ['мужчин', 'мужск', 'пациента-мужчины', 'клиент ']) {
       expect(text.includes(word), `found "${word}"`).toBe(false);
@@ -97,7 +100,7 @@ test.describe('greyscale prototype', () => {
   test('placeholders are flagged and pending copy renders its bracket verbatim', async ({
     page,
   }) => {
-    await page.goto('/');
+    await page.goto(WIREFRAME);
     const count = await page.locator('[data-placeholder]').count();
     expect(count).toBeGreaterThan(0);
     await expect(page.locator('#hero-heading')).toHaveText(
@@ -115,7 +118,7 @@ test.describe('greyscale prototype', () => {
   });
 
   test('prices are static — no count-up', async ({ page }) => {
-    await page.goto('/#pricing');
+    await page.goto(WIREFRAME + '#pricing');
     const first = page.locator('td.pricing__cell--price').first();
     const a = await first.textContent();
     await page.waitForTimeout(400);
@@ -126,7 +129,7 @@ test.describe('greyscale prototype', () => {
   });
 
   test('CTA routing pre-fills the form', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(WIREFRAME);
     await page.locator('#services .btn').first().click();
     await expect(page.locator('#inquiry')).toBeInViewport({ timeout: 5000 });
     const procedure = page.locator('#inquiry select[name="procedure"]');
@@ -135,14 +138,14 @@ test.describe('greyscale prototype', () => {
   });
 
   test('keyboard: services tabs, cases toggle, reviews list', async ({ page }) => {
-    await page.goto('/#services');
+    await page.goto(WIREFRAME + '#services');
     const width = page.viewportSize()?.width ?? 0;
     // Services tabs exist from `lg` (1024); below that the accordion is keyboard-native.
     if (width >= 1024) {
       const tab = page.getByRole('tab', { name: /Инъекционная/ }).first();
       await tab.focus();
       await page.keyboard.press('ArrowDown');
-      await expect(page.getByRole('tab', { selected: true }).first()).toContainText('Anti-age');
+      await expect(page.getByRole('tab', { selected: true }).first()).toContainText('Контурная пластика');
     }
     const toggle = page.getByRole('button', { name: 'Показать до / после' }).first();
     if (await toggle.count()) {
@@ -159,7 +162,7 @@ test.describe('greyscale prototype', () => {
   });
 
   test('form validation is quiet and the success state is Russian', async ({ page }) => {
-    await page.goto('/#inquiry');
+    await page.goto(WIREFRAME + '#inquiry');
     await page.getByRole('button', { name: 'Отправить заявку' }).click();
     await expect(page.locator('#inquiry [role="alert"]').first()).toBeVisible();
     await page.getByLabel('Имя', { exact: true }).fill('Тест');
@@ -170,7 +173,7 @@ test.describe('greyscale prototype', () => {
   });
 
   test('room-by-room screenshots', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(WIREFRAME);
     await page.evaluate(() => document.fonts.ready);
     for (const id of SECTION_IDS) {
       await page.evaluate((sid) => {
@@ -186,7 +189,7 @@ test.describe('greyscale prototype', () => {
   });
 
   test('scroller matches the tier', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(WIREFRAME);
     await page.waitForTimeout(200);
     const kind = await page.evaluate(() => document.documentElement.dataset.scroll);
     const reduced = await page.evaluate(
@@ -204,7 +207,7 @@ test.describe('greyscale prototype', () => {
     page.on('request', (req) => {
       if (req.resourceType() === 'script') initialScripts.push(req.url());
     });
-    await page.goto('/');
+    await page.goto(WIREFRAME);
     await page.waitForLoadState('load');
     // Scripts requested before load must not include three.
     // Dependency URLs only (dev: /node_modules/.vite/deps/three.js, @react-three_fiber.js).

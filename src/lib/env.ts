@@ -5,6 +5,19 @@ export const isBrowser = typeof window !== 'undefined' && typeof document !== 'u
 export const isDev = import.meta.env.DEV;
 
 /**
+ * Debug tooling — HUDs, diagnostic panels, frozen states from the query
+ * string (`?hud=1`, `?diag=1`, `?k=2`, `?transitionDebug=1` …), `window.__*`
+ * probes for the capture scripts. On in the dev server and in review-artifact
+ * builds (`vite.spike.config.ts` sets `VITE_ERA_DEBUG`); off in the
+ * production build, where the page ignores the query string entirely.
+ */
+export const debugTools = import.meta.env.DEV || import.meta.env['VITE_ERA_DEBUG'] === '1';
+
+/** the query string for debug params — empty in production, so a stray `?k=2` freezes nothing */
+export const debugQuery = (): URLSearchParams =>
+  new URLSearchParams(debugTools && typeof location !== 'undefined' ? location.search : '');
+
+/**
  * Static, one-shot read of the reduced-motion preference.
  * Prefer the reactive `usePrefersReducedMotion()` hook inside components — use
  * this only from module scope or imperative code that cannot subscribe.

@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 
+import { leadApi } from './server/vite.ts';
+
 const resolvePath = (segment: string) => fileURLToPath(new URL(segment, import.meta.url));
 
 /**
@@ -21,13 +23,20 @@ const resolvePath = (segment: string) => fileURLToPath(new URL(segment, import.m
 export default defineConfig({
   plugins: [
     react(),
-    visualizer({
-      filename: 'dist/stats.html',
-      gzipSize: true,
-      brotliSize: true,
-      template: 'treemap',
-      open: false,
-    }),
+    // POST /api/lead → Telegram, in the dev and preview servers (server/README.md)
+    leadApi(),
+    // the bundle report is for the desk — never in a deployed `dist/` (Vercel sets `VERCEL=1`)
+    ...(process.env['VERCEL']
+      ? []
+      : [
+          visualizer({
+            filename: 'dist/stats.html',
+            gzipSize: true,
+            brotliSize: true,
+            template: 'treemap',
+            open: false,
+          }),
+        ]),
   ],
   resolve: {
     alias: {

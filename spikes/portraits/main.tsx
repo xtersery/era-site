@@ -1,6 +1,7 @@
 // Specialists — the pinned portrait gallery («Сеанс»). Dev-only spike page.
 import '@/styles/index.css';
 import './portraits.css';
+import '../founder/founder.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

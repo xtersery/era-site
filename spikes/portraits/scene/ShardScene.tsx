@@ -31,6 +31,8 @@ import reliefFrag from './relief.frag?raw';
 import reliefVert from './relief.vert?raw';
 import { createEdgeProfile, createQuartzGeometry, createRidgeMap, QUARTZ_ASPECT } from './quartzGeometry';
 import { trace } from './quartzTrace';
+import { PORTRAIT_ASPECT } from '../people';
+import { debugQuery, debugTools } from '@/lib/env';
 
 /**
  * The quartz as a resident of the layout, and the mediator of the change.
@@ -231,9 +233,9 @@ export function createShadow(): Mesh {
   return new Mesh(new PlaneGeometry(1, 1), new MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false }));
 }
 
-/** cover-fit of a 4 : 5 portrait into the frame, anchored like its DOM plate */
+/** cover-fit of a portrait into the frame, anchored like its DOM plate */
 function fit(frameAspect: number, anchorY: number) {
-  const imgAspect = 4 / 5;
+  const imgAspect = PORTRAIT_ASPECT;
   const vx = Math.min(1, frameAspect / imgAspect);
   const vy = Math.min(1, imgAspect / frameAspect);
   return { repeat: new Vector2(vx, vy), offset: new Vector2((1 - vx) * 0.5, 1 - vy - anchorY * (1 - vy)) };
@@ -359,7 +361,7 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
   // only and adds transmission — the bend and the softening — where the
   // renderer supports the transmission pass; where it does not, the body alone
   // is still the stone. `?mat=body` shows the body alone.
-  const bodyOnly = useMemo(() => new URLSearchParams(location.search).get('mat') === 'body', []);
+  const bodyOnly = useMemo(() => debugQuery().get('mat') === 'body', []);
   const body = useMemo(
     () =>
       new MeshPhysicalMaterial({
@@ -464,7 +466,7 @@ function QuartzBody({ portraits, state, phone, frame, place, still, onReady, onD
     if (!ready.current) {
       ready.current = true; onReady?.(); onDiag?.({ firstFrame: true });
       // the scene's objects, for the diagnostic console (`window.__three`)
-      (window as unknown as Record<string, unknown>)['__three'] = { scene, composite, field, wall, shadow, stone: mesh };
+      if (debugTools) (window as unknown as Record<string, unknown>)['__three'] = { scene, composite, field, wall, shadow, stone: mesh };
     }
     onDiag?.({ stoneVisible: true, drawCalls: gl.info.render.calls });
 

@@ -1,0 +1,357 @@
+/*
+ * 09 — Заявка: the conversation, on black.
+ *
+ * The last room is the site gone quiet: a soft black (`#070707`, inside the
+ * approved dark range, below the forest of the dark rooms — black, not
+ * green) with the palette's ivory (`text-on-dark` #eae6dc) for the words, a
+ * warmer ivory at 0.72 for what is secondary (never a grey), champagne as
+ * light on the baselines and the CTA's edge, the site's deep green for the
+ * one CTA. No card: the form stands on hairline baselines in the editorial
+ * grid, the wireframe's own `Field` chrome read through this room's tokens.
+ *
+ * THE CORRIDOR is not in this section: the page's fixed walls (`Corridor`,
+ * `.talk-walls`, painted from `--t-k`) calm the sides of the viewport as
+ * the room enters, and the page's own veil at the foot of Адрес
+ * (`spikes/flow/`) raises this room's black into the leaving one.
+ */
+.talk {
+  --black: #070707;
+  --ivory: #eae6dc; /* text-on-dark */
+  --ink: var(--ivory); /* what the wireframe's chrome calls text */
+  --mute: rgba(234, 230, 220, 0.72); /* secondary — warm, never grey */
+  --line: rgba(207, 175, 114, 0.26); /* champagne as light on a baseline */
+  --line-strong: rgba(207, 175, 114, 0.5);
+  --green: #10271d;
+  --gold: #cfaf72;
+  --hush: 52svh; /* the quiet before the words */
+
+  /* the wireframe's Field chrome, read through this room */
+  --color-text: var(--ivory);
+  --color-text-muted: var(--mute);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-focus: var(--ivory);
+  --color-cta: var(--gold);
+  color-scheme: dark; /* the native select's list and the caret follow the room */
+
+  position: relative;
+  z-index: 0;
+  width: 100vw;
+  min-height: 100svh;
+  overflow: hidden;
+  color: var(--ivory);
+  background: var(--black);
+}
+.talk__hush {
+  height: var(--hush);
+  /* the head of the room: the page's dusk (the tone at the line with Адрес,
+     when composed) settling into the black over the hush; black alone otherwise */
+  background: linear-gradient(to bottom, var(--dusk, var(--black)) 0, var(--black) 100%);
+}
+
+/* ---- the imprint: the hero's emblem, the brand's closing signature ---------- */
+/* The approved hero's brand object — `docs/references/era-logo_3.png`, the 3D
+   emblem of gold letters in a green-glass ring, through the hero spike's own
+   web copy (`emblem.webp`, alpha kept, nothing redrawn) — oversized at the
+   room's lower left, running out of the left and bottom edges. On the black
+   it is the emblem itself, dimmed to dark gold and deep green (no blend can
+   press into black): its own light kept low, the highlights held, so it is
+   read as the object from Главная, in the dark. Under the words, never near
+   the title. */
+.talk__imprint {
+  --emblem: url('../hero-stone/assets/emblem.webp');
+  position: absolute;
+  left: -12vw;
+  bottom: -9vw; /* the ring runs off the bottom; the letters end above the colophon, the crown below the support */
+  z-index: 0;
+  width: 48vw;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+.talk__imprint::before,
+.talk__imprint::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--emblem) center / contain no-repeat;
+}
+/* a breath of the emblem's own warmth behind it, in the surface — not a glow: blurred wide, very low */
+.talk__imprint::before {
+  filter: blur(28px) saturate(0.7);
+  opacity: 0.16;
+}
+/* the body: the emblem in the dark — dark gold, the glass ring deep green */
+.talk__imprint::after {
+  filter: brightness(0.62) saturate(0.82) contrast(1.06);
+  opacity: 0.58;
+}
+
+/* ---- the composition: the words on the left, the form on the right ------ */
+/* Narrower than Адрес on purpose: the room is inset a column on each side
+   and the measure is short — the space is more intimate, not smaller. */
+.talk__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--space-md);
+  align-items: start;
+  padding: 0 var(--gutter) var(--space-3xl);
+}
+.talk__text {
+  grid-column: 2 / 7;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-lg);
+}
+.talk__label {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--mute);
+}
+.talk__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(3.2rem, 6.2vw, 6.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  color: var(--ink);
+}
+.talk__lede {
+  margin: var(--space-xs) 0 0;
+  max-width: 38ch;
+  font-family: var(--font-text);
+  font-size: 1.125rem;
+  line-height: 1.55;
+  color: var(--mute);
+  text-wrap: pretty;
+}
+
+/* the form: cols 8–12, its head a little below the title's — the two columns
+   are not aligned mechanically; the words lead, the form follows */
+.talk__side {
+  grid-column: 8 / -1;
+  padding-top: 9svh;
+}
+.talk__side {
+  min-height: 34rem; /* room for the errors, and for the success in the same place */
+}
+.talk__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  max-width: 30rem; /* the baselines a little shorter than the column */
+}
+.talk__form .field__label { font-family: var(--font-mono); }
+.talk__form .field__control { font-size: 1.25rem; color: var(--ivory); }
+.talk__form .field__control::placeholder { color: var(--ivory); opacity: 0.42; }
+.talk__form .field__select-glyph { color: var(--mute); }
+.talk__form option { background: #111; color: var(--ivory); }
+/* the phone is the field that matters: the label in ivory, the entry larger, the baseline brighter */
+.talk__form .field:nth-child(2) .field__label { color: var(--ivory); }
+.talk__form .field:nth-child(2) .field__control {
+  font-size: 1.5rem;
+  border-bottom-color: color-mix(in srgb, var(--gold) 72%, transparent);
+}
+/* the check: champagne edge, ivory mark */
+.talk__form .field__checkbox { border-color: var(--line-strong); }
+.talk__form .field__checkbox::before { background: var(--ivory); }
+/* the consent sits with the action it enables */
+.talk__form .field--checkbox { margin-top: var(--space-xs); }
+.talk__form .field--checkbox + .talk__actions { padding-top: 0; margin-top: calc(-1 * var(--space-2xs)); }
+.talk__form .field__control:focus { border-bottom-color: var(--ivory); }
+.talk__form .field__control:focus-visible { outline: 1px solid var(--ivory); outline-offset: 6px; }
+.talk__form .field__checkbox:focus-visible { outline: 1px solid var(--ivory); outline-offset: 4px; }
+.talk__form .field__checkbox-label { font-size: 0.9375rem; line-height: 1.45; color: var(--mute); }
+/* the error: the wireframe's quiet line — ivory text, a hairline of champagne; never red */
+.talk__form .field__error { font-family: var(--font-mono); color: var(--ivory); }
+
+.talk__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md) var(--space-lg);
+  padding-top: var(--space-xs);
+}
+/* the one CTA: the site's deep green, ivory, a fine champagne edge — light on the edge, not decoration */
+.talk__send {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 60px;
+  margin: 0;
+  padding: 0 38px;
+  border: 1px solid color-mix(in srgb, var(--gold) 88%, var(--green));
+  background: var(--green);
+  color: var(--ivory);
+  font-family: var(--font-text);
+  font-size: 1rem;
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.talk__send:hover { border-color: #e6cd93; background: #153223; }
+.talk__send:disabled { cursor: default; opacity: 0.7; }
+.talk__send:focus-visible { outline: 1px solid var(--ivory); outline-offset: 4px; }
+.talk__or {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+}
+.talk__or,
+.talk__or a { color: var(--mute); text-decoration: none; }
+.talk__or:hover,
+.talk__or a:hover { color: var(--ivory); }
+.talk__or:focus-visible,
+.talk__or a:focus-visible { outline: 1px solid var(--ivory); outline-offset: 4px; }
+/* a send that did not go through: the fields' own quiet error line, on its own row above the button */
+.talk__fail {
+  flex-basis: 100%;
+  max-width: 34ch;
+  margin: 0;
+  font-size: var(--text-meta);
+  line-height: 1.5;
+}
+
+/* the success: in the same room, in the serif — no alert, no box */
+.talk__success {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  max-width: 34ch;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--line-strong);
+  color: var(--ivory);
+}
+.talk__thanks {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 3.6vw, 3.6rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.talk__after {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.55;
+  color: var(--ivory);
+  text-wrap: pretty;
+}
+.talk__when {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--mute);
+}
+
+/* ---- the colophon: one row at the foot of the room ------------------------- */
+.talk__foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs) var(--space-xl);
+  min-height: 56px;
+  margin: 0 var(--gutter);
+  padding: var(--space-sm) 0;
+  border-top: 1px solid rgba(234, 230, 220, 0.14);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--mute);
+}
+.talk__foot p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-md);
+  margin: 0;
+}
+.talk__foot a { color: var(--mute); text-decoration: none; }
+.talk__foot a:hover { color: var(--ivory); }
+.talk__foot a[aria-disabled='true'] { cursor: default; }
+.talk__foot a:focus-visible { outline: 1px solid var(--ivory); outline-offset: 4px; }
+.talk__foot-brand span:first-child { color: var(--ivory); }
+
+/* ---- the staging: each part arrives as it enters, a masked wipe ---------- */
+/* `--k` 0 … 1 per part, written by a scrubbed trigger on the part itself
+   (Talk.tsx) — position-linked, so the end state is reached by scrolling.
+   Nothing is hidden that the viewport already holds. */
+[data-reveal],
+.talk__form > * {
+  --k: 1;
+  mask-image: linear-gradient(180deg, #000 calc(var(--k) * 112% - 12%), transparent calc(var(--k) * 112%));
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(var(--k) * 112% - 12%), transparent calc(var(--k) * 112%));
+  transform: translate3d(0, calc((1 - var(--k)) * 10px), 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  .talk__form > * {
+    mask-image: none;
+    -webkit-mask-image: none;
+    transform: none;
+  }
+}
+
+/* ---- the corridor: the page's walls ----------------------------------------- */
+/* Fixed to the viewport, over the rooms and under the header, pointer-events
+   none. MULTIPLY keeps the words as they are: the outer fifths of the screen
+   calming by a few per cent of luminance with a long falloff, ink staying
+   ink, never a ring, never a vignette — and nothing at all over the black.
+   Driven by the page: `--t-k`; nothing at 0. */
+.talk-walls {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: var(--t-k, 0);
+  background: linear-gradient(
+    to right,
+    rgba(46, 41, 34, 0.15) 0%,
+    rgba(46, 41, 34, 0.1) 10%,
+    rgba(46, 41, 34, 0.05) 26%,
+    rgba(46, 41, 34, 0.015) 40%,
+    transparent 47%,
+    transparent 53%,
+    rgba(46, 41, 34, 0.015) 60%,
+    rgba(46, 41, 34, 0.05) 74%,
+    rgba(46, 41, 34, 0.1) 90%,
+    rgba(46, 41, 34, 0.15) 100%
+  );
+  mix-blend-mode: multiply;
+}
+/* the standalone page shows the room in its corridor at rest */
+.talk-page { --t-k: 1; }
+
+/* ---- tablet ---------------------------------------------------------------- */
+@media (max-width: 1279.98px) and (min-width: 768px) {
+  .talk__text { grid-column: 1 / 7; }
+  .talk__title { font-size: clamp(3rem, 6.2vw, 4.8rem); }
+  .talk__side { grid-column: 7 / -1; padding-top: 6svh; }
+  .talk__imprint { width: 52vw; left: -16vw; bottom: -9vw; }
+}
+
+/* ---- phone: the words, then the form — one column, no squeeze ----------- */
+@media (max-width: 767.98px) {
+  .talk { --hush: 36svh; }
+  .talk__grid { display: flex; flex-direction: column; gap: var(--space-xl); padding-bottom: var(--space-3xl); }
+  .talk__text { gap: var(--space-md); }
+  .talk__title { font-size: 2.75rem; letter-spacing: -0.025em; }
+  .talk__lede { font-size: 1.0625rem; max-width: none; }
+  .talk__side { padding-top: 0; min-height: 0; }
+  .talk__form { max-width: none; }
+  .talk__imprint { --emblem: url('../hero-stone/assets/emblem@phone.webp'); width: 80vw; left: -30vw; bottom: -22vw; }
+  .talk__imprint::after { opacity: 0.44; }
+  .talk__foot { margin: 0 var(--gutter); min-height: 0; padding: var(--space-md) 0; flex-direction: column; align-items: flex-start; gap: var(--space-sm); }
+  .talk__form .field__control { font-size: 1.125rem; }
+  .talk__actions { flex-direction: column; align-items: stretch; }
+  .talk__send { justify-content: center; }
+  .talk-walls {
+    background: linear-gradient(to right, rgba(46, 41, 34, 0.11) 0%, rgba(46, 41, 34, 0.03) 22%, transparent 38%, transparent 62%, rgba(46, 41, 34, 0.03) 78%, rgba(46, 41, 34, 0.11) 100%);
+  }
+}

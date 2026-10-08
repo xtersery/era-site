@@ -1,0 +1,449 @@
+/*
+ * 06 — Основатель: the room on the clinic's marble wall.
+ *
+ * Concept-board colours, not production tokens: the wall is the project's
+ * approved marble (`docs/references/wallpapers.png` at native scale — the
+ * same sheet the water's light settles into), shown AS IT IS — nothing is
+ * laid over the whole of it, nothing lightens or tints it. What is read is
+ * read on one charcoal plate under the column (a deep, slightly translucent
+ * black with a breath of the wall behind it), in white; the primary CTA is
+ * the site's deep green with a fine gold edge. Gold appears only there and in
+ * the veins. Nothing here is a card: she is a cutout on the wall, the plate
+ * is the one surface the words are set on.
+ *
+ * The staging is written by `Founder.tsx` as one `--k` (0 … 1) per part; this
+ * file only says what `--k` does to each. At `--k: 1` the room is at rest.
+ *
+ * The read (06.10): the section is as tall as her biography. She stands in a
+ * sticky stage one viewport tall; the column is in ordinary flow on the right
+ * and the page scrolls it past her. `overflow: clip`, never `hidden` — a
+ * clipping ancestor that is a scroll container would stop the stage sticking.
+ */
+.founder {
+  --white: #f5f2eb;
+  --white-soft: rgba(245, 242, 235, 0.74);
+  --white-line: rgba(245, 242, 235, 0.22);
+  --plate: rgba(9, 12, 11, 0.5);
+  --green: #10271d;
+  --gold: #cfaf72;
+  --wall-top: 23.32; /* = WALL.top × 100: the section's top 195 px down the 836 px sheet, in % of its width */
+  position: relative;
+  z-index: 1; /* under the specialists' room (2) until that room lets go of the wall */
+  width: 100vw;
+  min-height: 100svh;
+  padding-bottom: 16svh; /* the last lines rest above the foot as she is released */
+  display: flow-root; /* the column's top margin stays inside the room */
+  overflow: clip;
+  color: var(--white);
+  background: #b9b4ab; /* the marble's mean, under the image while it loads */
+}
+
+/* ---- the wall ---------------------------------------------------------- */
+/* Laid exactly as the specialists' scene lays the same sheet at the end of
+   the passage (WALL in Founder.tsx): on the viewport's width, centred, the
+   section's top 195 px down the sheet; below the first viewport (the phone's
+   long read) it continues. Nothing is painted over it. */
+.founder__wall {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url('../portraits/assets/marble.jpg') 50% calc(var(--wall-top) * -1vw) / 100vw auto repeat-y;
+}
+@media (width < 1024px) {
+  /* the phone lays the sheet on twice its width, centred — as the scene does */
+  .founder__wall { background-size: 200vw auto; background-position: 50% calc(var(--wall-top) * -2vw); }
+}
+
+/* The stage: one viewport, sticky at the top for the whole read — she and
+   the header band live in it. It sticks inside a track that spans the whole
+   section (padding included) and takes no room in the flow, so it is
+   released exactly when the section's foot reaches the viewport's foot. */
+.founder__track {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.founder__stage {
+  position: sticky;
+  top: calc(-1 * var(--pin-shift, 0px)); /* = 0 on screen once the pin is behind (Founder.tsx) */
+  height: 100svh;
+}
+
+/* The one local contrast layer: a short band of the room's dark under the
+   page's fixed header, so the mark, the index and «Записаться» — drawn in
+   light over the wall — read at once. It ends well above the words and is
+   set with the plate (`--k-band`); at the hand there is nothing of it. It is
+   sticky in its own track ABOVE the column, so for the whole read the words
+   pass into the room's dark under the header instead of under the nav. */
+.founder__track--head { z-index: 4; }
+.founder__band {
+  position: sticky;
+  top: calc(-1 * var(--pin-shift, 0px));
+  height: 22svh;
+  pointer-events: none;
+  opacity: var(--k-band, 0);
+  background: linear-gradient(to bottom, rgba(6, 12, 9, 0.74) 0%, rgba(6, 12, 9, 0.4) 46%, rgba(6, 12, 9, 0) 100%);
+}
+/* The head: the same dark, deeper, over the column's span only and only
+   once the read moves (`--head-k`, Founder.tsx) — the words pass into it,
+   never under the nav. At rest it is nothing; the marble and she are never
+   under it. */
+.founder__head {
+  position: absolute;
+  top: 0;
+  left: var(--head-x, 0);
+  width: var(--head-w, 0);
+  height: var(--head-h, 0);
+  opacity: var(--head-k, 0);
+  background: linear-gradient(to bottom, rgba(6, 12, 9, 0.96) 0%, rgba(6, 12, 9, 0.92) 55%, rgba(6, 12, 9, 0) 100%);
+}
+
+/* ---- she ---------------------------------------------------------------- */
+/* A cutout at the scale of a person, standing at the section's foot, her
+   shadow zone multiplied into the stone under her. She comes out of the
+   stone along the veins' flow: a masked wipe from her head down and to the
+   right (145°), its edge feathered a third of her width; the dress dissolves
+   into the wall at the foot so the plate's cut edge is never a line. A hair
+   of scale settles as she arrives. */
+.founder__portrait {
+  --k: 0;
+  position: absolute;
+  z-index: 2;
+  left: -1.5vw;
+  bottom: 0;
+  height: 92svh;
+  aspect-ratio: 1122 / 1402; /* the photograph's own proportion — never cropped or stretched */
+  margin: 0;
+  transform-origin: 30% 100%;
+  transform: translate3d(0, calc((1 - var(--k)) * 2.4%), 0) scale(calc(1 + (1 - var(--k)) * 0.028));
+  mask-image: linear-gradient(145deg, #000 calc(var(--k) * 135% - 35%), transparent calc(var(--k) * 135%));
+  -webkit-mask-image: linear-gradient(145deg, #000 calc(var(--k) * 135% - 35%), transparent calc(var(--k) * 135%));
+  will-change: transform, mask-image;
+}
+.founder__her,
+.founder__halo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: 0 100%;
+  user-select: none;
+}
+.founder__her {
+  /* the plate's cut edges — the foot and the shoulder's side — dissolve into the wall */
+  mask-image: linear-gradient(to top, transparent 0, #000 16%), linear-gradient(to left, transparent 0, #000 14%);
+  -webkit-mask-image: linear-gradient(to top, transparent 0, #000 16%), linear-gradient(to left, transparent 0, #000 14%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+.founder__halo {
+  /* her own silhouette, darkened and softened: the shadow zone on the stone */
+  filter: brightness(0) blur(18px);
+  mix-blend-mode: multiply;
+  opacity: 0.3;
+  transform: scale(1.06);
+  transform-origin: 30% 100%;
+}
+/* her caption: mono, on its own small piece of the plate */
+.founder__caption {
+  position: absolute;
+  left: max(var(--gutter), 1.5vw);
+  bottom: var(--space-md);
+  margin: 0;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--white-soft);
+  background: var(--plate);
+  white-space: nowrap;
+}
+
+/* ---- the words --------------------------------------------------------- */
+/* Every line arrives as the specialists' do: set from its top down through a
+   mask, with a small settling rise — light travelling, never a fade. The
+   plate itself is set the same way, first. */
+.founder__label,
+.founder__name,
+.founder__role,
+.founder__stat {
+  --k: 0;
+  --done: 0;
+  --edge: calc(var(--k) * 112% + var(--done) * 10000px); /* once set, no mask — a descender is never clipped */
+  mask-image: linear-gradient(180deg, #000 calc(var(--edge) - 12%), transparent var(--edge));
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(var(--edge) - 12%), transparent var(--edge));
+  transform: translate3d(0, calc((1 - var(--k)) * 10px), 0);
+}
+/* the tall parts — the plate and the read — are wiped over the first
+   viewport (svh, not their own height); once set (`--done`), no mask at all */
+.founder__column,
+.founder__read {
+  --k: 0;
+  --done: 0;
+  --edge: calc(var(--k) * 112svh + var(--done) * 10000px);
+  mask-image: linear-gradient(180deg, #000 calc(var(--edge) - 12svh), transparent var(--edge));
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(var(--edge) - 12svh), transparent var(--edge));
+  transform: translate3d(0, calc((1 - var(--k)) * 10px), 0);
+}
+.founder[data-still] .founder__column,
+.founder[data-still] .founder__read,
+.founder[data-still] .founder__label,
+.founder[data-still] .founder__name,
+.founder[data-still] .founder__role,
+.founder[data-still] .founder__stat,
+.founder[data-still] .founder__portrait {
+  mask-image: none;
+  -webkit-mask-image: none;
+  transform: none;
+}
+
+/* the plate: cols 8–12 of the page; one surface for everything that is read,
+   in the flow — as tall as the read. Deep charcoal, half translucent, the
+   wall softened a little behind it — no border, no shadow, clean edges. */
+.founder__column {
+  position: relative;
+  z-index: 3;
+  margin: 9svh var(--gutter) 0 53%;
+  max-width: 40rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 26px 32px 32px;
+  background: var(--plate);
+  -webkit-backdrop-filter: blur(6px) saturate(0.92);
+  backdrop-filter: blur(6px) saturate(0.92);
+  pointer-events: none;
+}
+.founder__column a { pointer-events: auto; }
+.founder__group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.founder__label {
+  display: flex;
+  gap: var(--space-md);
+  margin: 0 0 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--white-soft);
+}
+.founder__label > span { white-space: nowrap; }
+.founder__count { color: var(--white); }
+.founder__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.8rem, 5.1vw, 5.6rem);
+  line-height: 0.96;
+  letter-spacing: -0.028em;
+  max-width: 10ch;
+  color: var(--white);
+  /* a mask clips to the border box: room for the descenders (her «у»), the layout unchanged */
+  padding-bottom: 0.2em;
+  margin-bottom: -0.2em;
+}
+.founder__name-line { display: block; }
+.founder__lead,
+.founder__read {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.founder__lead { margin-top: 14px; }
+.founder__role {
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--white-line);
+  font-size: 1.0625rem;
+  color: var(--white);
+}
+.founder__stat {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 0.7em;
+  margin: 4px 0 0;
+}
+.founder__stat-value {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 2.1vw, 2.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  color: var(--white);
+  font-variant-numeric: lining-nums;
+}
+.founder__stat-label {
+  font-size: 1.0625rem;
+  color: var(--white);
+}
+
+/* ---- the read: chapters, each a marker, an anchor and her text ----------- */
+.founder__read {
+  gap: 0;
+  margin-top: 30px;
+}
+.founder__chapter {
+  padding: 30px 0 34px;
+  border-top: 1px solid var(--white-line);
+}
+.founder__marker {
+  display: flex;
+  gap: 0.9em;
+  margin: 0 0 14px;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: var(--text-meta);
+  letter-spacing: 0;
+  color: var(--white-soft);
+}
+.founder__marker-no { color: var(--white); font-variant-numeric: tabular-nums; }
+.founder__anchor {
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 2.1vw, 2.2rem);
+  line-height: 1.12;
+  letter-spacing: -0.012em;
+  color: var(--white);
+  font-variant-numeric: lining-nums;
+  text-wrap: balance;
+}
+/* her text: the read's body — full white on the plate, a comfortable measure */
+.founder__text {
+  margin: 0;
+  max-width: 34em;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--white);
+  text-wrap: pretty;
+}
+/* the last thought: her philosophy, the statement set in the display serif */
+.founder__philosophy { padding-bottom: 10px; }
+.founder__quote {
+  margin: 26px 0 0;
+}
+.founder__quote p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.45rem, 1.95vw, 2.05rem);
+  line-height: 1.26;
+  letter-spacing: -0.008em;
+  color: var(--white);
+  text-wrap: pretty;
+}
+.founder__quote-close {
+  display: block;
+  margin-top: 0.7em;
+  color: var(--white-soft);
+}
+.founder__cta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid var(--white-line);
+}
+/* the primary: the site's deep green, a fine gold edge, white — and a soft
+   warm halo that lifts it off the plate; the hover brings the halo up */
+.founder__primary {
+  display: inline-grid;
+  place-items: center;
+  min-height: 56px;
+  padding: 0 30px;
+  background: var(--green);
+  color: var(--white);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  box-shadow:
+    inset 0 0 0 1px rgba(207, 175, 114, 0.78),
+    0 0 0 1px rgba(207, 175, 114, 0.14),
+    0 14px 34px -14px rgba(207, 175, 114, 0.45);
+  transition: box-shadow var(--dur-fast, 200ms) var(--ease-out, ease-out), background-color var(--dur-fast, 200ms) var(--ease-out, ease-out);
+}
+.founder__primary:hover {
+  background: #163427;
+  box-shadow:
+    inset 0 0 0 1px rgba(207, 175, 114, 0.95),
+    0 0 0 1px rgba(207, 175, 114, 0.22),
+    0 16px 40px -12px rgba(207, 175, 114, 0.6);
+}
+.founder__link {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--white);
+  text-decoration: none;
+}
+.founder__primary:focus-visible,
+.founder__link:focus-visible { outline: 1px solid var(--gold); outline-offset: 4px; }
+
+/* ---- short desktop viewports (≤ 820 px): the name on one line ---------- */
+@media (min-width: 1024px) and (max-height: 820px) {
+  .founder__column { margin-top: 8svh; gap: 8px; padding: 22px 28px 26px; max-width: 44rem; }
+  .founder__name { font-size: clamp(2.6rem, 4.3vw, 4.4rem); max-width: none; }
+  .founder__name-line { display: inline; }
+  .founder__lead { margin-top: 10px; gap: 8px; }
+  .founder__role { padding-bottom: 10px; }
+  .founder__portrait { height: 96svh; }
+}
+
+/* ---- phone: the name over the wall, she below, the read continuing ------- */
+@media (max-width: 1023.98px) {
+  .founder {
+    min-height: auto;
+    padding-bottom: var(--space-xl);
+  }
+  /* no sticky stage on the phone: she stands in the first viewport and the read follows in plain flow — nothing fixed over the words */
+  .founder__stage { position: relative; top: 0; }
+  .founder__band { height: 18svh; }
+  .founder__portrait {
+    left: -16vw;
+    bottom: auto;
+    top: calc(100svh - 64svh);
+    height: 64svh;
+    transform-origin: 30% 100%;
+  }
+  .founder__her {
+    mask-image: linear-gradient(to top, transparent 0, #000 22%), linear-gradient(to left, transparent 0, #000 14%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0, #000 22%), linear-gradient(to left, transparent 0, #000 14%);
+  }
+  .founder__caption {
+    left: var(--gutter);
+    bottom: auto;
+    top: calc(100svh - var(--space-md) - 1.8em);
+  }
+  /* the column is not the plate here — the two groups are, so she stands clear between them */
+  .founder__column {
+    position: relative;
+    margin: 0;
+    max-width: none;
+    padding: calc(var(--space-md) + 2.4rem) var(--gutter) 0;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .founder__group {
+    padding: 18px 20px 22px;
+    background: var(--plate);
+    -webkit-backdrop-filter: blur(6px) saturate(0.92);
+    backdrop-filter: blur(6px) saturate(0.92);
+  }
+  /* the first group holds the first viewport (she stands in its lower part); the read follows on the wall below */
+  .founder__first { min-height: calc(100svh - 10rem); }
+  .founder__name { font-size: 2.6rem; max-width: none; }
+  .founder__lead { margin-top: 8px; gap: 10px; }
+  .founder__role { padding-bottom: 10px; font-size: 1rem; }
+  .founder__stat-value { font-size: 1.6rem; }
+  .founder__stat-label { font-size: 1rem; }
+  .founder__read { margin-top: var(--space-lg); }
+  .founder__chapter { padding: 22px 0 26px; }
+  .founder__chapter:first-child { border-top: 0; padding-top: 4px; }
+  .founder__anchor { font-size: 1.5rem; }
+  .founder__text { font-size: 1.125rem; max-width: none; }
+  .founder__quote p { font-size: 1.4rem; }
+  .founder__cta { flex-direction: column; align-items: stretch; gap: var(--space-sm); }
+  .founder__primary { min-height: 56px; }
+}

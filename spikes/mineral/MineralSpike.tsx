@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { founder } from '@/data/specialists';
 import { ru } from '@/lib/utils/ru';
 
 import { sitters } from '../portraits/people';
@@ -91,7 +92,7 @@ export function MineralSpike() {
           </div>
           <div ref={founderRef} className="passage__founder">
             <p className="passage__label-small">06 — Основатель</p>
-            <p className="passage__founder-line">{ru('[Имя Фамилия] — основатель ЭРА. Комната на настоящей стене клиники.')}</p>
+            <p className="passage__founder-line">{ru(`${founder.name} — основатель ЭРА. Комната на настоящей стене клиники.`)}</p>
           </div>
         </div>
         {hud && (

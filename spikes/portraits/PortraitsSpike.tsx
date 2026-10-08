@@ -2,21 +2,40 @@ import gsap from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { cta } from '@/data/copy';
+import { InquiryContext } from '@/lib/inquiry/context';
 import { subIndex } from '@/lib/utils';
+import { debugQuery, debugTools } from '@/lib/env';
 
-import quartzUrl from '../../src/assets/smoky-quartz.png';
-import { PLACEHOLDER_LABEL, sitters } from './people';
-import { QUARTZ_ASPECT } from './scene/quartzGeometry';
-import { ShardScene, type SceneDiag, type ShardState, type StonePlace } from './scene/ShardScene';
+import { beat, Founder, OPEN } from '../founder/Founder';
+import { PORTRAIT_ASPECT, sitters } from './people';
+import type { SceneDiag, ShardState, StonePlace } from './scene/ShardScene';
+import { PASSAGE, WaterScene } from './scene/WaterScene';
 
-/** the frame's box and the stone's place, in fractions of the section */
+/** the frame's box and the light's place (the centre of its band, x), in fractions of the section */
 const LAYOUT = {
-  desktop: { frame: { x: 0.44, y: 0, w: 0.56, h: 1 }, place: { x: 0.455, y: 0.6, h: 0.64, narrow: 0.92 } as StonePlace },
-  phone: { frame: { x: 0, y: 0, w: 1, h: 0.55 }, place: { x: 0.2, y: 0.56, h: 0.3, narrow: 0.9 } as StonePlace },
+  desktop: { frame: { x: 0.44, y: 0, w: 0.56, h: 1 }, place: { x: PASSAGE.field.desktop.x, y: 0.5, h: 1, narrow: 1 } as StonePlace },
+  phone: { frame: { x: 0, y: 0, w: 1, h: 0.55 }, place: { x: PASSAGE.field.phone.x, y: 0.5, h: 1, narrow: 1 } as StonePlace },
 } as const;
+
+/**
+ * The passage's scroll: the pin's last `EXIT` + `OPEN` vh are scrubbed by the
+ * page's own scroll — `EXIT` vh in which the light becomes the wall, then
+ * `OPEN` vh (the founder's `OPEN`, shared with that room's own pin) in which
+ * the founder's room opens on it — and FINISHED softly: one deliberate scroll
+ * past `AUTO_FINISH` of the water stage and the page carries the scene to
+ * its end — the opened room — on its own (or back to the rest, if the scroll
+ * stopped short); slow, eased, never a snap. The visitor keeps the wheel at
+ * every moment; nothing is captured. From the opened room, a short scroll up
+ * re-opens it; one past `AUTO_RETURN` of the opening brings the scene home
+ * the same way, through the wall and the water.
+ */
+const EXIT = 130; // vh of scroll for the passage: the light becomes the wall
+const AUTO_FINISH = 0.22; // fraction of the water stage (EXIT) after which the page finishes the passage; before it, returns to the rest
+const AUTO_RETURN = 0.5; // fraction of the opening (OPEN) the visitor scrolls back up through before the page carries the scene home; short of it, the room re-opens
+const FINISH = { min: 1.6, max: 3.4 }; // seconds the finish takes (proportional to the distance)
 
 /** what a visitor's browser can do, probed once */
 function probeWebGL(): { webgl2: boolean; webgl: boolean; renderer: string } {
@@ -42,16 +61,22 @@ function probeWebGL(): { webgl2: boolean; webgl: boolean; renderer: string } {
  * Between specialists a SHARD of ERA Mineral Glass — a real body: extruded,
  * roughened, refracting — turns slowly across the frame and carries the next
  * portrait in: the incoming portrait is seen refracted through the stone's
- * volume, and lies clear behind it where it has passed. The WebGL shard is the
- * object; the CSS shard of pass 3 stays as the no-WebGL fallback. Right to left, the
- * direction the light has in every room of this site; the words leave and
- * arrive the same way. Nothing slides, nothing fades, nothing is a card.
+ * volume, and lies clear behind it where it has passed. (Pass 17: the stone
+ * and the plate are gone — the accent is a thin veil of water on the same
+ * boundary, `scene/WaterScene.tsx`; the change still comes out of it.) Right
+ * to left, the direction the light has in every room of this site; the words
+ * leave and arrive the same way. Nothing slides, nothing fades, nothing is a
+ * card.
  *
- * DRIVEN BY: the page's own scroll. The section is pinned for (N − 1) × 100 vh;
- * progress maps to a position t on the row of specialists; k = ⌊t⌋ is the one
- * being met, f = t − k the transition to the next; ScrollTrigger snaps to whole
- * states so every resting state is a complete editorial page. Everything is
- * DOM + CSS (clip-path, transform, one gradient) — no WebGL, no canvas.
+ * DRIVEN BY: the page's own scroll. The section is pinned for (N − 1) × 100 vh
+ * plus EXIT + OPEN vh; progress maps to a position t on the row of
+ * specialists; k = ⌊t⌋ is the one being met, f = t − k the transition to the
+ * next; ScrollTrigger snaps to whole states so every resting state is a
+ * complete editorial page. The pin's last EXIT + OPEN vh is the passage,
+ * scrubbed by the same scroll with a soft finish (pass 18–19: the water's
+ * light settles into the hero's onyx, and the founder's room —
+ * `spikes/founder/`, pinned under this one for the same OPEN vh — opens on
+ * it) — no gesture, no hold, the visitor in control.
  *
  * `?k=0..3&f=0..1` freezes a state (f > 0 is mid-transition) · `?hud=1`.
  */
@@ -61,20 +86,22 @@ const MINERAL = CustomEase.create('mineral', 'M0,0 C0.52,0 0.18,1 1,1');
 const INDEX = '05';
 const N = sitters.length;
 const PER = 100; // vh of scroll per transition
-const EXIT = 100; // vh of scroll for the settling into the wall
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const smooth = (t: number) => { const s = clamp(t, 0, 1); return s * s * (3 - 2 * s); };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 function readParams() {
-  const q = new URLSearchParams(location.search);
+  const q = debugQuery();
   const k = q.get('k');
   const f = q.get('f');
   const e = q.get('e');
+  const o = q.get('o');
   return {
     k: k === null ? null : clamp(Number(k), 0, N - 1),
     f: f === null ? 0 : clamp(Number(f), 0, 1),
     e: e === null ? 0 : clamp(Number(e), 0, 1),
+    /** `?o=` freezes the founder's opening alone (the room as its own page) */
+    o: o === null ? null : clamp(Number(o), 0, 1),
     hud: q.get('hud') === '1',
   };
 }
@@ -92,9 +119,12 @@ function eyeOnScreen(frame: DOMRect, eye: { x: number; y: number }, anchorY: num
 export function Sitting({
   frozen = null,
   onState,
+  frameloop,
 }: {
   frozen?: { k: number; f: number; e: number } | null;
   onState?: (s: { k: number; f: number; e: number }) => void;
+  /** opt-in, for a composing page: `demand` while the section is far off screen, so the scene draws nothing */
+  frameloop?: 'always' | 'demand';
 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const wallRef = useRef<HTMLDivElement>(null);
@@ -106,6 +136,15 @@ export function Sitting({
   const [live, setLive] = useState(false);
   const shardState = useRef<ShardState>({ on: false, f: 0, from: 0, next: 1, anchorFrom: 0.28, anchorNext: 0.28, current: frozen?.k ?? 0, anchorCurrent: 0.28, exit: frozen?.e ?? 0 });
   const exitRef = useRef<HTMLDivElement>(null);
+  /**
+   * Once the founder's room has the wall (`--hand` 1) this whole section is
+   * at opacity 0 — the water would draw a full screen nobody sees, under the
+   * founder's read, every frame. It is parked (`demand`) from that moment and
+   * back to the page's choice the moment the hand begins to return. A coarse
+   * state: it changes twice per passage, never per frame.
+   */
+  const [released, setReleased] = useState(false);
+  const releasedRef = useRef(false);
   const focal = useRef<HTMLDivElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
@@ -113,7 +152,11 @@ export function Sitting({
   const portraitUrls = useMemo(() => sitters.map((s) => (phone ? s.portraitPhone : s.portrait)), [phone]);
   const probe = useMemo(probeWebGL, []);
   const [diag, setDiag] = useState<SceneDiag & { errors: string[] }>({ errors: [] });
-  const onDiag = useCallback((d: SceneDiag) => setDiag((prev) => ({ ...prev, ...d })), []);
+  // a report that changes nothing is not a state write (the scene may report on its frame)
+  const onDiag = useCallback((d: SceneDiag) => setDiag((prev) => {
+    for (const k of Object.keys(d) as (keyof SceneDiag)[]) if (prev[k] !== d[k]) return { ...prev, ...d };
+    return prev;
+  }), []);
   // three reports shader failures through console.error: keep the first few
   useEffect(() => {
     const orig = console.error;
@@ -125,12 +168,16 @@ export function Sitting({
     return () => { console.error = orig; };
   }, []);
   // a scene that never reports its first frame is a fallback with a reason
+  // (once it has, the timer is dropped: a state write here re-renders the
+  // section and, through the canvas, draws a frame the room did not need)
   const [stale, setStale] = useState(false);
   useEffect(() => {
-    if (reduced || !probe.webgl) return;
+    if (reduced || !probe.webgl || live) return;
     const t = window.setTimeout(() => setStale(true), 6000);
     return () => window.clearTimeout(t);
-  }, [reduced, probe.webgl]);
+  }, [reduced, probe.webgl, live]);
+  // the CTA pre-fills her in the form when the page has one (the standalone spike has none)
+  const inquiry = useContext(InquiryContext);
   const [current, setCurrent] = useState(frozen?.k ?? 0);
   const trigger = useRef<ScrollTrigger | null>(null);
   const eyes = useRef<{ x: number; y: number }[]>([]);
@@ -152,7 +199,7 @@ export function Sitting({
     const section = sectionRef.current?.getBoundingClientRect();
     if (!frame || !section) return;
     datumY.current = phone ? 0 : section.height * DATUM;
-    const iw = 4, ih = 5;
+    const iw = PORTRAIT_ASPECT, ih = 1;
     const sc = Math.max(frame.width / iw, frame.height / ih);
     const w = iw * sc, h = ih * sc;
     const slack = h - frame.height; // how far the crop can slide vertically
@@ -175,14 +222,29 @@ export function Sitting({
   }, [phone]);
 
   /**
-   * paints the exit: the section settles into the wall. The words lift away
-   * (the same masked lines as a change), the wall label and the row fade, the
-   * focal line withdraws; the scene grows the marble out of the stone.
+   * paints the exit: the section settles into the wall. `e` runs over the
+   * whole passage (EXIT + OPEN vh): its first EXIT/(EXIT + OPEN) is the
+   * water stage, `t` → the scene (the light becomes the wall); the rest is
+   * the founder's opening, in which this room lets go of the wall — its
+   * opacity, `--hand`, over the opening's first beat, revealing the founder's
+   * identical sheet beneath. The words lift away (the same masked lines as a
+   * change), the wall label and the row fade, the focal line withdraws.
+   * Reduced motion: two states — the room, the wall — and the hand.
    */
   const exit = useCallback((e: number) => {
     state.current.e = e;
-    shardState.current.exit = e;
-    const lift = clamp((e - 0.05) / 0.4, 0, 1);
+    const span = (EXIT + OPEN) / EXIT;
+    let t = clamp(e * span, 0, 1);
+    let open = clamp((e * span - 1) * (EXIT / OPEN), 0, 1);
+    if (reduced) { t = t > 0.5 ? 1 : 0; open = open > 0.02 ? 1 : 0; }
+    shardState.current.exit = t;
+    const hand = beat(open, 'hand');
+    if (exitRef.current) exitRef.current.style.setProperty('--hand', hand.toFixed(3));
+    if ((hand >= 1) !== releasedRef.current) {
+      releasedRef.current = hand >= 1;
+      setReleased(hand >= 1);
+    }
+    const lift = clamp((t - 0.05) / 0.4, 0, 1);
     const [lo, hi] = phone ? [0, 100] : [10, 80];
     const edge = hi - lift * (hi - lo);
     const mask = lift >= 1 ? 'linear-gradient(#000 0, #000 0)' : `linear-gradient(180deg, #000 ${(edge - 8).toFixed(2)}%, transparent ${edge.toFixed(2)}%)`;
@@ -192,14 +254,14 @@ export function Sitting({
       (el.style as unknown as Record<string, string>)['webkitMaskImage'] = lift > 0 ? mask : '';
       el.style.opacity = lift >= 1 ? '0' : '1';
     });
-    const fade = 1 - clamp((e - 0.15) / 0.45, 0, 1);
+    const fade = 1 - clamp((t - 0.15) / 0.45, 0, 1);
     if (exitRef.current) {
       exitRef.current.style.setProperty('--exit-fade', fade.toFixed(3));
-      exitRef.current.style.setProperty('--exit-marble', smooth((e - 0.3) / 0.5).toFixed(3));
+      exitRef.current.style.setProperty('--exit-marble', smooth((t - 0.3) / 0.5).toFixed(3));
     }
     if (focal.current) focal.current.style.opacity = String(fade);
     onState?.({ ...state.current });
-  }, [onState, phone]);
+  }, [onState, phone, reduced]);
 
   /** paints one position on the row: k is met, f is the way to k + 1 */
   const apply = useCallback((k: number, f: number) => {
@@ -265,15 +327,13 @@ export function Sitting({
     };
     const on = f > 0.001 && f < 0.999;
     shardState.current = { on, f, from: k, next, anchorFrom: anchorOf(k), anchorNext: anchorOf(next), current: f < 0.5 ? k : next, anchorCurrent: anchorOf(f < 0.5 ? k : next), exit: shardState.current.exit };
-    // the no-WebGL stone: the photograph, resident at the same place
+    // the no-WebGL light: a soft CSS band of it on the same boundary
     if (shard.current && sectionRef.current) {
-      const sw = sectionRef.current.clientWidth, sh = sectionRef.current.clientHeight;
+      const sw = sectionRef.current.clientWidth;
       const pl = phone ? LAYOUT.phone.place : LAYOUT.desktop.place;
-      const h = sh * pl.h;
-      const w = h * QUARTZ_ASPECT * pl.narrow;
+      const w = sw * (phone ? PASSAGE.field.phone.hw : PASSAGE.field.desktop.hw) * 2.6;
       shard.current.style.width = `${w.toFixed(1)}px`;
-      shard.current.style.height = `${h.toFixed(1)}px`;
-      shard.current.style.transform = `translate3d(${(sw * pl.x - w / 2).toFixed(1)}px, ${(sh * pl.y - h / 2).toFixed(1)}px, 0) rotateZ(-4deg)`;
+      shard.current.style.transform = `translate3d(${(sw * pl.x - w / 2).toFixed(1)}px, 0, 0)`;
       shard.current.style.opacity = '1';
     }
     // the focal line re-aims at the next pair of eyes while the light passes
@@ -315,11 +375,14 @@ export function Sitting({
   /** the page's own scroll walks the row; snap lands on whole states */
   useEffect(() => {
     if (frozen || !sectionRef.current) return;
-    // the pin holds the row of specialists, then one more viewport in which the
-    // section settles into the wall; the states snap, the settling is scrubbed
+    // the pin holds the row of specialists, then the passage: the light becomes
+    // the wall (EXIT) and the founder's room opens on it (OPEN, in which that
+    // room is pinned too); the states snap, the passage is scrubbed
     const rowSpan = (N - 1) * PER;
-    const total = rowSpan + EXIT;
+    const total = rowSpan + EXIT + OPEN;
     const rowEnd = rowSpan / total;
+    const auto = AUTO_FINISH * (EXIT / (EXIT + OPEN)); // AUTO_FINISH of the water stage, as a fraction of the passage
+    const back = AUTO_RETURN * (OPEN / (EXIT + OPEN)); // AUTO_RETURN of the opening, likewise
     const st = ScrollTrigger.create({
       trigger: sectionRef.current,
       start: 'top top',
@@ -329,12 +392,25 @@ export function Sitting({
       invalidateOnRefresh: true,
       snap: reduced
         ? undefined
-        : { snapTo: (v) => (v <= rowEnd + 1e-6 ? Math.round((v / rowEnd) * (N - 1)) / (N - 1) * rowEnd : v), duration: { min: 0.35, max: 0.9 }, delay: 0.05, ease: MINERAL },
+        : {
+            // whole states along the row; in the passage, the soft finish: past AUTO_FINISH
+            // of it the page carries the scene to the end, short of it back to the rest
+            snapTo: (v, self) => {
+              if (v <= rowEnd + 1e-6) return Math.round((v / rowEnd) * (N - 1)) / (N - 1) * rowEnd;
+              const e = (v - rowEnd) / (1 - rowEnd);
+              const dir = self?.direction ?? 1;
+              if (dir >= 0) return e < auto ? rowEnd : 1;
+              return e > 1 - back ? 1 : rowEnd;
+            },
+            duration: FINISH,
+            delay: 0.08,
+            ease: 'power2.inOut',
+          },
       onUpdate: (self) => {
         const p = self.progress;
         const t = clamp((Math.min(p, rowEnd) / rowEnd) * (N - 1), 0, N - 1 - 1e-6);
         const e = clamp((p - rowEnd) / (1 - rowEnd), 0, 1);
-        if (reduced) { apply(Math.round(t), 0); exit(e > 0.5 ? 1 : 0); return; } // reduced motion: states, no travel
+        if (reduced) { apply(Math.round(t), 0); exit(e); return; } // reduced motion: states, no travel (exit steps by itself)
         apply(Math.floor(t), t - Math.floor(t));
         exit(e);
       },
@@ -346,7 +422,7 @@ export function Sitting({
   const goTo = useCallback((k: number) => {
     const st = trigger.current;
     if (!st) return;
-    const rowEnd = ((N - 1) * PER) / ((N - 1) * PER + EXIT);
+    const rowEnd = ((N - 1) * PER) / ((N - 1) * PER + EXIT + OPEN);
     const y = st.start + (st.end - st.start) * rowEnd * (k / (N - 1));
     if (reduced) { window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior }); return; }
     gsap.to(window, { scrollTo: y, duration: 0.9, ease: MINERAL, overwrite: true });
@@ -374,22 +450,21 @@ export function Sitting({
             {/* the head grows UP from the datum: one line or two, the datum does not move */}
             <div className="sitter__head">
               <p className="sitter__no">{subIndex(INDEX, i + 1)}</p>
-              <h3 id={`${s.person.id}-name`} className="sitter__name" data-placeholder="fact">
+              <h3 id={`${s.person.id}-name`} className="sitter__name">
                 <span ref={(el) => { names.current[i] = el; }} className="sitter__name-inner">{s.person.name}</span>
               </h3>
             </div>
             {/* the body starts a fixed distance BELOW the datum, whatever the name did */}
             <div className="sitter__body">
               <p className="sitter__role">{s.person.role}</p>
-              <p className="sitter__focus" data-placeholder="copy">{s.focus}</p>
-              <p className="sitter__approach" data-placeholder="copy">«{s.approach}»</p>
+              <p className="sitter__approach">«{s.person.sentence}»</p>
               <dl className="sitter__facts">
                 {s.person.facts.map(([dt, dd]) => (
-                  <div key={dt} style={{ display: 'contents' }}><dt>{dt}</dt><dd data-placeholder="fact">{dd}</dd></div>
+                  <div key={dt} style={{ display: 'contents' }}><dt>{dt}</dt><dd>{dd}</dd></div>
                 ))}
               </dl>
               <div className="sitter__cta">
-                <a className="sitter__primary" href="#inquiry" tabIndex={i === current ? 0 : -1}>{cta.bookWith(s.person.shortName)}</a>
+                <a className="sitter__primary" href="#inquiry" tabIndex={i === current ? 0 : -1} onClick={() => inquiry?.setPrefill({ specialist: s.person.id })}>{cta.bookWith(s.person.shortName)}</a>
                 <a className="sitter__link" href="#services" tabIndex={i === current ? 0 : -1}>К направлениям →</a>
               </div>
             </div>
@@ -414,7 +489,7 @@ export function Sitting({
 
       {/* the scene: the wall, the frame and the resident stone — the section's own layer, under the words */}
       {!reduced && probe.webgl && (
-        <ShardScene
+        <WaterScene
           portraits={portraitUrls}
           state={shardState}
           phone={phone}
@@ -423,13 +498,12 @@ export function Sitting({
           still={reduced}
           onReady={() => setLive(true)}
           onDiag={onDiag}
+          {...(released ? { frameloop: 'demand' as const } : frameloop ? { frameloop } : {})}
         />
       )}
-      {/* the no-WebGL stone: the photograph itself, resident at the same place */}
-      <div ref={shard} className="shard shard--photo" aria-hidden="true" hidden={live}>
-        <img className="shard__photo" src={quartzUrl} alt="" draggable={false} />
-      </div>
-      {/* the no-WebGL exit: the wall arrives as a surface — the same sheet, no field */}
+      {/* the no-WebGL water: a CSS thread of it on the same line */}
+      <div ref={shard} className="shard shard--glints" aria-hidden="true" hidden={live} />
+      {/* the no-WebGL exit: the wall arrives as a surface — the same sheet as the founder's, no light */}
       <div className="sitting__marble" aria-hidden="true" hidden={live} />
 
       {/* the frame: one portrait at a time, at the scale of a person */}
@@ -439,7 +513,6 @@ export function Sitting({
             key={s.person.id}
             ref={(el) => { plates.current[i] = el; }}
             className="plate"
-            data-placeholder="portrait"
           >
             <img
               src={phone ? s.portraitPhone : s.portrait}
@@ -449,8 +522,6 @@ export function Sitting({
             />
           </figure>
         ))}
-
-        <p className="frame__caption" aria-hidden="true">{PLACEHOLDER_LABEL}</p>
       </div>
 
       {/* the focal line: from the name to her eyes */}
@@ -459,7 +530,7 @@ export function Sitting({
       <p className="sr-only" aria-live="polite">{`Специалист ${current + 1} из ${N} — ${sitters[current]!.person.name}`}</p>
 
       {/* DIAGNOSTIC — which render path is active, and why (review build only) */}
-      {(() => {
+      {debugTools && (() => {
         const path = reduced ? 'REDUCED_MOTION' : !probe.webgl ? 'NO_WEBGL' : live ? 'STONE_WEBGL' : 'CSS_FALLBACK';
         const why = reduced
           ? 'prefers-reduced-motion: reduce — the scene is not mounted by design'
@@ -479,7 +550,7 @@ export function Sitting({
                         ? 'stone mounted but no frame reported in 6 s'
                         : 'waiting for the first frame';
         (window as unknown as Record<string, unknown>)['__diag'] = { path, why, ...diag, probe, live, reduced, phone };
-        const wanted = new URLSearchParams(location.search).get('diag');
+        const wanted = debugQuery().get('diag');
         if (wanted === '0' || (phone && wanted !== '1')) return null;
         return (
           <pre className="diag" aria-hidden="true">
@@ -499,9 +570,12 @@ errors: ${diag.errors.length ? diag.errors.join(' | ') : 'none'}`}
 }
 
 export function PortraitsSpike() {
-  const { k, f, e, hud } = useMemo(readParams, []);
+  const { k, f, e, o, hud } = useMemo(readParams, []);
   const [s, setS] = useState({ k: k ?? 0, f, e });
+  const [open, setOpen] = useState(o ?? 0);
   const frozen = k !== null;
+  // `?o=` — the founder's room alone, frozen at o
+  if (o !== null) return <Founder frozen={o} />;
   return (
     <>
       {!frozen && (
@@ -511,15 +585,10 @@ export function PortraitsSpike() {
         </>
       )}
       <Sitting frozen={frozen ? { k: k!, f, e } : null} onState={setS} />
-      {/* the next room begins on the wall the section settled into: the founder's room opens on the clinic's marble */}
-      {!frozen && (
-        <section className="founder-opening" aria-label="Заглушка следующей секции — Основатель">
-          <div className="founder-opening__wall" aria-hidden="true" />
-          <p className="founder-opening__label">06 — Основатель</p>
-          <p className="founder-opening__line">[заглушка соседней секции — комната основателя открывается на настоящей стене клиники]</p>
-        </section>
-      )}
-      {hud && <div className="hud" aria-hidden="true">sitting · k {s.k} · f {s.f.toFixed(2)} · e {s.e.toFixed(2)}</div>}
+      {/* the next room opens on the wall the section settled into — in place, under its last frame */}
+      {!frozen && <Founder onState={setOpen} />}
+      {!frozen && <section className="stub stub--after" aria-label="Заглушка следующей секции"><p>07 — Отзывы · [заглушка соседней секции]</p></section>}
+      {hud && <div className="hud" aria-hidden="true">sitting · k {s.k} · f {s.f.toFixed(2)} · e {s.e.toFixed(2)} · founder {open.toFixed(2)}</div>}
     </>
   );
 }

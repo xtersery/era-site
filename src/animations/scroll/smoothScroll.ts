@@ -34,6 +34,11 @@ export interface SmoothScroll {
 export interface ScrollToOptions {
   readonly offset?: number;
   readonly immediate?: boolean;
+  /**
+   * Move even while the scroller is locked. For the owner of the lock only —
+   * a transition that holds the page and repositions it under its own cover.
+   */
+  readonly force?: boolean;
 }
 
 const resolveTarget = (target: string | Element | number): Element | number | null =>
@@ -137,6 +142,7 @@ export function createLenisScroll(): SmoothScroll {
       }
       lenis.scrollTo(Math.round(top + (options.offset ?? 0)), {
         immediate: options.immediate ?? false,
+        force: options.force ?? false,
       });
     },
 
