@@ -19,7 +19,8 @@
     "test:e2e": "playwright test",
     "test:e2e:update": "playwright test --update-snapshots",
     "refs:sync": "bash scripts/sync-references.sh",
-    "test:server": "node --test 'server/**/*.test.ts'"
+    "test:server": "node --test 'server/**/*.test.ts' 'yandex/**/*.test.ts'",
+    "build:yandex-lead": "node scripts/build-yandex-lead.mjs"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
@@ -45,6 +46,7 @@
     "@types/react-dom": "~19.2.7",
     "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^6.1.1",
+    "esbuild": "0.28.2",
     "eslint": "^10.10.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.6",

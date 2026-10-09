@@ -17,5 +17,5 @@
     "noUncheckedSideEffectImports": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "e2e/**/*.ts", "server/**/*.ts", "api/**/*.ts", "functions/**/*.ts"]
+  "include": ["vite.config.ts", "playwright.config.ts", "e2e/**/*.ts", "server/**/*.ts", "api/**/*.ts", "functions/**/*.ts", "yandex/**/*.ts"]
 }
