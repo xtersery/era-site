@@ -1,4 +1,5 @@
 import { createLeadHandler } from '../server/lead/handler.ts';
+import { proxiedClientIp } from '../server/lead/proxy.ts';
 import { upstashFromEnv } from '../server/lead/rateLimit.ts';
 
 /**
@@ -18,9 +19,12 @@ const handler = createLeadHandler({ env: process.env, rateLimit: upstashFromEnv(
 /**
  * Vercel's edge sets `x-real-ip` and overwrites `x-forwarded-for` with the
  * client's address, so either can be trusted here (unlike behind an
- * arbitrary proxy — see `server/node.ts → trustProxy`).
+ * arbitrary proxy — see `server/node.ts → trustProxy`). Through the
+ * Cloudflare Pages front that address is Cloudflare's; the front then sends
+ * the visitor's, trusted only with `LEAD_PROXY_SECRET` (`server/lead/proxy.ts`).
  */
 const clientIp = (request: Request) =>
+  proxiedClientIp(request, process.env['LEAD_PROXY_SECRET']) ??
   request.headers.get('x-real-ip') ??
   request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
   'unknown';

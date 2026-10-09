@@ -13,6 +13,7 @@ import { after, before, beforeEach, describe, it } from 'node:test';
 import { toNodeListener } from '../node.ts';
 import { createLeadHandler } from './handler.ts';
 import { formatKhabarovsk, formatLead } from './message.ts';
+import { PROXY_IP_HEADER, PROXY_SECRET_HEADER, proxiedClientIp } from './proxy.ts';
 import { MemoryRateLimit, UpstashRateLimit, upstashFromEnv } from './rateLimit.ts';
 
 interface Received {
@@ -299,5 +300,29 @@ describe('the message', () => {
         'Дата и время: 08.10.2026, 15:07 (Хабаровск)',
       ].join('\n\n'),
     );
+  });
+});
+
+describe('the address through our own proxy', () => {
+  const req = (headers: Record<string, string>) =>
+    new Request('https://example.test/api/lead', { method: 'POST', headers });
+  const SECRET = 'proxy-secret-for-tests';
+
+  it('trusts the forwarded address only with the shared secret', () => {
+    const ip = { [PROXY_IP_HEADER]: '203.0.113.7' };
+    assert.equal(
+      proxiedClientIp(req({ ...ip, [PROXY_SECRET_HEADER]: SECRET }), SECRET),
+      '203.0.113.7',
+    );
+    assert.equal(proxiedClientIp(req({ ...ip, [PROXY_SECRET_HEADER]: 'wrong' }), SECRET), null);
+    assert.equal(proxiedClientIp(req(ip), SECRET), null);
+    assert.equal(proxiedClientIp(req({ ...ip, [PROXY_SECRET_HEADER]: SECRET }), undefined), null);
+  });
+
+  it('keeps anything but an address out of the rate-limit key', () => {
+    const h = (v: string) => req({ [PROXY_IP_HEADER]: v, [PROXY_SECRET_HEADER]: SECRET });
+    assert.equal(proxiedClientIp(h('2001:db8::1'), SECRET), '2001:db8::1');
+    assert.equal(proxiedClientIp(h('all'), SECRET), null);
+    assert.equal(proxiedClientIp(h('1.2.3.4, 5.6.7.8'), SECRET), null);
   });
 });
