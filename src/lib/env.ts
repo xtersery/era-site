@@ -18,6 +18,16 @@ export const debugQuery = (): URLSearchParams =>
   new URLSearchParams(debugTools && typeof location !== 'undefined' ? location.search : '');
 
 /**
+ * `?noWebgl=1` — every WebGL capability probe answers «no», so the page takes
+ * its no-WebGL path (the `none` tier: CSS stills, native scroll, no renderer).
+ * Read in production on purpose, unlike `debugQuery()`: it is how a visitor's
+ * own device tells whether WebGL is what fails on it. It can only take effects
+ * away and shows nothing of its own.
+ */
+export const webglForcedOff = (): boolean =>
+  isBrowser && new URLSearchParams(location.search).get('noWebgl') === '1';
+
+/**
  * Static, one-shot read of the reduced-motion preference.
  * Prefer the reactive `usePrefersReducedMotion()` hook inside components — use
  * this only from module scope or imperative code that cannot subscribe.

@@ -54,10 +54,12 @@ export default defineConfig({
     },
   },
   build: {
-    // `safari15` lowers syntax iOS 15 – 16.3 cannot parse (three.js's class
-    // `static {}` blocks): one SyntaxError in a startup chunk blanks the site.
-    // A regex lookbehind cannot be lowered — keep those out of the source.
-    target: ['es2022', 'safari15'],
+    // ES2019 syntax for older Android Chrome / WebView / Samsung Internet (the
+    // ES2022 build needed Chrome ≥ 85 for `??=`), and `safari15` for iOS 15 –
+    // 16.3 (three.js's class `static {}` blocks): one SyntaxError in a startup
+    // chunk blanks the site. A regex lookbehind cannot be lowered — keep those
+    // out of the source.
+    target: ['es2019', 'safari15'],
     sourcemap: true,
     // Three.js is large by nature; the warning is noise once it is split out.
     chunkSizeWarningLimit: 1_000,

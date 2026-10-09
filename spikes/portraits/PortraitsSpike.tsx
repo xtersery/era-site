@@ -8,7 +8,7 @@ import { cta } from '@/data/copy';
 import { InquiryContext } from '@/lib/inquiry/context';
 import { subIndex } from '@/lib/utils';
 import { useNearViewport } from '@/hooks';
-import { debugQuery, debugTools } from '@/lib/env';
+import { debugQuery, debugTools, webglForcedOff } from '@/lib/env';
 import { SceneBoundary } from '@/three/components/SceneBoundary';
 
 import { beat, Founder, OPEN } from '../founder/Founder';
@@ -41,6 +41,7 @@ const FINISH = { min: 1.6, max: 3.4 }; // seconds the finish takes (proportional
 
 /** what a visitor's browser can do, probed once */
 function probeWebGL(): { webgl2: boolean; webgl: boolean; renderer: string } {
+  if (webglForcedOff()) return { webgl2: false, webgl: false, renderer: 'off (?noWebgl=1)' };
   try {
     const c = document.createElement('canvas');
     const gl2 = c.getContext('webgl2');

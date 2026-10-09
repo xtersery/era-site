@@ -1,4 +1,4 @@
-import React, { Suspense, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import React, { Suspense, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { NoToneMapping } from 'three';
 
 import { gsap, registerGsap, ScrollTrigger, useGSAP } from '@/animations/gsap';
@@ -95,6 +95,10 @@ export function HeroStage({
   const tier = useVisualTier();
   const scrollRef = useContext(ScrollContext);
   const webgl = hasWebGL();
+  /* The film samples the picture the page shows: the `@phone` art below 1024 px
+     (the same media as the <picture> sources) — a quarter of the texture memory
+     of the desktop pair on a phone's GPU. Desktop: unchanged. */
+  const phoneArt = useMemo(() => window.matchMedia('(max-width: 1023px)').matches, []);
   /* The passage plays only when it can be a film: motion allowed, WebGL present,
      a live tier. Otherwise the manifesto is a still room after the hero. */
   const passage = webgl && !reducedMotion && isLiveTier(tier);
@@ -411,8 +415,8 @@ export function HeroStage({
               >
                 <Suspense fallback={null}>
                   <PassageScene
-                    onyxUrl={onyxUrl}
-                    emblemUrl={emblemUrl}
+                    onyxUrl={phoneArt ? onyxPhoneUrl : onyxUrl}
+                    emblemUrl={phoneArt ? emblemPhoneUrl : emblemUrl}
                     progress={progress}
                     emblem={emblemBox}
                     quality={tier === 'high' ? 1 : 0}

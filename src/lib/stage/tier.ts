@@ -2,6 +2,7 @@ import {
   isBrowser,
   prefersReducedData,
   prefersReducedMotion,
+  webglForcedOff,
   hardwareConcurrency,
   hasCoarsePointer,
 } from '@/lib/env';
@@ -28,7 +29,7 @@ let capability: Capability | null = null;
 
 function probe(): Capability {
   if (capability) return capability;
-  if (!isBrowser) return (capability = { webgl2: false, maxTextureSize: 0 });
+  if (!isBrowser || webglForcedOff()) return (capability = { webgl2: false, maxTextureSize: 0 });
   try {
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl2');

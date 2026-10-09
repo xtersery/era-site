@@ -1,4 +1,10 @@
-import { deviceMemoryGb, hardwareConcurrency, hasCoarsePointer, isBrowser } from '@/lib/env';
+import {
+  deviceMemoryGb,
+  hardwareConcurrency,
+  hasCoarsePointer,
+  isBrowser,
+  webglForcedOff,
+} from '@/lib/env';
 
 let cachedSupport: boolean | null = null;
 
@@ -11,7 +17,7 @@ let cachedSupport: boolean | null = null;
  */
 export function hasWebGL(): boolean {
   if (cachedSupport !== null) return cachedSupport;
-  if (!isBrowser) return (cachedSupport = false);
+  if (!isBrowser || webglForcedOff()) return (cachedSupport = false);
 
   try {
     const canvas = document.createElement('canvas');
