@@ -54,7 +54,10 @@ export default defineConfig({
     },
   },
   build: {
-    target: 'es2022',
+    // `safari15` lowers syntax iOS 15 – 16.3 cannot parse (three.js's class
+    // `static {}` blocks): one SyntaxError in a startup chunk blanks the site.
+    // A regex lookbehind cannot be lowered — keep those out of the source.
+    target: ['es2022', 'safari15'],
     sourcemap: true,
     // Three.js is large by nature; the warning is noise once it is split out.
     chunkSizeWarningLimit: 1_000,

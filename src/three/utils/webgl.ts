@@ -15,7 +15,10 @@ export function hasWebGL(): boolean {
 
   try {
     const canvas = document.createElement('canvas');
-    cachedSupport = Boolean(canvas.getContext('webgl2'));
+    const gl = canvas.getContext('webgl2');
+    cachedSupport = Boolean(gl);
+    // release the probe: a live context per probe counts against the phone's GPU budget
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
   } catch {
     cachedSupport = false;
   }

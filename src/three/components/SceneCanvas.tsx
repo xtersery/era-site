@@ -5,6 +5,7 @@ import { usePrefersReducedMotion } from '@/hooks';
 import { cn } from '@/lib/utils';
 
 import { dprRange, hasWebGL } from '../utils/webgl';
+import { SceneBoundary } from './SceneBoundary';
 
 export interface SceneCanvasProps extends Omit<CanvasProps, 'children' | 'fallback'> {
   readonly children: ReactNode;
@@ -30,6 +31,8 @@ export interface SceneCanvasProps extends Omit<CanvasProps, 'children' | 'fallba
  * get wrong globally:
  *
  * - **Capability gate** — no WebGL, no canvas, no crash.
+ * - **Fail-safe** — a scene that throws (context, shader, texture) takes only
+ *   itself down: `SceneBoundary` renders the fallback, never a blank page.
  * - **DPR ceiling** — a range, not `window.devicePixelRatio` (see `dprRange`).
  * - **`frameloop="demand"` by default** — nothing renders until something asks.
  *   Scenes that genuinely animate every frame opt in with `frameloop="always"`.
@@ -57,25 +60,27 @@ export function SceneCanvas({
   }
 
   return (
-    <Canvas
-      className={cn('scene-canvas', className)}
-      dpr={dprRange()}
-      // The canvas never takes the pointer, so its position on the page is of
-      // no use to it: measuring on scroll would re-render the root and draw a
-      // frame 50 ms after every scroll — for every canvas on the page.
-      resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
-      frameloop="demand"
-      camera={{ fov: 35, near: 0.1, far: 100, position: [0, 0, 5], ...camera }}
-      gl={{
-        antialias: false, // Post-processing or a higher DPR beats MSAA on cost.
-        alpha: true,
-        powerPreference: 'high-performance',
-        ...gl,
-      }}
-      style={{ pointerEvents: 'none' }}
-      {...props}
-    >
-      <Suspense fallback={null}>{children}</Suspense>
-    </Canvas>
+    <SceneBoundary fallback={fallback}>
+      <Canvas
+        className={cn('scene-canvas', className)}
+        dpr={dprRange()}
+        // The canvas never takes the pointer, so its position on the page is of
+        // no use to it: measuring on scroll would re-render the root and draw a
+        // frame 50 ms after every scroll — for every canvas on the page.
+        resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
+        frameloop="demand"
+        camera={{ fov: 35, near: 0.1, far: 100, position: [0, 0, 5], ...camera }}
+        gl={{
+          antialias: false, // Post-processing or a higher DPR beats MSAA on cost.
+          alpha: true,
+          powerPreference: 'high-performance',
+          ...gl,
+        }}
+        style={{ pointerEvents: 'none' }}
+        {...props}
+      >
+        <Suspense fallback={null}>{children}</Suspense>
+      </Canvas>
+    </SceneBoundary>
   );
 }

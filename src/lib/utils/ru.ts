@@ -12,18 +12,29 @@ export const NNBSP = ' ';
 /**
  * Short prepositions, conjunctions and particles that must not end a line.
  * Kept deliberately conservative: over-gluing makes rag worse, not better.
+ *
+ * No lookbehind: a regex lookbehind is a parse-time SyntaxError in Safari
+ * before 16.4, and this module is in the entry chunk — one such literal blanks
+ * the whole site on those iPhones. The lead is checked in the replacer against
+ * the original string instead, which is exactly what the lookbehind did — so
+ * chains like «но и с» still glue every joint in one pass.
  */
 const SHORT_WORDS =
-  /(?<=^|[\s(«„])(а|и|в|во|к|ко|с|со|о|об|у|на|не|ни|но|по|за|из|до|от|для|при|без|над|под|про|же|бы|ли|то|как|что|или|уже|ещё|все|всё|это|эти|мы|вы|я|их|им|ей|ему|её|его|им|то)\s+/giu;
+  /(а|и|в|во|к|ко|с|со|о|об|у|на|не|ни|но|по|за|из|до|от|для|при|без|над|под|про|же|бы|ли|то|как|что|или|уже|ещё|все|всё|это|эти|мы|вы|я|их|им|ей|ему|её|его|им|то)\s+/giu;
+const LEAD = /[\s(«„]/u;
+
+function glueShortWords(text: string): string {
+  return text.replace(SHORT_WORDS, (match: string, word: string, offset: number, whole: string) =>
+    offset === 0 || LEAD.test(whole.charAt(offset - 1)) ? `${word}${NBSP}` : match,
+  );
+}
 
 /** Glue short words to the next word and the long dash to the previous one. */
 export function ru(text: string): string {
+  // «слово — слово»: NBSP before the dash, normal space after.
+  const dashed = text.replace(/\s+—\s+/gu, `${NBSP}— `);
   return (
-    text
-      // «слово — слово»: NBSP before the dash, normal space after.
-      .replace(/\s+—\s+/gu, `${NBSP}— `)
-      // The lead is a lookbehind, so chains like «но и с» glue every joint in one pass.
-      .replace(SHORT_WORDS, (_m, word: string) => `${word}${NBSP}`)
+    glueShortWords(dashed)
       // Number + unit / abbreviation.
       .replace(/(\d)\s+(мин|ч|лет|год|года|шт|мл|см|мм|%|₽)/gu, `$1${NBSP}$2`)
   );

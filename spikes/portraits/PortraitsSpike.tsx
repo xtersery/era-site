@@ -7,7 +7,9 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { cta } from '@/data/copy';
 import { InquiryContext } from '@/lib/inquiry/context';
 import { subIndex } from '@/lib/utils';
+import { useNearViewport } from '@/hooks';
 import { debugQuery, debugTools } from '@/lib/env';
+import { SceneBoundary } from '@/three/components/SceneBoundary';
 
 import { beat, Founder, OPEN } from '../founder/Founder';
 import { PORTRAIT_ASPECT, sitters } from './people';
@@ -45,7 +47,10 @@ function probeWebGL(): { webgl2: boolean; webgl: boolean; renderer: string } {
     const gl = gl2 ?? c.getContext('webgl');
     if (!gl) return { webgl2: false, webgl: false, renderer: 'none' };
     const info = gl.getExtension('WEBGL_debug_renderer_info');
-    return { webgl2: !!gl2, webgl: true, renderer: info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : 'masked' };
+    const renderer = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : 'masked';
+    // release the probe: a live context per probe counts against the phone's GPU budget
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    return { webgl2: !!gl2, webgl: true, renderer };
   } catch (e) {
     return { webgl2: false, webgl: false, renderer: `error: ${String(e)}` };
   }
@@ -151,6 +156,8 @@ export function Sitting({
   const phone = useMemo(() => window.innerWidth < 1024, []);
   const portraitUrls = useMemo(() => sitters.map((s) => (phone ? s.portraitPhone : s.portrait)), [phone]);
   const probe = useMemo(probeWebGL, []);
+  // on a phone the water's context is not created until the section is near (desktop: at once, as before)
+  const sceneNear = useNearViewport(sectionRef, { enabled: phone });
   const [diag, setDiag] = useState<SceneDiag & { errors: string[] }>({ errors: [] });
   // a report that changes nothing is not a state write (the scene may report on its frame)
   const onDiag = useCallback((d: SceneDiag) => setDiag((prev) => {
@@ -488,18 +495,20 @@ export function Sitting({
       </div>
 
       {/* the scene: the wall, the frame and the resident stone — the section's own layer, under the words */}
-      {!reduced && probe.webgl && (
-        <WaterScene
-          portraits={portraitUrls}
-          state={shardState}
-          phone={phone}
-          frame={phone ? LAYOUT.phone.frame : LAYOUT.desktop.frame}
-          place={phone ? LAYOUT.phone.place : LAYOUT.desktop.place}
-          still={reduced}
-          onReady={() => setLive(true)}
-          onDiag={onDiag}
-          {...(released ? { frameloop: 'demand' as const } : frameloop ? { frameloop } : {})}
-        />
+      {!reduced && probe.webgl && sceneNear && (
+        <SceneBoundary onError={() => setLive(false)}>
+          <WaterScene
+            portraits={portraitUrls}
+            state={shardState}
+            phone={phone}
+            frame={phone ? LAYOUT.phone.frame : LAYOUT.desktop.frame}
+            place={phone ? LAYOUT.phone.place : LAYOUT.desktop.place}
+            still={reduced}
+            onReady={() => setLive(true)}
+            onDiag={onDiag}
+            {...(released ? { frameloop: 'demand' as const } : frameloop ? { frameloop } : {})}
+          />
+        </SceneBoundary>
       )}
       {/* the no-WebGL water: a CSS thread of it on the same line */}
       <div ref={shard} className="shard shard--glints" aria-hidden="true" hidden={live} />

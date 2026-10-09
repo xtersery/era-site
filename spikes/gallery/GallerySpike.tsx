@@ -4,12 +4,15 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { CompareSlider } from '@/components/ui';
+import { useNearViewport } from '@/hooks';
 import { CASE_STATUS_LABEL } from '@/data/cases';
 import { services } from '@/data/services';
 import { specialists } from '@/data/specialists';
 import { subIndex } from '@/lib/utils';
 import type { CaseMedia } from '@/types';
 import { debugQuery, debugTools } from '@/lib/env';
+import { SceneBoundary } from '@/three/components/SceneBoundary';
+import { hasWebGL } from '@/three/utils/webgl';
 
 import { casesReal as cases } from './casesReal';
 import { clamp, RibbonScene, type RibbonState, type SheetBox } from './scene/RibbonScene';
@@ -177,6 +180,8 @@ export function CasesArchive({
   const phone = useMemo(() => window.innerWidth < 1024, []);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
   const frozen = still !== null || unfold0 !== null;
+  // on a phone the archive's context is not created until the section is near (desktop: at once, as before)
+  const sceneNear = useNearViewport(sectionRef, { enabled: phone });
 
   const state = useRef<RibbonState>({
     pos: still ?? start,
@@ -363,7 +368,11 @@ export function CasesArchive({
       <h2 id="cases-title" className="sr-only">Кейсы — до и после</h2>
 
       <div className="ribbon__stage">
-        <RibbonScene media={MEDIA} state={state} phone={phone} reduced={reduced} dpr={phone ? [1, 2] : [1, 1.6]} calm={calm} {...(frameloop ? { frameloop } : {})} />
+        {sceneNear && hasWebGL() && (
+          <SceneBoundary>
+            <RibbonScene media={MEDIA} state={state} phone={phone} reduced={reduced} dpr={phone ? [1, 2] : [1, 1.6]} calm={calm} {...(frameloop ? { frameloop } : {})} />
+          </SceneBoundary>
+        )}
       </div>
 
       <div className="ribbon__scrim" aria-hidden="true" />

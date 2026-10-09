@@ -4,3 +4,4 @@ export { usePrefersReducedMotion } from './usePrefersReducedMotion';
 export { useBreakpointUp, useIsDesktop } from './useBreakpoint';
 export { useVisualTier, type VisualTier } from './useVisualTier';
 export { useHashParam } from './useHashParam';
+export { useNearViewport } from './useNearViewport';
