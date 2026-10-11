@@ -135,6 +135,22 @@ describe('POST /api/lead', () => {
     assert.equal(received.length, 0);
   });
 
+  it('accepts a lead without a specialist — optional, as in the form', async () => {
+    for (const specialist of [undefined, '', '   ']) {
+      received = [];
+      const res = await post(validLead({ specialist }));
+      assert.equal(res.status, 200);
+      assert.match(received[0]?.body.text ?? '', /Специалист: Любой\n\n/u);
+    }
+  });
+
+  it('still rejects an over-long specialist', async () => {
+    const res = await post(validLead({ specialist: 'а'.repeat(161) }));
+    assert.equal(res.status, 400);
+    assert.deepEqual(((await res.json()) as { fields: string[] }).fields, ['specialist']);
+    assert.equal(received.length, 0);
+  });
+
   it('answers 502 when Telegram fails — and logs no personal data, no token', async () => {
     telegramMode = 'error';
     const res = await post(validLead({ name: 'Мария', message: 'аллергия на лидокаин' }));

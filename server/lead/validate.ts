@@ -22,6 +22,13 @@ export type Verdict =
 /** a human needs at least this long between the form appearing and sending it */
 export const MIN_FILL_MS = 2_000;
 
+/**
+ * The specialist is optional in the form (`Talk.tsx`: «Любой» by default);
+ * a lead without one reads as the form's own «no preference» label, so the
+ * clinic's message keeps its agreed layout.
+ */
+export const SPECIALIST_ANY = 'Любой';
+
 const LIMITS = { name: 80, contact: 64, procedure: 160, specialist: 160, message: 2_000 } as const;
 
 // eslint-disable-next-line no-control-regex -- control characters are exactly what is stripped
@@ -58,7 +65,7 @@ export function validateLead(body: unknown, now: number): Verdict {
     name: line(b['name']),
     contact: line(b['contact']),
     procedure: line(b['procedure']),
-    specialist: line(b['specialist']),
+    specialist: line(b['specialist']) || SPECIALIST_ANY,
     message: text(b['message']),
   };
 
@@ -71,7 +78,7 @@ export function validateLead(body: unknown, now: number): Verdict {
   )
     fields.push('contact');
   if (!lead.procedure || lead.procedure.length > LIMITS.procedure) fields.push('procedure');
-  if (!lead.specialist || lead.specialist.length > LIMITS.specialist) fields.push('specialist');
+  if (lead.specialist.length > LIMITS.specialist) fields.push('specialist');
   if (lead.message.length > LIMITS.message) fields.push('message');
   if (b['consent'] !== true) fields.push('consent');
 
