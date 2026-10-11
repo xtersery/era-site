@@ -11,7 +11,7 @@ export default tseslint.config(
     // `spikes/` are throwaway proof-of-concept entries (R3F frame-path mutation that the
     // React Compiler rules reject by design) and `e2e/*.mjs` are capture scripts mixing Node
     // and in-page globals. Neither ships. Production extraction from a spike must pass lint.
-    ignores: ['dist', 'dist-spike', 'node_modules', 'public', '.references', '.claude', '.venv-assets', 'spikes', 'e2e/*.mjs', 'scripts/*.mjs'],
+    ignores: ['dist', 'dist-spike', 'node_modules', 'public', '.references', '.claude', '.venv-assets', 'spikes', 'e2e/*.mjs', 'scripts/*.mjs', 'yandex/lead-dist'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

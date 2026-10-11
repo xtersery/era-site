@@ -19,7 +19,7 @@
     "test:e2e": "playwright test",
     "test:e2e:update": "playwright test --update-snapshots",
     "refs:sync": "bash scripts/sync-references.sh",
-    "test:server": "node --test 'server/**/*.test.ts' 'yandex/**/*.test.ts'",
+    "test:server": "node --test 'server/**/*.test.ts' 'yandex/**/*.test.ts' 'src/**/*.test.ts'",
     "build:yandex-lead": "node scripts/build-yandex-lead.mjs"
   },
   "dependencies": {

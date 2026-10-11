@@ -43,5 +43,6 @@
 
     "types": ["vite/client"]
   },
-  "include": ["src", "spikes"]
+  "include": ["src", "spikes"],
+  "exclude": ["src/**/*.test.ts"]
 }

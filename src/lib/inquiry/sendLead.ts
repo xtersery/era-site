@@ -1,6 +1,9 @@
+import { LEAD_TIMEOUT_MS, resolveLeadEndpoint } from './transport';
+
 /**
- * The inquiry, sent to our own endpoint (`POST /api/lead`, `server/`) —
- * never to Telegram from the browser: the bot token lives on the server.
+ * The inquiry, sent to our own endpoint — the REG.RU relay in production,
+ * `/api/lead` locally (`transport.ts`, `server/`) — never to Telegram from
+ * the browser: the bot token lives on the server.
  *
  * Procedure and specialist travel as the labels the visitor saw, not as
  * ids: the message in the clinic's chat reads as the form read.
@@ -22,7 +25,7 @@ export interface LeadPayload {
 /** `ok` · `rate` too many attempts · `invalid` the server's check failed · `failed` anything else */
 export type LeadResult = 'ok' | 'rate' | 'invalid' | 'failed';
 
-const TIMEOUT_MS = 15_000;
+const ENDPOINT = resolveLeadEndpoint(import.meta.env['VITE_LEAD_API_URL']);
 
 /**
  * A signal that aborts after `ms`. `AbortSignal.timeout` is Chrome 103 / Safari
@@ -40,9 +43,9 @@ function timeoutSignal(ms: number): { signal?: AbortSignal; clear: () => void } 
 }
 
 export async function sendLead(payload: LeadPayload): Promise<LeadResult> {
-  const timeout = timeoutSignal(TIMEOUT_MS);
+  const timeout = timeoutSignal(LEAD_TIMEOUT_MS);
   try {
-    const res = await fetch('/api/lead', {
+    const res = await fetch(ENDPOINT, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload),
