@@ -202,7 +202,7 @@ export function HeroStage({
         )
         // D · the manifesto arrives — the label and the eyebrow first, then the
         // three large voices rise into the field one by one (clip + rise), the
-        // ginkgo settles in from the right edge, the drapery rises a beat later,
+        // ginkgo settles in from the right edge, the filigree rises a beat later,
         // the note and the aside last. Opacity and a few px only: no fly-in, no zoom.
         .fromTo(
           ['.mf__label', '.mf__line--eyebrow'],
@@ -229,7 +229,7 @@ export function HeroStage({
           0.72,
         )
         .fromTo(
-          '.mf__obj--drape',
+          '.mf__obj--net',
           { autoAlpha: 0, y: 18 },
           { autoAlpha: 1, y: 0, duration: 0.18, ease: 'power2.out' },
           0.78,
@@ -302,37 +302,21 @@ export function HeroStage({
 
       // Манифест → Услуги is a normal page scroll. One light trigger over the
       // viewport between the two — no pin, no scrub of a timeline, nothing that
-      // touches the scroll position — interpolates a little: the manifesto's
-      // ground lags the page a touch, its words soften as they leave, and Услуги
-      // arrives 40 px up with its opacity settling. Услуги's own pin takes over
-      // where the trigger ends (its start), by then every value is at rest and
-      // the frame carries no transform, so the pin's containing block is untouched.
+      // touches the scroll position — gives the manifesto's ground a shallow
+      // lag behind the page (it moves inside the stage, which clips it).
+      //
+      // The two rooms themselves stay still, on every width (14.10). They
+      // used to move apart — Услуги rising its last 40 px, the words drifting
+      // 24 px ahead and both fading a little — and that opened a gap at the
+      // meeting line which the head of Услуги had to cover with a solid
+      // 3rem overlap above its own frame. At the manifesto's rest that
+      // overlap was the dark band across the room's foot. With nothing
+      // moving apart there is no gap and no overlap (`.sv-seam`), and the
+      // seam is only the two veils meeting in one tone.
       const svFrame = servicesRef.current!;
-      const words = wordsRef.current!;
       const ground = groundRef.current!;
-      // On the phone the seam veils carry the whole way from the forest to
-      // Услуги (the manifesto's tail is one tone, `.mf__foot`), and both live
-      // inside these two layers: fading either let the wall and the page's
-      // bone through the veils as a step at the meeting line, and moving
-      // either opened a gap the head veil had to cover with a solid overlap —
-      // which lay over the manifesto's last line. The phone keeps the two
-      // layers still; the ground's lag stays.
-      const phoneSeam = window.matchMedia('(max-width: 1023px)');
       const flow = (p: number) => {
-        const moves = !phoneSeam.matches;
         const e = p * p * (3 - 2 * p);
-        // the frame: 40 px → 0, 0.9 → 1 — inside the window only. Outside it
-        // (below the viewport, or at rest) the frame carries no transform at
-        // all: below the viewport the offset is invisible anyway, and a
-        // trigger created or measured then (a composing page's rooms after
-        // Услуги) sees the true layout.
-        const inWindow = moves && p > 0 && p < 1;
-        svFrame.style.transform = inWindow ? `translate3d(0, ${(40 * (1 - e)).toFixed(2)}px, 0)` : '';
-        svFrame.style.opacity = inWindow ? (0.9 + 0.1 * e).toFixed(3) : '';
-        // the manifesto: the words soften and drift a touch ahead of the page,
-        // the ground lags it — a shallow parallax
-        words.style.opacity = moves ? (1 - 0.15 * e).toFixed(3) : '';
-        words.style.transform = moves ? `translate3d(0, ${(-24 * e).toFixed(2)}px, 0)` : '';
         gsap.set(ground, { y: 36 * e });
       };
       const flowTrigger = ScrollTrigger.create({
@@ -341,27 +325,10 @@ export function HeroStage({
         end: 'top top',
         onUpdate: (self) => flow(self.progress),
       });
-      // Measured with the frame at rest — for EVERY trigger, not only this one.
-      // A per-trigger `onRefreshInit` / `onRefresh` pair fires around its OWN
-      // recalculation only: Услуги's pin (created earlier) would be measured
-      // with the 40 px entrance still applied, and anything created after this
-      // trigger (a composing page's rooms) with it re-applied. The global
-      // events bracket the whole pass: cleared before any trigger measures,
-      // restored after the last one has.
-      const atRest = () => flow(1);
-      const restored = () => flow(flowTrigger.progress);
-      ScrollTrigger.addEventListener('refreshInit', atRest);
-      ScrollTrigger.addEventListener('refresh', restored);
       flow(flowTrigger.progress);
 
       return () => {
-        ScrollTrigger.removeEventListener('refreshInit', atRest);
-        ScrollTrigger.removeEventListener('refresh', restored);
         flowTrigger.kill();
-        svFrame.style.transform = '';
-        svFrame.style.opacity = '';
-        words.style.opacity = '';
-        words.style.transform = '';
         gw.destroy();
         gateway.current = null;
         pin.kill();
@@ -373,7 +340,7 @@ export function HeroStage({
   );
 
   // Without the film the manifesto is a still room: the same order of arrival
-  // (label + eyebrow → the three voices → ginkgo → drapery → note and aside), played
+  // (label + eyebrow → the three voices → ginkgo → filigree → note and aside), played
   // once as the room comes into view. Reduced motion: nothing runs — the room
   // is simply there, in its final state.
   useGSAP(
@@ -391,7 +358,7 @@ export function HeroStage({
           0.25,
         )
         .from('.mf__obj--ginkgo', { autoAlpha: 0, x: 28, y: -14, duration: 1.2 }, 0.55)
-        .from('.mf__obj--drape', { autoAlpha: 0, y: 18, duration: 1.1 }, 0.85)
+        .from('.mf__obj--net', { autoAlpha: 0, y: 18, duration: 1.1 }, 0.85)
         .from(['.mf__text', '.mf__aside'], { autoAlpha: 0, y: 12, duration: 0.7, stagger: 0.1 }, 1.15);
     },
     { scope: roomRef, dependencies: [passage, reducedMotion] },

@@ -682,11 +682,12 @@
 
 /*
  * 01 — Манифест: FOREST AND GOLD — the client's target boards
- * (`docs/references/manifest-target-{desktop,mobile}.png`) set in the page.
- * Four voices for one sentence (micro sans · heavy sans on an olive plate ·
- * thin serif · the largest serif), a note with a hairline, one line of
- * tracked micro type, and two gold sculptures behind the words: the folded
- * drapery low at the left edge, the gilded flower on the right edge. As a
+ * (`docs/references/manifest-target-desktop-v2.png`, 14.10; the phone from
+ * `manifest-target-mobile.png`) set in the page. One sentence in one thin
+ * serif (micro sans eyebrow · capitals on an olive plate · lower case · the
+ * largest capitals) — no bold anywhere — a note with a hairline, one line of
+ * tracked micro type, and two gold objects behind the words: the filigree
+ * net from the left edge and the foot, the gilded flower on the right edge. As a
  * layer it sits inside the pinned stage over the ground; as a room it stands
  * on it. Desktop measures are the board's (1586 px wide) in vw.
  */
@@ -775,7 +776,7 @@
 
 /* «Наша миссия:» — the eyebrow: micro grotesk, widely tracked */
 .mf__line--eyebrow {
-  margin-bottom: 1.35rem;
+  margin-bottom: 1.9rem;
   font-family: var(--font-text);
   font-size: 0.875rem;
   font-weight: 600;
@@ -784,42 +785,43 @@
   color: var(--mf-cream);
 }
 
-/* «сохранять» — the accent: a heavy grotesk, cream on an olive plate */
+/* «сохранять» — the accent: the same thin serif in capitals, cream on an olive plate */
 .mf__line--plate {
-  font-family: var(--font-text);
-  font-size: clamp(3rem, 5.75vw, 6.75rem);
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 3.95vw, 4.75rem);
+  font-weight: 400;
   line-height: 1;
-  letter-spacing: -0.028em;
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
 .mf__plate {
   display: inline-block;
-  padding: 0.075em 0.21em 0.1em 0.19em;
+  /* the trailing tracking is part of the right inset */
+  padding: 0.3em 0.29em 0.09em 0.335em;
   background: var(--mf-olive);
   color: var(--mf-cream);
 }
 
-/* «естественную» — the thin voice: the serif in lower case, champagne */
+/* «естественную» — the thin voice: the serif in lower case, in the words' cream */
 .mf__line--soft {
-  margin-top: 0.12em;
+  margin-top: 0.24em;
   padding-left: var(--mf-indent);
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 5.75rem);
+  font-size: clamp(1.9rem, 3.65vw, 4.25rem);
   line-height: 1;
   letter-spacing: -0.012em;
-  color: var(--mf-champagne);
+  color: var(--mf-cream);
 }
 
 /* «красоту» — the grand voice: the serif in capitals, the largest thing on the page */
 .mf__line--grand {
-  margin-top: 0.06em;
+  margin-top: 0;
   padding-left: calc(var(--mf-indent) * 0.485);
   font-family: var(--font-display);
-  font-size: clamp(4.25rem, 10.2vw, 12rem);
+  font-size: clamp(3.25rem, 7.75vw, 9rem);
   line-height: 0.92;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.052em;
   text-transform: uppercase;
   color: var(--mf-cream);
 }
@@ -889,14 +891,13 @@
   user-select: none;
 }
 
-/* the folded drapery: low at the left edge, its right half in the frame */
-.mf__obj--drape {
-  left: -23vw;
-  top: 13svh;
-  height: 100svh;
-  transform: rotate(2deg);
-  transform-origin: 50% 50%;
-  filter: drop-shadow(24px 18px 36px rgb(4 9 6 / 0.6));
+/* the filigree: a fine gold net entering from the left edge and the foot, its
+   long arm reaching in under the note — graphic, never the main object */
+.mf__obj--net {
+  left: -9.5vw;
+  bottom: -1.5svh;
+  width: 50.4vw;
+  height: auto;
 }
 
 /* the gilded flower: hung on the right edge, a third of it past the frame */
@@ -906,6 +907,39 @@
   height: 56svh;
   transform: rotate(-4deg);
   filter: drop-shadow(-16px 24px 30px rgb(4 9 6 / 0.55));
+}
+
+/* ---- the desktop: the 14.10 target's spread (manifest-target-desktop-v2) ----
+ * The statement stands a step further in from the left (15.75vw on the
+ * target's 1586 px board) and each voice keeps the target's own indent, so
+ * the block reads lighter and leaves the left third to the filigree. */
+@media (min-width: 1024px) {
+  .mf {
+    --mf-left: calc(15.75vw - var(--gutter));
+  }
+
+  .mf__heading {
+    grid-column: 1 / -1;
+    margin-left: var(--mf-left);
+  }
+
+  .mf__line--soft {
+    padding-left: 7.7vw;
+  }
+
+  .mf__line--grand {
+    padding-left: 4.3vw;
+  }
+
+  .mf__text {
+    grid-column: 1 / span 8;
+    margin-left: calc(var(--mf-left) + 5.85vw);
+  }
+
+  .mf__aside {
+    grid-column: 1 / -1;
+    margin-left: calc(var(--mf-left) + 2.1vw);
+  }
 }
 
 /* ---- the phone: its own spread (the mobile board) --------------------------- */
@@ -964,7 +998,7 @@
 
   .mf__heading {
     grid-column: 1 / -1;
-    margin-top: 11.5svh;
+    margin-top: 17svh;
   }
 
   .mf__line--eyebrow {
@@ -976,19 +1010,19 @@
 
   /* each voice is sized to the measure, never to a word-break */
   .mf__line--plate {
-    font-size: min(calc(var(--mf-measure) / 10.3), 5rem);
+    font-size: min(calc(var(--mf-measure) / 12.6), 4rem);
   }
 
   .mf__line--soft {
     margin-top: 0.1em;
     padding-left: calc(var(--mf-measure) * 0.085);
-    font-size: min(calc(var(--mf-measure) / 13.25), 4rem);
+    font-size: min(calc(var(--mf-measure) / 15.6), 3.4rem);
   }
 
   .mf__line--grand {
     margin-top: 0.04em;
     padding-left: 0;
-    font-size: min(calc(var(--mf-measure) / 6.3), 7rem);
+    font-size: min(calc(var(--mf-measure) / 7.4), 6rem);
   }
 
   .mf__text {
@@ -1024,10 +1058,11 @@
 
   /*
    * The room's end: the low shade under the aside (0.62 at the screen's foot,
-   * as on the board) carries on below the spread into solid forest, so the
-   * stage's tail is shading and then one flat tone — never the wall or the
-   * gold running on past the composition. The seam into Услуги starts from
-   * that tone (`.mf__foot`).
+   * as on the board) keeps deepening across the whole of the stage's tail
+   * (the phone's hero, and so the stage, is taller than the screen) and is
+   * whole only at the meeting line — one continuous shading, never a flat
+   * block of tone below the composition. The seam into Услуги starts from
+   * that line (`.mf__foot`).
    */
   .mf::after {
     content: '';
@@ -1038,22 +1073,22 @@
       180deg,
       rgb(9 16 11 / 0) 0,
       rgb(9 16 11 / 0.62) 15svh,
-      rgb(9 16 11 / 1) calc(15svh + 9svh),
-      rgb(9 16 11 / 1) 100%
+      rgb(9 16 11 / 1) max(100%, 15svh + 6svh)
     );
     pointer-events: none;
   }
 
 
   /* sized to the width and held to the foot, so a taller phone keeps the board's crop */
-  .mf__obj--drape {
-    left: -62vw;
-    top: auto;
-    /* held to the spread's foot, not the stage's */
-    bottom: calc(100% - var(--mf-h) - 26vw);
-    width: 118vw;
-    height: auto;
-    transform: rotate(-20deg);
+  /* the filigree on the phone: its own crop, not the desktop's scaled down —
+     larger against the narrow page, from the left edge and the spread's foot,
+     the long arm lifted toward the note and clear of the aside */
+  .mf__obj--net {
+    left: -46vw;
+    /* held to the spread's foot, not the stage's; the dense part stands above the aside */
+    bottom: calc(100% - var(--mf-h) + 5svh);
+    width: 136vw;
+    transform: rotate(-7deg);
   }
 
   .mf__obj--ginkgo {
@@ -1114,25 +1149,24 @@
 
 /*
  * The head of Услуги: falls from the meeting line over its empty upper field
- * and lifts before it pins. It reaches `--seam-overlap` above the frame's
- * edge, solid in the tone, so the frame's own small entrance (it rises the
- * last 40 px into place) never opens a line of the page's ground between
- * the two rooms.
+ * and lifts before it pins. It starts AT the frame's edge and paints nothing
+ * above it: the two rooms never move apart (the flow trigger keeps both
+ * still), so there is no gap to cover. Its old 3rem overlap above the frame
+ * was the dark band across the manifesto's foot at rest.
  */
 .sv-seam {
-  --seam-overlap: 3rem;
   --seam-reach: 46svh;
-  top: calc(-1 * var(--seam-overlap));
+  top: 0;
   z-index: 3;
-  height: calc(var(--seam-reach) + var(--seam-overlap));
+  height: var(--seam-reach);
   opacity: var(--seam-head, 0);
   background: linear-gradient(
     180deg,
     var(--seam-tone) 0,
-    var(--seam-tone) calc(var(--seam-overlap) + var(--seam-reach) * 0.1),
-    color-mix(in oklab, var(--seam-tone) 74%, transparent) calc(var(--seam-overlap) + var(--seam-reach) * 0.32),
-    color-mix(in oklab, var(--seam-tone) 38%, transparent) calc(var(--seam-overlap) + var(--seam-reach) * 0.58),
-    color-mix(in oklab, var(--seam-tone) 10%, transparent) calc(var(--seam-overlap) + var(--seam-reach) * 0.82),
+    var(--seam-tone) calc(var(--seam-reach) * 0.1),
+    color-mix(in oklab, var(--seam-tone) 74%, transparent) calc(var(--seam-reach) * 0.32),
+    color-mix(in oklab, var(--seam-tone) 38%, transparent) calc(var(--seam-reach) * 0.58),
+    color-mix(in oklab, var(--seam-tone) 10%, transparent) calc(var(--seam-reach) * 0.82),
     transparent 100%
   );
 }
@@ -1146,10 +1180,10 @@
  */
 @media (max-width: 1023px) {
   /*
-   * Over the room's end shade (still under the words, which follow it), and
-   * as tall as the stage's tail plus the shade: the whole tail is ONE tone,
-   * the tone the head of Услуги starts from, so there is no step anywhere
-   * between the spread's foot and Услуги's ground.
+   * Over the room's end shade (still under the words, which follow it), as
+   * tall as the stage's tail plus 24svh, and graded over ALL of it: the
+   * seam's tone arrives whole only at the meeting line, where the head of
+   * Услуги takes it on — no step, and no flat band of tone above the line.
    */
   .mf__foot {
     z-index: 1;
@@ -1157,17 +1191,14 @@
     background: linear-gradient(
       180deg,
       transparent 0,
-      color-mix(in oklab, var(--seam-tone) 34%, transparent) 8svh,
-      color-mix(in oklab, var(--seam-tone) 76%, transparent) 15svh,
-      var(--seam-tone) 22svh,
+      color-mix(in oklab, var(--seam-tone) 34%, transparent) 40%,
+      color-mix(in oklab, var(--seam-tone) 76%, transparent) 75%,
+      var(--seam-tone) 97%,
       var(--seam-tone) 100%
     );
   }
 
-  /* nothing on the phone moves the two rooms apart (see the flow trigger), so
-     the head veil needs no overlap above the frame — it starts at the line */
   .sv-seam {
-    --seam-overlap: 0px;
     --seam-reach: 12svh;
   }
 }
