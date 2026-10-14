@@ -520,7 +520,8 @@ export function HeroStage({
         <div ref={uiRef} className="hs__ui u-shell">
           <div className="hs__copy">
             <p className="hs__eyebrow" data-placeholder="copy">
-              {ru('Эстетическая косметология')}
+              {/* two unbreakable halves: if the line ever wraps, it wraps after the point, never inside a word group */}
+              <span>{ru('Косметологическая клиника')}&nbsp;·</span> <span>Хабаровск</span>
             </p>
             <h1 id="hero-heading" className="hs__headline t-h2" data-placeholder="copy">
               {ru('Тонкая работа')}
