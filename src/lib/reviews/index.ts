@@ -23,31 +23,45 @@ const live: ReviewsProvider = createYandexProvider({
 
 const quietly = (p: ReviewsProvider) => p.getReviews().catch(() => [] as readonly Review[]);
 
+/** what the room shows, and where it came from */
+export interface ReviewsState {
+  readonly reviews: Review[];
+  readonly provider: ReviewsProvider['id'];
+}
+
 /**
- * What the room shows, in order of trust:
+ * What the room shows AT ONCE, synchronously, on its first render: the
+ * curated reviews as committed in `snapshot.json` — or `null` when the
+ * snapshot is empty, and the room waits for `getReviews()` as before.
+ */
+export function getInitialReviews(): ReviewsState | null {
+  const captured = snapshotReviews();
+  return captured.length ? { reviews: captured, provider: sanityProvider.id } : null;
+}
+
+/**
+ * What the room shows once the live sources have answered, in order of trust:
  *
  *   1. Sanity — the reviews the clinic curated in the Studio, in the order
  *      the Studio gives them (`published && featured`, priority, date, ≤ 5).
- *      When Sanity cannot be reached, the same curated set as captured at
- *      build time (`snapshot.json`) — real published reviews, never samples.
- *   2. the reserved platform provider, through the one selection rule.
- *   3. in development only: the sample records, so the room is never empty
- *      on a desk without credentials — labelled as samples by the room.
+ *      A valid non-empty answer replaces the snapshot.
+ *   2. When Sanity gave no usable answer (unreachable, a timeout, an error):
+ *      the committed snapshot — the room already shows it, so nothing moves.
+ *   3. When Sanity answered «nothing featured» (authoritative), or there is no
+ *      snapshot: the reserved platform provider, through the one selection
+ *      rule; in development only, the sample records, so the room is never
+ *      empty on a desk without credentials — labelled as samples by the room.
  *
  * In production, when nothing answers, the result is empty and the room
  * shows its intro and its foot without the stage — never a crash, never a
- * placeholder presented as a review. The room calls this and nothing else.
+ * placeholder presented as a review. Never throws.
  */
-export async function getReviews(): Promise<{
-  reviews: Review[];
-  provider: ReviewsProvider['id'];
-}> {
+export async function getReviews(): Promise<ReviewsState> {
   const fromSanity = await fetchFeaturedReviews();
   if (fromSanity?.length) return { reviews: fromSanity, provider: sanityProvider.id };
-  // unreachable (not «nothing featured»): the same curated reviews, as captured at build time
   if (fromSanity === null) {
-    const captured = snapshotReviews();
-    if (captured.length) return { reviews: captured, provider: sanityProvider.id };
+    const initial = getInitialReviews();
+    if (initial) return initial;
   }
 
   const fromLive = await quietly(live);
@@ -55,7 +69,7 @@ export async function getReviews(): Promise<{
 
   if (isDev)
     return {
-      reviews: selectFeatured(await localProvider.getReviews()),
+      reviews: selectFeatured(await localProvider.getReviews().catch(() => [])),
       provider: localProvider.id,
     };
   return { reviews: [], provider: sanityProvider.id };

@@ -75,24 +75,29 @@ const toReviews = (rows: readonly unknown[]) =>
 
 /**
  * As `getFeaturedReviews`, but tells «Sanity answered with nothing» (`[]`)
- * from «Sanity could not be reached» (`null`) — only the second may fall back
- * on the build-time snapshot.
+ * from «Sanity gave no usable answer» (`null`: not configured, unreachable,
+ * a timeout, an error, or rows of which not one is a valid review) — only
+ * the first is authoritative; on the second the room keeps the snapshot.
  */
 export async function fetchFeaturedReviews(limit = FEATURED_COUNT): Promise<Review[] | null> {
   const client = await getSanityClient();
   if (!client) return null;
   try {
     const rows = await client.fetch<unknown>(FEATURED_REVIEWS_QUERY, { limit });
-    return Array.isArray(rows) ? toReviews(rows) : null;
+    if (!Array.isArray(rows)) return null;
+    const reviews = toReviews(rows);
+    return rows.length > 0 && reviews.length === 0 ? null : reviews;
   } catch {
     return null;
   }
 }
 
 /**
- * The same reviews as captured at build time (`scripts/reviews-snapshot.mjs`):
- * what the room shows when the live request cannot get through — a mobile
- * network that drops or throttles the CMS's CDN must not empty the room.
+ * The curated reviews as committed in `snapshot.json` (refreshed by hand with
+ * `npm run reviews:snapshot`, never by the build): what the room shows at
+ * once, before Sanity answers, and keeps when Sanity cannot be reached — a
+ * mobile network that drops or throttles the CMS's CDN must not empty it.
+ * Read synchronously; validated by the same `toReview` as the live answer.
  */
 export function snapshotReviews(limit = FEATURED_COUNT): Review[] {
   return toReviews(snapshot.rows).slice(0, limit);

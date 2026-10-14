@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type Keyboard
 
 import { cta } from '@/data/copy';
 import { sectionIndex } from '@/lib/constants/sections';
-import { formatReviewDate, getReviews, REVIEWS_PLATFORM, type Review, type ReviewsProvider } from '@/lib/reviews';
+import { formatReviewDate, getInitialReviews, getReviews, REVIEWS_PLATFORM, type Review, type ReviewsState } from '@/lib/reviews';
 import { ru } from '@/lib/utils/ru';
 
 /**
@@ -50,6 +50,12 @@ const firstWords = (text: string, n = 7) => {
   return words.length > n ? `${words.slice(0, n).join(' ')}…` : text;
 };
 
+/** the same voices, in the same order, from the same source — nothing to replace */
+const sameReviews = (a: ReviewsState | null, b: ReviewsState) =>
+  a?.provider === b.provider &&
+  a.reviews.length === b.reviews.length &&
+  a.reviews.every((r, i) => r.id === b.reviews[i]?.id && r.text === b.reviews[i]?.text && r.rating === b.reviews[i]?.rating);
+
 function Rating({ rating }: { rating: number }) {
   return (
     <span className="rv__rating" role="img" aria-label={`Оценка ${rating} из 5`}>
@@ -89,16 +95,30 @@ function VoiceBody({ voice, no }: { voice: Review; no: number }) {
 export function Reviews() {
   const index = sectionIndex('reviews');
   const baseId = useId();
-  const [state, setState] = useState<{ reviews: Review[]; provider: ReviewsProvider['id'] } | null>(null);
+  // the committed snapshot on the first render — the room never waits on the CMS to show its voices
+  const [state, setState] = useState<ReviewsState | null>(getInitialReviews);
   const [active, setActive] = useState(0);
   const [shown, setShown] = useState(0); // the voice on the page (lags `active` by the crossfade)
   const [fading, setFading] = useState(false);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
 
+  // then the live answer, when it comes: a different set replaces the snapshot,
+  // keeping the voice being read when it is still among them (by id), else the first
+  const seen = useRef({ state, active });
+  useEffect(() => { seen.current = { state, active }; }, [state, active]);
   useEffect(() => {
     let alive = true;
-    getReviews().then((r) => { if (alive) setState(r); });
+    void getReviews().then((next) => {
+      if (!alive) return;
+      const { state: prev, active: at } = seen.current;
+      if (sameReviews(prev, next)) return;
+      const keep = Math.max(0, next.reviews.findIndex((r) => r.id === prev?.reviews[at]?.id));
+      setState(next);
+      setActive(keep);
+      setShown(keep);
+      setFading(false);
+    });
     return () => { alive = false; };
   }, []);
 
