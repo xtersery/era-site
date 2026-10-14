@@ -3,6 +3,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { CheckboxField, SelectField, TextField, TextareaField } from '@/components/ui';
+import { useNearViewport } from '@/hooks';
 import { contact } from '@/data/contact';
 import { cta, proposed } from '@/data/copy';
 import { services } from '@/data/services';
@@ -125,6 +126,11 @@ function validate(form: HTMLFormElement): Errors {
 
 export function Talk() {
   const index = sectionIndex('inquiry');
+  /* the imprint is a CSS picture (fetched as soon as it exists): set only as the room comes near — the
+     hero's emblem file it shares is fetched for the hero in another request mode, so it would be a second
+     download at the page's first load */
+  const roomRef = useRef<HTMLElement>(null);
+  const near = useNearViewport(roomRef);
   const { prefill, clearPrefill } = useInquiry();
   // a new pre-fill (from any CTA) overwrites the selects; the visitor can then edit them
   const [selection, setSelection] = useState({
@@ -194,11 +200,11 @@ export function Talk() {
   };
 
   return (
-    <section className="talk" id="inquiry" aria-labelledby="inquiry-title">
+    <section ref={roomRef} className="talk" id="inquiry" aria-labelledby="inquiry-title">
       {/* the quiet before the words — the head of the room, empty on purpose */}
       <div className="talk__hush" aria-hidden="true" />
       {/* the brand imprint: the official mark, debossed in the surface at the room's lower left — an architectural stamp, never a logo on the page */}
-      <div className="talk__imprint" aria-hidden="true" />
+      <div className={near ? 'talk__imprint is-near' : 'talk__imprint'} aria-hidden="true" />
 
       <div className="talk__grid">
         <div className="talk__text">

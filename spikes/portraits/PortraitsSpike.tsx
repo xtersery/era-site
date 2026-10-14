@@ -2,19 +2,24 @@ import gsap from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { cta } from '@/data/copy';
 import { InquiryContext } from '@/lib/inquiry/context';
 import { subIndex } from '@/lib/utils';
 import { useNearViewport } from '@/hooks';
 import { debugQuery, debugTools, webglForcedOff } from '@/lib/env';
+import { afterFirstScreen, whenIdle } from '@/lib/stage';
 import { SceneBoundary } from '@/three/components/SceneBoundary';
 
 import { beat, Founder, OPEN } from '../founder/Founder';
 import { PORTRAIT_ASPECT, sitters as desktopSitters, sittersPhone } from './people';
 import type { SceneDiag, ShardState, StonePlace } from './scene/ShardScene';
-import { PASSAGE, WaterScene } from './scene/WaterScene';
+import { PASSAGE } from './scene/passage';
+
+// the scene (and three.js with it) is fetched only when the room comes near — see `sceneNear`
+const loadWater = () => import('./scene/WaterScene');
+const WaterScene = lazy(() => loadWater().then((m) => ({ default: m.WaterScene })));
 
 /** the frame's box and the light's place (the centre of its band, x), in fractions of the section */
 const LAYOUT = {
@@ -160,8 +165,28 @@ export function Sitting({
   const sitters = phone ? sittersPhone : desktopSitters;
   const portraitUrls = useMemo(() => sitters.map((s) => (phone ? s.portraitPhone : s.portrait)), [phone, sitters]);
   const probe = useMemo(probeWebGL, []);
-  // on a phone the water's context is not created until the section is near (desktop: at once, as before)
-  const sceneNear = useNearViewport(sectionRef, { enabled: phone });
+  // the water's scene — its code, three.js, its textures and its context — is fetched and made only once
+  // the section is within a screen and a half (every width): nothing of it in the page's first load
+  const sceneNear = useNearViewport(sectionRef);
+  // its code starts loading earlier — on a phone four screens out, on the desktop once the first screen is
+  // complete (the hero and its film) and the browser is idle; the context still waits for `sceneNear`
+  const prefetchNear = useNearViewport(sectionRef, { margin: '400%', enabled: phone });
+  useEffect(() => {
+    if (!prefetchNear || reduced || !probe.webgl) return;
+    if (phone) {
+      loadWater().catch(() => {}); // a failed prefetch is silent: the scene's mount reports it
+      return;
+    }
+    let alive = true;
+    let cancel = () => {};
+    void afterFirstScreen().then(() => {
+      if (alive) cancel = whenIdle(() => void loadWater().catch(() => {}));
+    });
+    return () => {
+      alive = false;
+      cancel();
+    };
+  }, [prefetchNear, reduced, probe.webgl, phone]);
   const [diag, setDiag] = useState<SceneDiag & { errors: string[] }>({ errors: [] });
   // a report that changes nothing is not a state write (the scene may report on its frame)
   const onDiag = useCallback((d: SceneDiag) => setDiag((prev) => {
@@ -505,17 +530,20 @@ export function Sitting({
       {/* the scene: the wall, the frame and the resident stone — the section's own layer, under the words */}
       {!reduced && probe.webgl && sceneNear && (
         <SceneBoundary onError={() => setLive(false)}>
-          <WaterScene
-            portraits={portraitUrls}
-            state={shardState}
-            phone={phone}
-            frame={phone ? phoneFrame : LAYOUT.desktop.frame}
-            place={phone ? LAYOUT.phone.place : LAYOUT.desktop.place}
-            still={reduced}
-            onReady={() => setLive(true)}
-            onDiag={onDiag}
-            {...(released ? { frameloop: 'demand' as const } : frameloop ? { frameloop } : {})}
-          />
+          {/* until the scene's code arrives the room shows its own wall (the canvas is transparent anyway) */}
+          <Suspense fallback={null}>
+            <WaterScene
+              portraits={portraitUrls}
+              state={shardState}
+              phone={phone}
+              frame={phone ? phoneFrame : LAYOUT.desktop.frame}
+              place={phone ? LAYOUT.phone.place : LAYOUT.desktop.place}
+              still={reduced}
+              onReady={() => setLive(true)}
+              onDiag={onDiag}
+              {...(released ? { frameloop: 'demand' as const } : frameloop ? { frameloop } : {})}
+            />
+          </Suspense>
         </SceneBoundary>
       )}
       {/* the no-WebGL water: a CSS thread of it on the same line */}

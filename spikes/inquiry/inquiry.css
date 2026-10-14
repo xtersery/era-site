@@ -73,6 +73,10 @@
   content: '';
   position: absolute;
   inset: 0;
+}
+/* the picture only once the room is near (`Talk`): nothing of it in the page's first load */
+.talk__imprint.is-near::before,
+.talk__imprint.is-near::after {
   background: url('../hero-stone/assets/hero/emblem.webp') center / contain no-repeat;
   /* literal, not a variable: where typed image-set() is unknown this line is dropped and the WebP above stays */
   background-image: image-set(
@@ -352,8 +356,8 @@
   .talk__form { max-width: none; }
   .talk__imprint { width: 80vw; left: -30vw; bottom: -22vw; }
   /* the phone's emblem, the one its hero loaded */
-  .talk__imprint::before,
-  .talk__imprint::after {
+  .talk__imprint.is-near::before,
+  .talk__imprint.is-near::after {
     background-image: url('../hero-stone/assets/hero/emblem@phone.webp');
     background-image: image-set(
       url('../hero-stone/assets/hero/emblem@phone.avif') type('image/avif'),

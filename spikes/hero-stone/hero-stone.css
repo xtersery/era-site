@@ -637,6 +637,17 @@
   pointer-events: none;
 }
 
+/*
+ * A passage played without the film's frames (its scene was not ready in
+ * time — `FILM_MAX_WAIT_MS`): the canvas shows nothing for that play, even if
+ * the scene arrives halfway and draws its first frame on mount. Opacity, not
+ * visibility, for the reason above: the next play with the film keeps its
+ * compositor surface.
+ */
+.hs__passage[data-film-mode='fallback'] canvas {
+  opacity: 0;
+}
+
 .hs__passage .scene-canvas,
 .hs__passage canvas {
   position: absolute;

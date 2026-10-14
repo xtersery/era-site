@@ -1,5 +1,4 @@
-import React, { Suspense, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { NoToneMapping } from 'three';
+import React, { lazy, Suspense, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { gsap, registerGsap, ScrollTrigger, useGSAP } from '@/animations/gsap';
 import { ScrollContext, ScrollProvider } from '@/animations/scroll';
@@ -9,10 +8,10 @@ import { usePrefersReducedMotion, useVisualTier } from '@/hooks';
 import { sectionAnchor, sectionIndex } from '@/lib/constants/sections';
 import { isDev } from '@/lib/env';
 import { InquiryProvider } from '@/lib/inquiry';
-import { attachPointer, initTier, isLiveTier, stage } from '@/lib/stage';
+import { attachPointer, initTier, isLiveTier, markFirstScreenSettled, stage } from '@/lib/stage';
+import { SceneBoundary } from '@/three/components/SceneBoundary';
 import { damp } from '@/lib/utils';
 import { ru } from '@/lib/utils/ru';
-import { SceneCanvas } from '@/three/components/SceneCanvas';
 import { hasWebGL } from '@/three/utils/webgl';
 
 import markUrl from './assets/era-mark-ink.png';
@@ -36,7 +35,19 @@ import {
   type Rhythm,
   wantsGatewayHud,
 } from './passage/passageGateway';
-import { PassageScene, type EmblemBox } from './passage/PassageScene';
+import type { EmblemBox } from './passage/PassageScene';
+
+/*
+ * The film (three.js, R3F, the scene) is not part of the first load: the hero
+ * paints from its two pictures alone, and the film's module is fetched the
+ * moment both have loaded — when they no longer compete for the network.
+ * A gesture that comes before the film is ready is held ~700 ms at most; then
+ * the passage plays without the film's frames (the page's own transition, as
+ * without WebGL) and never picks them up halfway. The next one has the film.
+ */
+const PassageCanvas = lazy(() => import('./passage/PassageCanvas'));
+/* measured on a slow phone, a gesture is then held ≈ 700 ms in all (its own detection and the timer's tick included) */
+const FILM_MAX_WAIT_MS = 600;
 
 registerGsap();
 // The visual tier decides the scroller: Lenis on `high`/`mid`, native otherwise
@@ -67,7 +78,9 @@ const pageStyle = {
  * detached, and WebKit fetched that fallback (the desktop file) at once, on
  * top of the source it then chose. And everything else that shows these
  * pictures — the emblem's light (its mask) and the film's textures — is given
- * the very file the browser picked (`currentSrc`), never a second one.
+ * the very file the browser picked (`currentSrc`), never a second one; and in
+ * the same request mode (`crossOrigin`, as three.js's loader asks), so the
+ * film's textures come from the cache instead of a second download.
  */
 const PHONE_ART = '(max-width: 1023px)';
 const fallbackOnceInPicture = (src: string) => (el: HTMLImageElement | null) => {
@@ -118,6 +131,10 @@ export function HeroStage({
   /* The passage plays only when it can be a film: motion allowed, WebGL present,
      a live tier. Otherwise the manifesto is a still room after the hero. */
   const passage = webgl && !reducedMotion && isLiveTier(tier);
+  // without the film the first screen is complete once the hero's pictures are in
+  useEffect(() => {
+    if (!passage && art.onyx && art.emblem) markFirstScreenSettled();
+  }, [passage, art.onyx, art.emblem]);
   const sectionRef = useRef<HTMLElement>(null);
   const emblemRef = useRef<HTMLDivElement>(null);
   const passageRef = useRef<HTMLDivElement>(null);
@@ -125,6 +142,26 @@ export function HeroStage({
   const progress = useRef(0);
   const emblemBox = useRef<EmblemBox>({ x: 0, y: 0, size: 1, dx: 0, dy: 0 });
   const frame = useRef<() => void>(() => {});
+  /* the film's scene has mounted with its textures; a gesture that came earlier (≤ ~700 ms ago) starts it now */
+  const filmReady = useRef(false);
+  /* the film could not be made (its code failed to load, or WebGL): every play goes without its frames, at once */
+  const filmFailed = useRef(false);
+  /* this play runs without the film's frames — none is drawn until the passage is at a rest again */
+  const filmless = useRef(false);
+  const filmKick = useRef<() => void>(() => {});
+  const onFilmReady = useCallback(() => {
+    filmReady.current = true;
+    // a mark the QA scripts read in a production build (`e2e/perf-js.early-gesture.mjs`)
+    passageRef.current?.setAttribute('data-film-ready', '');
+    markFirstScreenSettled();
+    filmKick.current();
+  }, []);
+  const onFilmFailed = useCallback(() => {
+    filmFailed.current = true;
+    passageRef.current?.setAttribute('data-film-failed', '');
+    markFirstScreenSettled();
+    filmKick.current();
+  }, []);
   const timeline = useRef<gsap.core.Timeline | null>(null);
   const gateway = useRef<PassageGateway | null>(null);
   const groundRef = useRef<HTMLDivElement>(null);
@@ -267,7 +304,7 @@ export function HeroStage({
       // first. The layer at 0 holds its last frame, which is nothing by 0.94.
       const seen = (t: number) => t > 0.015 && t < 1;
       const draw = () => {
-        if (seen(progress.current)) frame.current();
+        if (seen(progress.current) && !filmless.current) frame.current();
       };
       const apply = (t: number) => {
         progress.current = t;
@@ -301,6 +338,16 @@ export function HeroStage({
         // the lean tier and the phone play the same film, shorter
         rhythm: scaled(DESCENT_RHYTHM, phone ? 0.6 : tier === 'mid' ? 0.85 : 1),
         anchor: 'manifesto',
+        ready: () => filmReady.current || filmFailed.current,
+        maxWait: FILM_MAX_WAIT_MS,
+        // each play decides once, at its start: the film, or the page's own transition without its frames
+        onStart: () => {
+          filmless.current = !filmReady.current;
+          passageRef.current?.setAttribute('data-film-mode', filmless.current ? 'fallback' : 'film');
+        },
+        onRest: () => {
+          filmless.current = false;
+        },
         onChange: (st) => {
           // the readout is React state, so it follows the status and samples
           // the progress ten times a second — not on every write of t
@@ -313,6 +360,7 @@ export function HeroStage({
         },
       });
       gateway.current = gw;
+      filmKick.current = gw.filmReady;
       apply(pin.progress);
       gw.settle();
 
@@ -436,6 +484,7 @@ export function HeroStage({
           <img
             ref={onyxFallback}
             alt=""
+            crossOrigin="anonymous"
             decoding="async"
             fetchPriority="high"
             onLoad={(e) => {
@@ -456,6 +505,7 @@ export function HeroStage({
             <img
               ref={emblemFallback}
               alt=""
+              crossOrigin="anonymous"
               decoding="async"
               fetchPriority="high"
               onLoad={(e) => {
@@ -505,24 +555,21 @@ export function HeroStage({
             <ManifestoGround ref={groundRef} />
             {/* The passage: one full-screen alpha layer, hidden until the gesture; drawn only on the tick that writes t. */}
             <div ref={passageRef} className="hs__passage" aria-hidden="true">
-              <SceneCanvas
-                dpr={[1, 1.5]}
-                frameloop="never"
-                data-scene="film"
-                data-frameloop="advance"
-                gl={{ antialias: false, alpha: true, toneMapping: NoToneMapping }}
-              >
-                <Suspense fallback={null}>
-                  {art.onyx && art.emblem && <PassageScene
-                    onyxUrl={art.onyx}
-                    emblemUrl={art.emblem}
-                    progress={progress}
-                    emblem={emblemBox}
-                    quality={tier === 'high' ? 1 : 0}
-                    frameRef={frame}
-                  />}
-                </Suspense>
-              </SceneCanvas>
+              {art.onyx && art.emblem && (
+                <SceneBoundary onError={onFilmFailed}>
+                  <Suspense fallback={null}>
+                    <PassageCanvas
+                      onyxUrl={art.onyx}
+                      emblemUrl={art.emblem}
+                      progress={progress}
+                      emblem={emblemBox}
+                      quality={tier === 'high' ? 1 : 0}
+                      frameRef={frame}
+                      onReady={onFilmReady}
+                    />
+                  </Suspense>
+                </SceneBoundary>
+              )}
             </div>
             {/* 01 — Манифест arrives inside the pinned stage, over the ground. */}
             <Manifesto ref={wordsRef} asLayer />

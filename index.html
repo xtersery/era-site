@@ -11,10 +11,12 @@
       JS: the onyx (one file, every width) and the emblem the screen will use
       (the same media as its <picture>). AVIF only — a browser without it
       skips these and the <picture> falls back to WebP on its own.
+      `crossorigin`: the film loads the same files as textures (three.js asks
+      for them in CORS mode) — one request mode, one download.
     -->
-    <link rel="preload" as="image" type="image/avif" href="/spikes/hero-stone/assets/hero/onyx.avif" fetchpriority="high" />
-    <link rel="preload" as="image" type="image/avif" href="/spikes/hero-stone/assets/hero/emblem@phone.avif" media="(max-width: 1023px)" fetchpriority="high" />
-    <link rel="preload" as="image" type="image/avif" href="/spikes/hero-stone/assets/hero/emblem.avif" media="(min-width: 1024px)" fetchpriority="high" />
+    <link rel="preload" as="image" type="image/avif" crossorigin="anonymous" href="/spikes/hero-stone/assets/hero/onyx.avif" fetchpriority="high" />
+    <link rel="preload" as="image" type="image/avif" crossorigin="anonymous" href="/spikes/hero-stone/assets/hero/emblem@phone.avif" media="(max-width: 1023px)" fetchpriority="high" />
+    <link rel="preload" as="image" type="image/avif" crossorigin="anonymous" href="/spikes/hero-stone/assets/hero/emblem.avif" media="(min-width: 1024px)" fetchpriority="high" />
 
     <title>ЭРА cosmetology — косметология для женщин</title>
     <meta name="description" content="[Описание клиники для поисковых систем — предоставляется клиентом]" />

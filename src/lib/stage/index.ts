@@ -13,4 +13,5 @@ export {
 } from './stage';
 export { resolveInitialTier, initTier, demoteTier, startFpsAuthority } from './tier';
 export { whenIdle, afterLoad } from './idle';
+export { afterFirstScreen, markFirstScreenSettled } from './firstScreen';
 export { attachPointer } from './pointer';

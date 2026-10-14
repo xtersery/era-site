@@ -78,6 +78,16 @@ export interface GatewayOptions {
   anchor?: string;
   /** reduced motion: land on the end state at once */
   reduced?: boolean;
+  /**
+   * whether the film can be drawn yet (its scene loads after the hero's
+   * pictures); a play asked for before then waits — the page held on its
+   * rest, as at any rest — and starts the moment `filmReady()` is called, or
+   * after `maxWait` ms at most, without the film's frames (the page's own
+   * transition, as when WebGL is missing). The visitor never waits longer.
+   */
+  ready?: () => boolean;
+  /** the longest a gesture is held for the film, in ms */
+  maxWait?: number;
   onChange?: (state: GatewayState) => void;
 }
 
@@ -96,6 +106,8 @@ export interface PassageGateway {
   settle: () => void;
   /** after a refresh moved the rests: a page that was on one is put back on it */
   realign: () => void;
+  /** the film can be drawn now: a play that was asked for meanwhile starts */
+  filmReady: () => void;
   destroy: () => void;
 }
 
@@ -191,8 +203,13 @@ export function createPassageGateway({
   returnSpeed = 1.15,
   anchor,
   reduced = false,
+  ready = () => true,
+  maxWait = 700,
   onChange,
 }: GatewayOptions): PassageGateway {
+  /** a play asked for before the film could be drawn — started by `filmReady()`, or by the wait's end */
+  let pending: 1 | -1 | null = null;
+  let pendingTimer = 0;
   const state: GatewayState = {
     status: 'idle',
     progress: 0,
@@ -281,9 +298,25 @@ export function createPassageGateway({
     }, RELEASE_MS);
   };
 
-  const play = (direction: 1 | -1) => {
+  const play = (direction: 1 | -1, waited = false) => {
     if (busy()) return;
     if (direction === 1 ? !nearStart() || state.progress >= 0.999 : !nearEnd() || state.progress <= 0.001) return;
+    if (!reduced && !waited && !ready()) {
+      // held as for a play — every further gesture swallowed, a stray scroll put back — for `maxWait` at most
+      if (pending === null) {
+        pending = direction;
+        state.side = sideFor(state.progress);
+        set({ locked: true });
+        pendingTimer = window.setTimeout(() => {
+          const d = pending;
+          pending = null;
+          if (d !== null) play(d, true);
+        }, maxWait);
+      }
+      return;
+    }
+    pending = null;
+    window.clearTimeout(pendingTimer);
     set({ status: 'playing', direction, triggered: true, locked: true });
     onStart?.(direction);
     // the hold: the document onto the rest that matches the film about to run
@@ -439,8 +472,16 @@ export function createPassageGateway({
     sync,
     settle,
     realign,
+    filmReady: () => {
+      if (pending === null) return;
+      const d = pending;
+      pending = null;
+      window.clearTimeout(pendingTimer);
+      play(d);
+    },
     destroy: () => {
       live.delete(state);
+      window.clearTimeout(pendingTimer);
       tween?.kill();
       window.clearTimeout(release);
       window.clearTimeout(accTimer);

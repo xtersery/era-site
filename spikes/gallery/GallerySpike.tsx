@@ -1,7 +1,7 @@
 import gsap from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { CompareSlider } from '@/components/ui';
 import { useNearViewport } from '@/hooks';
@@ -13,9 +13,16 @@ import type { CaseMedia } from '@/types';
 import { debugQuery, debugTools } from '@/lib/env';
 import { SceneBoundary } from '@/three/components/SceneBoundary';
 import { hasWebGL } from '@/three/utils/webgl';
+import { afterFirstScreen, whenIdle } from '@/lib/stage';
 
 import { casesReal as cases } from './casesReal';
-import { clamp, RibbonScene, type RibbonState, type SheetBox } from './scene/RibbonScene';
+import type { RibbonState, SheetBox } from './scene/RibbonScene';
+
+// the scene (and three.js with it) is fetched only when the room comes near — see `sceneNear`
+const loadRibbon = () => import('./scene/RibbonScene');
+const RibbonScene = lazy(() => loadRibbon().then((m) => ({ default: m.RibbonScene })));
+/* the scene module's own helper, here too: importing a value from it would bring the scene into the first load */
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
 /**
  * Cases — the archive on a rail (Spike C, pass 7: experience refinement).
@@ -180,8 +187,42 @@ export function CasesArchive({
   const phone = useMemo(() => window.innerWidth < 1024, []);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
   const frozen = still !== null || unfold0 !== null;
-  // on a phone the archive's context is not created until the section is near (desktop: at once, as before)
-  const sceneNear = useNearViewport(sectionRef, { enabled: phone });
+  // the archive's scene — its code, three.js, its textures and its context — is fetched and made only once
+  // the section is within a screen and a half (every width): nothing of it in the page's first load
+  const sceneNear = useNearViewport(sectionRef);
+  // the network part starts earlier: the scene's code and the rail's photographs, asked for exactly as the
+  // scene will ask (CORS, as three.js's loader does), so it finds them in the cache. On a phone four screens
+  // out (the visitor is still in Услуги — no mobile data spent on a room never reached); on the desktop once
+  // the first screen is complete (the hero and its film) and the browser is idle. The WebGL context itself
+  // still waits for `sceneNear`.
+  const prefetchNear = useNearViewport(sectionRef, { margin: '400%', enabled: phone });
+  useEffect(() => {
+    if (!prefetchNear || !hasWebGL()) return;
+    const go = () => {
+      // a failed prefetch is silent: the scene's own mount reports it (`SceneBoundary`)
+      loadRibbon().catch(() => {});
+      for (const m of MEDIA) {
+        for (const img of m.type === 'single' ? [m.image] : [m.before, m.after]) {
+          const pre = new Image();
+          pre.crossOrigin = 'anonymous';
+          pre.src = img.srcSmall ?? img.src;
+        }
+      }
+    };
+    if (phone) {
+      go();
+      return;
+    }
+    let alive = true;
+    let cancel = () => {};
+    void afterFirstScreen().then(() => {
+      if (alive) cancel = whenIdle(go);
+    });
+    return () => {
+      alive = false;
+      cancel();
+    };
+  }, [prefetchNear, phone]);
 
   const state = useRef<RibbonState>({
     pos: still ?? start,
@@ -370,7 +411,10 @@ export function CasesArchive({
       <div className="ribbon__stage">
         {sceneNear && hasWebGL() && (
           <SceneBoundary>
-            <RibbonScene media={MEDIA} state={state} phone={phone} reduced={reduced} dpr={phone ? [1, 2] : [1, 1.6]} calm={calm} {...(frameloop ? { frameloop } : {})} />
+            {/* until the scene's code arrives the room shows its own ground (the canvas is transparent anyway) */}
+            <Suspense fallback={null}>
+              <RibbonScene media={MEDIA} state={state} phone={phone} reduced={reduced} dpr={phone ? [1, 2] : [1, 1.6]} calm={calm} {...(frameloop ? { frameloop } : {})} />
+            </Suspense>
           </SceneBoundary>
         )}
       </div>
