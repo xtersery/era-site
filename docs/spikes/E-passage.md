@@ -1,5 +1,7 @@
 # Spike E — THE PASSAGE: quartz → marble (15.09.2026)
 
+> **CLOSED — 14.10.2026, by the client's decision: no longer relevant.** Removed from the active plan; this record and its results are kept as history. What shipped of it lives in the production page `spikes/full/`.
+
 **Brief.** A cinematic transition between 05 Specialists (the smoky quartz)
 and 06 Founder (the ERA marble): not a background change, not a texture
 replacement, not a cross-fade — a material transformation sequence. Keep the

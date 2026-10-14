@@ -12,7 +12,7 @@ import { debugQuery, debugTools, webglForcedOff } from '@/lib/env';
 import { SceneBoundary } from '@/three/components/SceneBoundary';
 
 import { beat, Founder, OPEN } from '../founder/Founder';
-import { PORTRAIT_ASPECT, sitters } from './people';
+import { PORTRAIT_ASPECT, sitters as desktopSitters, sittersPhone } from './people';
 import type { SceneDiag, ShardState, StonePlace } from './scene/ShardScene';
 import { PASSAGE, WaterScene } from './scene/WaterScene';
 
@@ -90,7 +90,7 @@ gsap.registerPlugin(CustomEase, ScrollTrigger, ScrollToPlugin);
 const MINERAL = CustomEase.create('mineral', 'M0,0 C0.52,0 0.18,1 1,1');
 
 const INDEX = '05';
-const N = sitters.length;
+const N = desktopSitters.length;
 const PER = 100; // vh of scroll per transition
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const smooth = (t: number) => { const s = clamp(t, 0, 1); return s * s * (3 - 2 * s); };
@@ -135,6 +135,8 @@ export function Sitting({
   const sectionRef = useRef<HTMLElement>(null);
   const wallRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
+  /** the phone frame's rect as a fraction of the room — measured: the frame is svh, the room lvh */
+  const [phoneFrame, setPhoneFrame] = useState(LAYOUT.phone.frame);
   const plates = useRef<(HTMLElement | null)[]>([]);
   const labels = useRef<(HTMLElement | null)[]>([]);
   const names = useRef<(HTMLElement | null)[]>([]);
@@ -155,7 +157,8 @@ export function Sitting({
   const counter = useRef<HTMLSpanElement>(null);
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
   const phone = useMemo(() => window.innerWidth < 1024, []);
-  const portraitUrls = useMemo(() => sitters.map((s) => (phone ? s.portraitPhone : s.portrait)), [phone]);
+  const sitters = phone ? sittersPhone : desktopSitters;
+  const portraitUrls = useMemo(() => sitters.map((s) => (phone ? s.portraitPhone : s.portrait)), [phone, sitters]);
   const probe = useMemo(probeWebGL, []);
   // on a phone the water's context is not created until the section is near (desktop: at once, as before)
   const sceneNear = useNearViewport(sectionRef, { enabled: phone });
@@ -206,6 +209,10 @@ export function Sitting({
     const frame = frameRef.current?.getBoundingClientRect();
     const section = sectionRef.current?.getBoundingClientRect();
     if (!frame || !section) return;
+    if (phone && section.height > 0) {
+      const h = Math.round((frame.height / section.height) * 1000) / 1000;
+      setPhoneFrame((prev) => (prev.h === h ? prev : { ...prev, h }));
+    }
     datumY.current = phone ? 0 : section.height * DATUM;
     const iw = PORTRAIT_ASPECT, ih = 1;
     const sc = Math.max(frame.width / iw, frame.height / ih);
@@ -227,7 +234,7 @@ export function Sitting({
       if (!el || !nm) return;
       nameEnds.current[i] = nm.getBoundingClientRect().right - section.left;
     });
-  }, [phone]);
+  }, [phone, sitters]);
 
   /**
    * paints the exit: the section settles into the wall. `e` runs over the
@@ -502,7 +509,7 @@ export function Sitting({
             portraits={portraitUrls}
             state={shardState}
             phone={phone}
-            frame={phone ? LAYOUT.phone.frame : LAYOUT.desktop.frame}
+            frame={phone ? phoneFrame : LAYOUT.desktop.frame}
             place={phone ? LAYOUT.phone.place : LAYOUT.desktop.place}
             still={reduced}
             onReady={() => setLive(true)}

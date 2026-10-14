@@ -85,3 +85,46 @@ docs/spikes/boards/
 dist-spike/
 spikes/cases/assets/
 .venv-assets/
+
+# Review captures and comparisons (screenshots, side-by-sides) — never committed
+preview/
+
+# Local-only sources and intermediates, deliberately kept out of Git (14.10).
+# Approved references in docs/references/ stay tracked — only these are ignored.
+# heavy client originals of the manifesto's runtime WebPs (scripts/manifest-gold.py)
+docs/references/manifest-wall-src.png
+docs/references/manifest-wall-phone-src.png
+docs/references/manifest-gold-sculpture-src.png
+docs/references/manifest-gold-flower-src.png
+# sources of earlier passes (light manifesto, hero plate, cutout portrait)
+docs/references/manifest-gold-branch-src.png
+docs/references/manifest-lime-branch-src.png
+docs/references/manifest-bg.png
+docs/references/hero-onyx-bg.png
+docs/references/hero-photo.png
+docs/references/hero-woman.png
+# working references from the visual passes, unreferenced by the docs
+docs/references/anti-age.png
+docs/references/era-logo_2.png
+docs/references/photo 2.png
+docs/references/sp[1-4].HEIC
+docs/references/stone1.jpeg
+docs/references/stone2.jpeg
+docs/references/фон2.png
+docs/references/аппаратная_косметология.png
+docs/references/индивидуальные_программы.png
+docs/references/инъекционная_косметология.png
+docs/references/коррекция_тела.png
+docs/references/лечение_кожи.png
+# outputs of earlier hero passes no longer used by the site
+spikes/hero-stone/assets/era-mark-gold.png
+spikes/hero-stone/assets/halo.webp
+spikes/hero-stone/assets/hero.jpg
+spikes/hero-stone/assets/hero@phone.jpg
+spikes/hero-stone/assets/onyx.jpg
+spikes/hero-stone/assets/onyx@phone.jpg
+spikes/hero-stone/assets/portrait.webp
+spikes/hero-stone/assets/vein-normal.png
+# archive of the hero's pass 5 and the light manifesto's cut-out script
+spikes/hero-stone/_pass5/
+scripts/manifest-botanicals.py

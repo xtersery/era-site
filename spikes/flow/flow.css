@@ -169,6 +169,10 @@ body {
   .flowpage .radial__label {
     top: calc(var(--space-sm) + var(--flow-offset));
   }
+  /* the specialists' label hangs over the portrait on the phone (the wall is below it): up to the room's top first */
+  .flowpage .wall__label {
+    top: calc(var(--space-md) - var(--frame-h) + var(--flow-offset));
+  }
   .flowpage .browse {
     top: auto;
   }

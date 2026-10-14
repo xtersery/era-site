@@ -114,6 +114,7 @@ export function HeroStage({
   const groundRef = useRef<HTMLDivElement>(null);
   const wordsRef = useRef<HTMLDivElement>(null);
   const servicesRef = useRef<HTMLDivElement>(null);
+  const roomRef = useRef<HTMLElement>(null);
   const [hud, setHud] = useState<GatewayState | null>(null);
   const wantsHud = wantsGatewayHud();
 
@@ -199,26 +200,45 @@ export function HeroStage({
           { scale: 1, yPercent: 0, duration: 1 - COVER, ease: 'power2.out' },
           COVER,
         )
-        // D · the light inside the slabs comes on
-        .to('.mf-ground__glow', { autoAlpha: 1, duration: 0.28, ease: 'sine.inOut' }, 0.58)
-        // D · the statement rises into the field, line by line
+        // D · the manifesto arrives — the label and the eyebrow first, then the
+        // three large voices rise into the field one by one (clip + rise), the
+        // ginkgo settles in from the right edge, the drapery rises a beat later,
+        // the note and the aside last. Opacity and a few px only: no fly-in, no zoom.
         .fromTo(
-          '.mf__line',
-          { clipPath: 'inset(100% 0 -0.12em 0)', yPercent: 24 },
+          ['.mf__label', '.mf__line--eyebrow'],
+          { autoAlpha: 0, y: 10 },
+          { autoAlpha: 1, y: 0, duration: 0.1, stagger: 0.02, ease: 'power1.out' },
+          0.6,
+        )
+        .fromTo(
+          '.mf__line:not(.mf__line--eyebrow)',
+          { clipPath: 'inset(115% 0 -0.12em 0)', yPercent: 24 },
           {
             clipPath: 'inset(-0.18em 0 -0.12em 0)',
             yPercent: 0,
             duration: 0.16,
-            stagger: 0.035,
+            stagger: 0.04,
             ease: 'power2.out',
           },
           0.66,
         )
         .fromTo(
-          ['.mf__label', '.mf__text', '.mf__aside'],
+          '.mf__obj--ginkgo',
+          { autoAlpha: 0, x: 28, y: -14 },
+          { autoAlpha: 1, x: 0, y: 0, duration: 0.2, ease: 'power2.out' },
+          0.72,
+        )
+        .fromTo(
+          '.mf__obj--drape',
+          { autoAlpha: 0, y: 18 },
+          { autoAlpha: 1, y: 0, duration: 0.18, ease: 'power2.out' },
+          0.78,
+        )
+        .fromTo(
+          ['.mf__text', '.mf__aside'],
           { autoAlpha: 0, y: 12 },
           { autoAlpha: 1, y: 0, duration: 0.1, stagger: 0.03, ease: 'power1.out' },
-          0.84,
+          0.86,
         )
         // E · whatever light the film still holds goes
         .to(passageRef.current, { opacity: 0, duration: 0.06 }, 0.94);
@@ -343,6 +363,70 @@ export function HeroStage({
     { scope: sectionRef, dependencies: [passage, tier, wantsHud, onPassage] },
   );
 
+  // Without the film the manifesto is a still room: the same order of arrival
+  // (label + eyebrow → the three voices → ginkgo → drapery → note and aside), played
+  // once as the room comes into view. Reduced motion: nothing runs — the room
+  // is simply there, in its final state.
+  useGSAP(
+    () => {
+      if (passage || reducedMotion || !roomRef.current) return;
+      gsap
+        .timeline({
+          defaults: { ease: 'power2.out' },
+          scrollTrigger: { trigger: roomRef.current, start: 'top 70%', once: true },
+        })
+        .from(['.mf__label', '.mf__line--eyebrow'], { autoAlpha: 0, y: 10, duration: 0.6, stagger: 0.08 })
+        .from(
+          '.mf__line:not(.mf__line--eyebrow)',
+          { clipPath: 'inset(115% 0 -0.12em 0)', yPercent: 24, duration: 0.9, stagger: 0.14 },
+          0.25,
+        )
+        .from('.mf__obj--ginkgo', { autoAlpha: 0, x: 28, y: -14, duration: 1.2 }, 0.55)
+        .from('.mf__obj--drape', { autoAlpha: 0, y: 18, duration: 1.1 }, 0.85)
+        .from(['.mf__text', '.mf__aside'], { autoAlpha: 0, y: 12, duration: 0.7, stagger: 0.1 }, 1.15);
+    },
+    { scope: roomRef, dependencies: [passage, reducedMotion] },
+  );
+
+  // Манифест → Услуги, the seam (14.10). The forest room and the bone room
+  // meet through ONE tone both sides are painted from — the site's seam
+  // language (`spikes/flow/`): a veil at the foot of the manifesto and a veil
+  // over the head of Услуги, both in a tone that goes forest → bone across the
+  // window between them (Услуги's top from the viewport's foot to its top). At
+  // the meeting line the two veils are the same colour, so there is never a
+  // step. At either rest the veils paint nothing: the manifesto at rest and
+  // Услуги pinned are exactly as approved. Scrubbed, position-linked, no
+  // autonomous tween — so it is the same under reduced motion and without
+  // the film, and exactly reversible.
+  useGSAP(() => {
+    const frame = servicesRef.current;
+    if (!frame) return;
+    const veils = [
+      ...document.querySelectorAll<HTMLElement>('.mf__foot'),
+      ...frame.querySelectorAll<HTMLElement>(':scope > .sv-seam'),
+    ];
+    if (!veils.length) return;
+    const tl = gsap.timeline({ paused: true, defaults: { ease: 'none' } });
+    // the tone stays forest while the manifesto fills the screen, and turns to bone as Услуги takes it
+    tl.fromTo(veils, { '--seam-k': 0 }, { '--seam-k': 1, duration: 0.9, ease: 'power2.in' }, 0.1)
+      // the foot veil is on within the first fifth of the window
+      .fromTo(veils, { '--seam-foot': 0 }, { '--seam-foot': 1, duration: 0.2 }, 0)
+      // the head veil lifts over the last fifth, so Услуги pins clear
+      .fromTo(veils, { '--seam-head': 1 }, { '--seam-head': 0, duration: 0.2 }, 0.8);
+    const st = ScrollTrigger.create({
+      trigger: frame,
+      start: 'top bottom',
+      end: 'top top',
+      scrub: true,
+      animation: tl,
+    });
+    return () => {
+      st.kill();
+      tl.kill();
+      gsap.set(veils, { clearProps: '--seam-k,--seam-foot,--seam-head' });
+    };
+  }, { dependencies: [passage] });
+
   return (
     <main className="hs-page" style={pageStyle}>
       <section
@@ -433,7 +517,7 @@ export function HeroStage({
 
       {/* Without the film, the manifesto is a still room after the hero. */}
       {!passage && (
-        <section className="mf-room" aria-labelledby="manifesto-heading">
+        <section ref={roomRef} className="mf-room" aria-labelledby="manifesto-heading">
           <ManifestoGround />
           <Manifesto />
         </section>
@@ -442,6 +526,8 @@ export function HeroStage({
       {/* 02 — Услуги: the approved section as it is; the page scrolls into it. */}
       <div ref={servicesRef} className="sv-frame">
         {services ?? <ServicesRadial />}
+        {/* the seam: the head of Услуги, painted from the manifesto's tone (see the seam above) */}
+        <div className="sv-seam" aria-hidden="true" />
       </div>
 
       {wantsHud && (

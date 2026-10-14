@@ -6,6 +6,13 @@ high-end cosmetology clinic for women that is also a **high-converting clinic
 website** — not a clinic template with effects on it, and not an art piece that
 hides the booking path.
 
+> **14.10.2026 — current state.** The production site is `spikes/full/` (the
+> root `index.html` mounts it); `src/sections/` is not on the live page.
+> **Spikes C, D and E are CLOSED by the client's decision (no longer
+> relevant)** and out of the active plan — their records below and in
+> `docs/spikes/` are history. Mobile (< 1024 px) has its own compositions for
+> Манифест, Специалисты and Основатель (14.10); desktop is unchanged by them.
+
 **Status: art direction approved — THROUGH GLASS. Immersive system: Step 0–1
 done; Spike A (hero refraction) CLOSED — material approved, hero composition
 NOT final; Spike B (services) — the wheel, three alternative directions, the
@@ -377,7 +384,7 @@ npm run refs:sync  # clone/refresh .references (git-ignored, ~300 MB)
   deleted `<metalnessmap_fragment>` from the inlined three.js and broke every
   physical material's shader in the published page only.
 - Decision records and review-board links live in `docs/spikes/*.md`
-  (`A-hero.md` closed; `B-services.md` closed; `C-cases.md`, `D-specialists.md`, `E-passage.md`, `F-flow.md`, `G-reviews.md` open). Read them before touching the
+  (`A-hero.md` closed; `B-services.md` closed; `C-cases.md`, `D-specialists.md`, `E-passage.md` closed 14.10 by the client — no longer relevant, kept as history; `F-flow.md`, `G-reviews.md` open). Read them before touching the
   hero or services rooms.
 - Phases are gated. Do not continue into the next production phase (colour,
   imagery, WebGL glass, post-processing, advanced choreography) without

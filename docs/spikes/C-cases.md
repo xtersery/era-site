@@ -1,5 +1,7 @@
 # Spike C — Cases / до · после
 
+> **CLOSED — 14.10.2026, by the client's decision: no longer relevant.** Removed from the active plan; this record and its results are kept as history. What shipped of it lives in the production page `spikes/full/`.
+
 **Status: DIRECTION APPROVED — THE ARCHIVE ON A RAIL (pass 6 PASS, 14.09.2026).
 Pass 7 (experience refinement) was reviewed: direction approved in principle,
 geometry sent back — cases drifted too deep, the spiral did not read, the

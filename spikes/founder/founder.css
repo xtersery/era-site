@@ -396,26 +396,46 @@
     min-height: auto;
     padding-bottom: var(--space-xl);
   }
+  /*
+   * The phone's cover (14.10): three planes — the marble behind, the charcoal
+   * plate in the middle, she in front. The plate is a narrow column at the
+   * left, all its words in its upper part; her photograph (mirrored, the phone
+   * only — the image, never the words) stands to the right and her head breaks
+   * into the plate's empty lower edge. The words end above her (`--her-top` is
+   * set below the plate's text, a fixed rem measure, since the plate's width
+   * and lines are fixed); her face is in front of the plate, never under a word.
+   */
+  .founder {
+    --her-top: calc(var(--flow-offset, 0px) + 22rem);
+    --her-h: max(62svh, 27rem);
+    --her-w: calc(var(--her-h) * 1122 / 1402);
+  }
   /* no sticky stage on the phone: she stands in the first viewport and the read follows in plain flow — nothing fixed over the words */
   .founder__stage { position: relative; top: 0; }
+  .founder__track:not(.founder__track--head) { z-index: 4; }
+  .founder__track--head { z-index: 5; }
   .founder__band { height: 18svh; }
   .founder__portrait {
-    left: -16vw;
+    /* her face (0.41 of the mirrored plate) at 68 % of the view */
+    left: calc(68vw - var(--her-w) * 0.41);
     bottom: auto;
-    top: calc(100svh - 64svh);
-    height: 64svh;
-    transform-origin: 30% 100%;
+    top: var(--her-top);
+    height: var(--her-h);
+    transform-origin: 50% 100%;
   }
   .founder__her {
+    transform: scaleX(-1);
     mask-image: linear-gradient(to top, transparent 0, #000 22%), linear-gradient(to left, transparent 0, #000 14%);
     -webkit-mask-image: linear-gradient(to top, transparent 0, #000 22%), linear-gradient(to left, transparent 0, #000 14%);
   }
+  .founder__halo { transform: scale(-1.06, 1.06); }
   .founder__caption {
-    left: var(--gutter);
-    bottom: auto;
-    top: calc(100svh - var(--space-md) - 1.8em);
+    left: auto;
+    right: calc(var(--her-w) + (68vw - var(--her-w) * 0.41) - 100vw + var(--gutter));
+    bottom: 7%; /* on the dress's dissolve, clear of her face and the plate */
+    top: auto;
   }
-  /* the column is not the plate here — the two groups are, so she stands clear between them */
+  /* the column is not the plate here — the two groups are */
   .founder__column {
     position: relative;
     margin: 0;
@@ -431,8 +451,15 @@
     -webkit-backdrop-filter: blur(6px) saturate(0.92);
     backdrop-filter: blur(6px) saturate(0.92);
   }
-  /* the first group holds the first viewport (she stands in its lower part); the read follows on the wall below */
-  .founder__first { min-height: calc(100svh - 10rem); }
+  /* the first plate: a narrow column whose lower edge she breaks into; the read begins below her */
+  .founder__first {
+    min-height: calc(var(--her-top) + var(--her-h) * 0.9 - var(--space-md) - 2.4rem - var(--flow-offset, 0px));
+  }
+  .founder__first .founder__group {
+    width: min(16rem, 72vw);
+    min-height: calc(var(--her-top) + 4.5rem - var(--space-md) - 2.4rem - var(--flow-offset, 0px));
+    padding: 18px 18px 22px;
+  }
   .founder__name { font-size: 2.6rem; max-width: none; }
   .founder__lead { margin-top: 8px; gap: 10px; }
   .founder__role { padding-bottom: 10px; font-size: 1rem; }

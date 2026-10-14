@@ -102,6 +102,9 @@ void main() {
   // ---- where the light lies at rest: a soft band on the boundary, never on her face ----
   float band = 1.0 - sm(uField.y * 0.6, uField.y * 1.5, abs(s.x - uField.x));
   band *= 1.0 - sm(uFace - 0.06, uFace + 0.02, s.x);
+  // the phone has no boundary beside her — the portrait spans the view — so at rest there is no light;
+  // it arrives only with the passage (`spread`), once the picture has receded
+  band *= 1.0 - uPhone;
   band *= (0.7 + 0.3 * fbm(vec2(s.x * 3.0, s.y * 2.0 - uTime * 0.03))); // uneven, as thrown light is
   float where = mix(band, 1.0, spread);
 

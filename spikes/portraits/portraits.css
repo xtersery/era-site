@@ -333,16 +333,24 @@
 
 /* ---- phone: the portrait above, the label below ------------------------ */
 @media (max-width: 1023.98px) {
-  .sitting { --split: 55%; --split-vh: 55; }
-  .frame { inset: 0 0 auto 0; height: var(--split); }
-  .sitting::before { inset: auto 0 0 0; width: auto; height: calc(100% - var(--split)); background: var(--wall); }
+  /* The LARGE viewport: the pin fixes the room's height in px at refresh
+     (`ignoreMobileResize`), so a 100svh room left a strip of whatever lies
+     beneath (the black ground, the founder's wall) once the browser's toolbar
+     collapsed. The room fills the tallest view, but its composition is set
+     in the SMALL view (svh — the view with the toolbar out): the frame is
+     55svh, the words and the row live in the rest of that view, and what the
+     collapsed toolbar adds is only more wall under the row. */
+  .sitting { --frame-h: 55svh; height: 100lvh; }
+  .frame { inset: 0 0 auto 0; height: var(--frame-h); }
+  .sitting::before { inset: auto 0 0 0; width: auto; height: calc(100% - var(--frame-h)); background: var(--wall); }
   .wall {
     inset: auto 0 0 0;
     width: auto;
-    height: calc(100% - var(--split));
+    height: calc(100% - var(--frame-h));
   }
   .wall__label {
-    top: calc(var(--split-vh) * -1svh + var(--space-md));
+    /* up from the wall to the room's top */
+    top: calc(var(--space-md) - var(--frame-h));
     left: var(--gutter);
     right: var(--gutter);
     justify-content: space-between;
@@ -350,7 +358,7 @@
     text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
   }
   .wall__count { color: #f2f1ec; }
-  .sitter { inset: auto; position: absolute; left: var(--gutter); right: var(--gutter); top: 18px; }
+  .sitter { inset: auto; position: absolute; left: var(--gutter); right: var(--gutter); top: 22px; }
   .sitter__head,
   .sitter__body { position: static; width: auto; padding: 0; }
   .sitter__body { margin-top: 6px; gap: 6px; }
@@ -358,14 +366,24 @@
   .sitter__name { font-size: 1.85rem; max-width: none; }
   .sitter__role { font-size: 1rem; margin-top: 2px; }
   .sitter__focus { display: none; }
-  .sitter__approach { font-size: 1rem; margin-top: 4px; max-width: none; }
-  .sitter__facts { grid-template-columns: 13.5ch 1fr; row-gap: 3px; margin-top: 8px; padding-top: 8px; font-size: 0.66rem; max-width: none; }
-  .sitter__facts dd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sitter__cta { margin-top: 12px; gap: var(--space-sm); }
+  .sitter__approach { font-size: 1.0625rem; line-height: 1.32; margin-top: 10px; max-width: 34ch; }
+  /* the phone reads portrait → name → role → her sentence → the CTA: no experience line (desktop keeps it) */
+  .sitter__facts { display: none; }
+  .sitter__cta { margin-top: 22px; gap: var(--space-sm); }
   .sitter__primary { min-height: 52px; padding: 0 20px; }
-  .wall__foot { left: var(--gutter); right: var(--gutter); bottom: var(--space-sm); }
+  /* above the toolbar's reach: the room is 100lvh, the view with the toolbar out is 100svh */
+  .wall__foot { left: var(--gutter); right: var(--gutter); bottom: calc(100lvh - 100svh + var(--space-sm)); }
   .row ol { gap: 4px; }
   .row button { padding: 6px 4px; }
   .frame__caption { right: auto; left: var(--gutter); bottom: var(--space-sm); font-size: 0.66rem; }
-  .focal { background: var(--gold); }
+  /* nothing crosses her face on the phone: the focal line (which ends at her eye) and the CSS light are desktop's */
+  .focal,
+  .shard--glints { display: none; }
+}
+/* short phones (iPhone SE and the like): the portrait gives the words their room */
+@media (max-width: 1023.98px) and (max-height: 700px) {
+  .sitting { --frame-h: 48svh; }
+  .sitter { top: 16px; }
+  .sitter__approach { margin-top: 6px; }
+  .sitter__cta { margin-top: 14px; }
 }

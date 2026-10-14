@@ -627,18 +627,17 @@
 }
 
 /*
- * The manifesto's ground, after manifest-ref.png — rebuilt, not placed.
- * Inside the pinned stage it waits beneath the film (hidden until the cover);
- * in the still room it is simply the room's ground.
+ * The manifesto's ground: the emerald ceramic wall. Inside the pinned stage it
+ * waits beneath the film (hidden until the cover); in the still room it is the
+ * room's ground. Манифест is a dark room, Услуги a light one: a hard cut at
+ * the boundary, as every dark/light pair on the site.
  */
 .mf-ground {
-  --mf-slab-w: min(38vw, 59.5svh); /* the strip's own proportion, height-fit */
-  /* the one canvas Манифест and Услуги share: the Services tone, as it is (`.radial`) */
-  --mf-field: #ece8df;
+  --mf-deep: #0e1a12;
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: var(--mf-field);
+  background: var(--mf-deep);
   pointer-events: none;
   transform-origin: 50% 50%;
 }
@@ -650,89 +649,25 @@
   will-change: transform, opacity;
 }
 
+/* the wall: the client's plate, composed as on the target board */
+.mf-ground__wall {
+  position: absolute;
+  inset: 0;
+  background: var(--mf-wall) 50% 50% / cover no-repeat;
+}
+
 /*
- * The field: the Services tone with the quietest variation above it — a
- * little more light at the top right, a little more weight low at the left —
- * and none at all in its last fifth, so where Услуги begins nothing changes.
+ * The veil: the wall stays rich — glaze, relief and seams read everywhere —
+ * and only deepens where the words stand (left of centre) and at the top,
+ * as on the board. The right half is the wall as photographed.
  */
-.mf-ground__field {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(110% 70% at 88% 4%, rgb(246 243 236 / 0.85) 0%, rgb(246 243 236 / 0) 55%),
-    radial-gradient(60% 60% at 30% 40%, rgb(226 221 212 / 0.5) 0%, rgb(226 221 212 / 0) 64%),
-    linear-gradient(180deg, rgb(240 237 230 / 0.6) 0%, rgb(240 237 230 / 0) 45%, var(--mf-field) 80%, var(--mf-field) 100%),
-    var(--mf-field);
-}
-
-/* The slabs: the reference's own three, as a strip; its right edge melts into the field. */
-.mf-ground__slabs {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--mf-slab-w);
-  /* melts into the field to the right — and, before the boundary, downward */
-  mask-image:
-    linear-gradient(90deg, #000 64%, rgb(0 0 0 / 0) 100%),
-    linear-gradient(180deg, #000 74%, rgb(0 0 0 / 0) 100%);
-  -webkit-mask-image:
-    linear-gradient(90deg, #000 64%, rgb(0 0 0 / 0) 100%),
-    linear-gradient(180deg, #000 74%, rgb(0 0 0 / 0) 100%);
-  mask-composite: intersect;
-  -webkit-mask-composite: source-in;
-}
-
-.mf-ground__slabs picture,
-.mf-ground__slabs img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-}
-
-.mf-ground__slabs img {
-  object-fit: cover;
-  object-position: left center;
-}
-
-/* Depth: the stone is a little darker at the ceiling and the floor. */
-.mf-ground__slabs::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgb(60 54 44 / 0.07) 0%, rgb(60 54 44 / 0) 22%);
-  mix-blend-mode: multiply;
-}
-
-/* The light inside the stone — comes on during the landing (GSAP). */
-.mf-ground__glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    64% 58% at 40% 50%,
-    rgb(250 247 240 / 0.3) 0%,
-    rgb(250 247 240 / 0.1) 45%,
-    rgb(250 247 240 / 0) 72%
-  );
-  mix-blend-mode: screen;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.mf-room .mf-ground__glow {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* The veil: light bleeding from the stone into the field as two soft folds. */
 .mf-ground__veil {
   position: absolute;
-  inset: 0 0 0 58%;
+  inset: 0;
   background:
-    linear-gradient(97deg, rgb(250 248 243 / 0) 0%, rgb(250 248 243 / 0.26) 26%, rgb(250 248 243 / 0) 46%),
-    linear-gradient(94deg, rgb(250 248 243 / 0) 40%, rgb(250 248 243 / 0.16) 62%, rgb(250 248 243 / 0) 86%),
-    linear-gradient(90deg, rgb(100 92 78 / 0.05) 0%, rgb(100 92 78 / 0) 30%);
-  mask-image: linear-gradient(180deg, #000 74%, rgb(0 0 0 / 0) 100%);
-  -webkit-mask-image: linear-gradient(180deg, #000 74%, rgb(0 0 0 / 0) 100%);
+    radial-gradient(44% 48% at 36% 50%, rgb(9 16 11 / 0.7) 0%, rgb(9 16 11 / 0.45) 55%, rgb(9 16 11 / 0) 100%),
+    linear-gradient(90deg, rgb(9 16 11 / 0.58) 0%, rgb(9 16 11 / 0.38) 38%, rgb(9 16 11 / 0.12) 62%, rgb(9 16 11 / 0.06) 80%),
+    linear-gradient(180deg, rgb(9 16 11 / 0.55) 0%, rgb(9 16 11 / 0.18) 26%, rgb(9 16 11 / 0.04) 50%, rgb(9 16 11 / 0.16) 100%);
 }
 
 /* Grain against banding: a tile at a whisper, neutral in overlay. */
@@ -742,29 +677,37 @@
   background: var(--mf-grain) repeat;
   background-size: 256px 256px;
   mix-blend-mode: overlay;
-  opacity: 0.09;
-  /* the grain, too, is gone before the boundary */
-  mask-image: linear-gradient(180deg, #000 70%, rgb(0 0 0 / 0) 100%);
-  -webkit-mask-image: linear-gradient(180deg, #000 70%, rgb(0 0 0 / 0) 100%);
+  opacity: 0.05;
 }
 
 /*
- * 01 — Манифест: the words in the field, to the right of the stone. As a layer
- * it sits inside the pinned stage over the ground; as a room it stands on it.
+ * 01 — Манифест: FOREST AND GOLD — the client's target boards
+ * (`docs/references/manifest-target-{desktop,mobile}.png`) set in the page.
+ * Four voices for one sentence (micro sans · heavy sans on an olive plate ·
+ * thin serif · the largest serif), a note with a hairline, one line of
+ * tracked micro type, and two gold sculptures behind the words: the folded
+ * drapery low at the left edge, the gilded flower on the right edge. As a
+ * layer it sits inside the pinned stage over the ground; as a room it stands
+ * on it. Desktop measures are the board's (1586 px wide) in vw.
  */
 .mf {
-  --mf-graphite: #2f2d29;
-  --mf-taupe: #8a7a66;
+  --mf-cream: #fbf1dc;
+  --mf-champagne: #f3dfba;
+  --mf-olive: rgb(70 81 56 / 0.94);
+  --mf-hair: rgb(236 222 196 / 0.6);
+  /* one indent for «естественную» and the note under it — they share a left edge */
+  --mf-indent: 12.6vw;
   position: relative;
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: auto 1fr auto auto 1.15fr auto;
   column-gap: var(--grid-gap);
-  align-content: center;
   height: 100svh;
   min-height: 600px;
-  padding-inline: var(--gutter);
-  color: var(--mf-graphite);
+  padding: 0 var(--gutter) 10.4svh;
+  overflow: hidden; /* the gold leaves the page at its edges, never widens it */
+  color: var(--mf-cream);
 }
 
 .mf--layer {
@@ -781,47 +724,47 @@
 .mf-room {
   position: relative;
   overflow: hidden;
-  background: #ece8df;
+  background: #0e1a12;
+}
+
+/* the words stand in front of the gold */
+.mf__label,
+.mf__heading,
+.mf__text,
+.mf__aside {
+  position: relative;
+  z-index: 1;
 }
 
 .mf__label {
-  grid-column: 5 / span 4;
+  grid-column: 1 / span 5;
   grid-row: 1;
   align-self: start;
   display: inline-flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.2rem;
   margin: calc(var(--header-height) + 0.75rem) 0 0;
-  color: var(--mf-graphite);
+  color: rgb(251 241 220 / 0.9);
   font-family: var(--font-text);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
 }
 
 .mf__dash {
-  width: 3rem;
+  width: 3.25rem;
   height: 1px;
   background: currentColor;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
-/*
- * The statement: four lines, uppercase Prata (the reference's setting), graphite
- * and taupe — oversized on purpose; the section is the words.
- */
+/* ---- the statement --------------------------------------------------------- */
 .mf__heading {
-  grid-column: 5 / -1;
-  grid-row: 2;
-  align-self: center;
+  grid-column: 2 / -1;
+  grid-row: 3;
   margin: 0;
-  font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(2.75rem, 6.35vw, 7rem);
-  line-height: 0.96;
-  letter-spacing: 0;
-  text-transform: uppercase;
 }
 
 .mf__line {
@@ -830,103 +773,259 @@
   padding-top: 0.06em;
 }
 
-.mf__line--graphite {
-  color: var(--mf-graphite);
-}
-
-.mf__line--taupe {
-  color: var(--mf-taupe);
-}
-
-.mf__text {
-  grid-column: 5 / span 5;
-  grid-row: 3;
-  align-self: start;
-  margin: var(--space-lg) 0 0;
-  max-width: 26rem;
-  color: rgb(47 45 41 / 0.78);
-  text-wrap: pretty;
-}
-
-.mf__aside {
-  grid-column: 11 / span 2;
-  grid-row: 3;
-  align-self: end;
-  justify-self: end;
-  margin: var(--space-lg) 0 0;
-  color: rgb(47 45 41 / 0.72);
+/* «Наша миссия:» — the eyebrow: micro grotesk, widely tracked */
+.mf__line--eyebrow {
+  margin-bottom: 1.35rem;
   font-family: var(--font-text);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  line-height: 1.8;
-  text-align: right;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--mf-cream);
+}
+
+/* «сохранять» — the accent: a heavy grotesk, cream on an olive plate */
+.mf__line--plate {
+  font-family: var(--font-text);
+  font-size: clamp(3rem, 5.75vw, 6.75rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.028em;
   text-transform: uppercase;
 }
 
+.mf__plate {
+  display: inline-block;
+  padding: 0.075em 0.21em 0.1em 0.19em;
+  background: var(--mf-olive);
+  color: var(--mf-cream);
+}
+
+/* «естественную» — the thin voice: the serif in lower case, champagne */
+.mf__line--soft {
+  margin-top: 0.12em;
+  padding-left: var(--mf-indent);
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 5.75rem);
+  line-height: 1;
+  letter-spacing: -0.012em;
+  color: var(--mf-champagne);
+}
+
+/* «красоту» — the grand voice: the serif in capitals, the largest thing on the page */
+.mf__line--grand {
+  margin-top: 0.06em;
+  padding-left: calc(var(--mf-indent) * 0.485);
+  font-family: var(--font-display);
+  font-size: clamp(4.25rem, 10.2vw, 12rem);
+  line-height: 0.92;
+  letter-spacing: -0.012em;
+  text-transform: uppercase;
+  color: var(--mf-cream);
+}
+
+/* ---- the note and the aside ---------------------------------------------- */
+.mf__text {
+  grid-column: 2 / span 6;
+  grid-row: 4;
+  align-self: start;
+  margin: 2.6svh 0 0 calc(var(--mf-indent) + 0.6vw);
+  padding: 0.1rem 0 0.1rem 1.75rem;
+  border-left: 1px solid var(--mf-hair);
+  font-family: var(--font-text);
+  font-size: clamp(1.0625rem, 1.2vw, 1.375rem);
+  line-height: 1.55;
+  color: rgb(251 241 220 / 0.88);
+}
+
+.mf__aside {
+  grid-column: 2 / -1;
+  grid-row: 6;
+  align-self: end;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0 1.35em;
+  margin: 0 0 0 calc(var(--mf-indent) * 0.485);
+  font-family: var(--font-text);
+  font-size: clamp(0.75rem, 0.84vw, 0.9375rem);
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgb(251 241 220 / 0.86);
+}
+
+.mf__aside::before {
+  content: '';
+  width: 4.35vw;
+  height: 1px;
+  margin-right: 0.85em;
+  background: var(--mf-hair);
+}
+
+/* the tracking after a word's last letter is not space the eye sees */
+.mf__aside > span:not(.mf__dot) {
+  margin-right: -0.34em;
+}
+
+/* the separators between the three words: a small point */
+.mf__dot {
+  flex: none;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ---- the gold: the client's sculptures, cut on alpha, never repainted ----- */
+.mf__obj {
+  position: absolute;
+  z-index: 0;
+  display: block;
+  width: auto;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* the folded drapery: low at the left edge, its right half in the frame */
+.mf__obj--drape {
+  left: -23vw;
+  top: 13svh;
+  height: 100svh;
+  transform: rotate(2deg);
+  transform-origin: 50% 50%;
+  filter: drop-shadow(24px 18px 36px rgb(4 9 6 / 0.6));
+}
+
+/* the gilded flower: hung on the right edge, a third of it past the frame */
+.mf__obj--ginkgo {
+  left: 82.4vw;
+  top: 7.6svh;
+  height: 56svh;
+  transform: rotate(-4deg);
+  filter: drop-shadow(-16px 24px 30px rgb(4 9 6 / 0.55));
+}
+
+/* ---- the phone: its own spread (the mobile board) --------------------------- */
 @media (max-width: 1023px) {
-  /* The stone stays as a narrow accent; the words take the field. */
-  .mf-ground {
-    --mf-slab-w: 20vw;
+  .mf {
+    --mf-measure: calc(100vw - 2 * var(--gutter));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-rows: auto auto auto 1fr auto;
+    padding: 0 var(--gutter) calc(4.6svh + env(safe-area-inset-bottom, 0px));
   }
 
-  .mf-ground__slabs {
-    mask-image: linear-gradient(90deg, #000 58%, rgb(0 0 0 / 0) 100%);
-    -webkit-mask-image: linear-gradient(90deg, #000 58%, rgb(0 0 0 / 0) 100%);
+  .mf-ground__wall {
+    background-image: var(--mf-wall-phone);
   }
 
   .mf-ground__veil {
-    left: 60%;
+    background:
+      radial-gradient(70% 34% at 38% 50%, rgb(9 16 11 / 0.62) 0%, rgb(9 16 11 / 0.35) 60%, rgb(9 16 11 / 0) 100%),
+      linear-gradient(90deg, rgb(9 16 11 / 0.5) 0%, rgb(9 16 11 / 0.3) 50%, rgb(9 16 11 / 0.05) 85%),
+      linear-gradient(180deg, rgb(9 16 11 / 0.5) 0%, rgb(9 16 11 / 0.2) 30%, rgb(9 16 11 / 0.1) 60%, rgb(9 16 11 / 0.35) 100%);
   }
 
-  .mf {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: auto auto auto auto;
-    align-content: start;
-    height: auto;
-    min-height: 100svh;
-    padding-block: 0 var(--space-xl);
-    padding-left: calc(20vw + var(--space-md));
-  }
-
-  .mf--layer {
-    position: absolute;
-    height: 100%;
-  }
-
-  .mf__label,
-  .mf__heading,
-  .mf__text,
-  .mf__aside {
+  .mf__label {
     grid-column: 1 / -1;
+    gap: 1.1rem;
+    font-size: 0.6875rem;
+  }
+
+  .mf__dash {
+    width: 2.6rem;
   }
 
   .mf__heading {
-    grid-row: 2;
-    align-self: start;
-    margin-top: 12svh;
-    font-size: clamp(1.5rem, 7.2vw, 3.75rem);
+    grid-column: 1 / -1;
+    margin-top: 11.5svh;
+  }
+
+  .mf__line--eyebrow {
+    margin-bottom: 0.85rem;
+    padding-left: 0.1em;
+    font-size: 0.6875rem;
+    letter-spacing: 0.36em;
+  }
+
+  /* each voice is sized to the measure, never to a word-break */
+  .mf__line--plate {
+    font-size: min(calc(var(--mf-measure) / 8.25), 6.25rem);
+  }
+
+  .mf__line--soft {
+    margin-top: 0.1em;
+    padding-left: calc(var(--mf-measure) * 0.085);
+    font-size: min(calc(var(--mf-measure) / 10.6), 5rem);
+  }
+
+  .mf__line--grand {
+    margin-top: 0.04em;
+    padding-left: 0;
+    font-size: min(calc(var(--mf-measure) / 5.05), 8.75rem);
   }
 
   .mf__text {
-    grid-row: 3;
+    grid-column: 1 / -1;
+    grid-row: 4;
+    align-self: start;
+    margin: 3svh 0 0 calc(var(--mf-measure) * 0.155);
+    padding-left: 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    text-shadow: 0 1px 14px rgb(7 13 10 / 0.6);
   }
 
   .mf__aside {
-    grid-row: 4;
-    justify-self: start;
-    margin-top: var(--space-lg);
-    text-align: left;
+    grid-column: 1 / -1;
+    grid-row: 5;
+    justify-content: space-between;
+    gap: 0;
+    margin: 0;
+    padding: 0 0.2em;
+    font-size: 0.625rem;
+    letter-spacing: 0.28em;
+    text-shadow: 0 1px 10px rgb(7 13 10 / 0.85);
   }
-}
 
-@media (max-width: 767px) {
-  .mf-ground {
-    --mf-slab-w: 16vw;
+  .mf__aside::before {
+    display: none;
   }
 
-  .mf {
-    padding-left: calc(16vw + var(--space-md));
+  .mf__aside > span:not(.mf__dot) {
+    margin-right: -0.28em;
+  }
+
+  /* at the foot the gold lies under the aside: a low shade between them */
+  .mf::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 0;
+    height: 15svh;
+    background: linear-gradient(180deg, rgb(9 16 11 / 0) 0%, rgb(9 16 11 / 0.62) 100%);
+    pointer-events: none;
+  }
+
+
+  /* sized to the width and held to the foot, so a taller phone keeps the board's crop */
+  .mf__obj--drape {
+    left: -62vw;
+    top: auto;
+    bottom: -26vw;
+    width: 118vw;
+    height: auto;
+    transform: rotate(-20deg);
+  }
+
+  .mf__obj--ginkgo {
+    left: 74vw;
+    top: 6.5vw;
+    width: 63vw;
+    height: auto;
+    transform: rotate(-6deg);
   }
 }
 
@@ -941,6 +1040,75 @@
    the frame's small entrance (40 px, opacity) is written by the flow trigger. */
 .sv-frame {
   position: relative;
+}
+
+/*
+ * Манифест → Услуги, the seam: one tone both rooms are painted from at their
+ * meeting line — forest (the manifesto's foot) → bone (Услуги's ground) as
+ * the seam advances (`--seam-k`, written by the seam trigger on these two
+ * elements only). Mixed in oklab so the way from green-black to bone passes
+ * through a warm, quiet grey-green, never a muddy one.
+ */
+.mf__foot,
+.sv-seam {
+  --seam-forest: #142219;
+  --seam-bone: #ece8df;
+  --seam-tone: color-mix(in oklab, var(--seam-bone) calc(var(--seam-k, 0) * 100%), var(--seam-forest));
+  position: absolute;
+  inset-inline: 0;
+  pointer-events: none;
+}
+
+/* the foot of the manifesto: rises from the meeting line, over the gold, under the words */
+.mf__foot {
+  bottom: 0;
+  z-index: 0;
+  height: 30svh;
+  opacity: var(--seam-foot, 0);
+  background: linear-gradient(
+    0deg,
+    var(--seam-tone) 0,
+    var(--seam-tone) 3%,
+    color-mix(in oklab, var(--seam-tone) 70%, transparent) 22%,
+    color-mix(in oklab, var(--seam-tone) 34%, transparent) 50%,
+    color-mix(in oklab, var(--seam-tone) 10%, transparent) 78%,
+    transparent 100%
+  );
+}
+
+/*
+ * The head of Услуги: falls from the meeting line over its empty upper field
+ * and lifts before it pins. It reaches `--seam-overlap` above the frame's
+ * edge, solid in the tone, so the frame's own small entrance (it rises the
+ * last 40 px into place) never opens a line of the page's ground between
+ * the two rooms.
+ */
+.sv-seam {
+  --seam-overlap: 3rem;
+  --seam-reach: 46svh;
+  top: calc(-1 * var(--seam-overlap));
+  z-index: 3;
+  height: calc(var(--seam-reach) + var(--seam-overlap));
+  opacity: var(--seam-head, 0);
+  background: linear-gradient(
+    180deg,
+    var(--seam-tone) 0,
+    var(--seam-tone) calc(var(--seam-overlap) + var(--seam-reach) * 0.1),
+    color-mix(in oklab, var(--seam-tone) 74%, transparent) calc(var(--seam-overlap) + var(--seam-reach) * 0.32),
+    color-mix(in oklab, var(--seam-tone) 38%, transparent) calc(var(--seam-overlap) + var(--seam-reach) * 0.58),
+    color-mix(in oklab, var(--seam-tone) 10%, transparent) calc(var(--seam-overlap) + var(--seam-reach) * 0.82),
+    transparent 100%
+  );
+}
+
+@media (max-width: 1023px) {
+  .mf__foot {
+    height: 24svh;
+  }
+
+  .sv-seam {
+    --seam-reach: 34svh;
+  }
 }
 
 /* ---- Transition diagnostics (?transitionDebug=1) --------------------------- */

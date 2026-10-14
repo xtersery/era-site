@@ -91,10 +91,11 @@ void main() {
   float grain = fbm(nuv * 2.4 + 11.0) * 0.05 * H * front;
   float edge = H - shiftBg + grain;              // the image's bottom, on screen
   float mask = smoothstep(edge, edge - feather, px.y);
-  // the light at the front: the stone brightens toward ivory before it goes,
-  // and a soft breath of that light lies on both sides of the line
+  // the front: the stone deepens toward the manifesto's forest wall before it
+  // goes (the room it lands in is dark, 14.10), and a soft breath of warm
+  // light lies on both sides of the line
   float glow = exp(-pow((px.y - edge) / (0.11 * H), 2.0));
-  hero = mix(hero, vec3(0.975, 0.962, 0.94), (1.0 - mask) * 0.4 * front);
+  hero = mix(hero, vec3(0.043, 0.082, 0.063), (1.0 - mask) * 0.5 * front);
 
   // the emblem, its own layer, following the pointer's last drift
   vec2 c = uEmblem.xy + uDrift;

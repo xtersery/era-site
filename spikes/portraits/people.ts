@@ -49,9 +49,23 @@ const framing: Readonly<Record<string, Pick<Sitter, 'eye' | 'anchorY'>>> = {
   voronina: { eye: { x: 0.452, y: 0.324 }, anchorY: 0.5 },
 };
 
-export const sitters: readonly Sitter[] = specialists.map((person) => {
-  const plate = plates[person.id];
-  const frame = framing[person.id];
-  if (!plate || !frame) throw new Error(`No portrait for specialist «${person.id}»`);
-  return { person, portrait: plate[0], portraitPhone: plate[1], ...frame };
-});
+/**
+ * THE PHONE ONLY (the client's decision, 14.10): Коргачева and Воронина are
+ * shown with each other's photograph. Only the plate travels — the image and
+ * the framing measured on it; her name, role, words and place in the row stay
+ * hers. Desktop keeps the mapping above.
+ */
+const phoneSwap: Readonly<Record<string, string>> = { korgacheva: 'voronina', voronina: 'korgacheva' };
+
+const cast = (plateOf: (id: string) => string): readonly Sitter[] =>
+  specialists.map((person) => {
+    const key = plateOf(person.id);
+    const plate = plates[key];
+    const frame = framing[key];
+    if (!plate || !frame) throw new Error(`No portrait for specialist «${person.id}»`);
+    return { person, portrait: plate[0], portraitPhone: plate[1], ...frame };
+  });
+
+export const sitters: readonly Sitter[] = cast((id) => id);
+/** the same row on the phone layout (< 1024 px) */
+export const sittersPhone: readonly Sitter[] = cast((id) => phoneSwap[id] ?? id);
