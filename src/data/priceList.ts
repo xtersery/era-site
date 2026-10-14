@@ -119,6 +119,7 @@ export const priceList: readonly PriceCategory[] = [
           item('peel-prp-t33', 'Пилинг PRP-T33', rub(6500)),
           item('peel-peach', 'Peach Peel', rub(5500)),
           item('peel-pink', 'Pink Peel', rub(4500)),
+          item('peel-apple', 'Apple Peel', rub(5500)),
           item('peel-tca', 'Пилинг TCA', rub(7000)),
           item('peel-yellow', 'Жёлтый пилинг', rub(7000)),
         ],
@@ -169,7 +170,8 @@ export const priceList: readonly PriceCategory[] = [
         title: 'Коллаген',
         items: [
           item('collost-micro', 'Коллост Micro', rub(20500)),
-          item('collost-7', 'Коллост 7% (1 мл)', rub(13000)),
+          item('collost-7', 'Коллост 7% (1 мл)', rub(15000)),
+          item('collost-micro-zone', 'Коллост микро (1 зона)', rub(14000)),
           item('subcision', 'Субцизия рубцов', { kind: 'surcharge', rub: 5000 }),
         ],
       },
