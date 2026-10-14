@@ -8,3 +8,25 @@
 .flowpage .hs-page {
   position: relative;
 }
+
+/*
+ * The document under the rooms. The root's background is what Safari tints
+ * its bars from and what the overscroll (rubber-band) shows above and below
+ * the page: `roomTone.ts` keeps it on the room under the top edge; this is
+ * its fallback before the first room resolves — the site's forest, never the
+ * default light ground. The body is clear so the root shows through it; every
+ * room paints its own ground, so nothing on the page changes.
+ */
+html {
+  background-color: #08140f;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background-color: transparent;
+}

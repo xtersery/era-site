@@ -395,13 +395,19 @@ export function FlowSpike() {
 export function FlowPage({
   head,
   home,
+  onLayer,
 }: {
   head?: (services: ReactNode) => ReactNode;
   home?: string;
+  /** hears the price layer open and close (the composing page tints the browser's chrome by it) */
+  onLayer?: (open: boolean) => void;
 } = {}) {
   const { exit, hud, drive, dist } = useMemo(readParams, []);
   const scroll = useContext(ScrollContext);
   const [priceOpen, setPriceOpen] = useState(isPricingHash);
+  useEffect(() => {
+    onLayer?.(priceOpen);
+  }, [priceOpen, onLayer]);
   /**
    * The readout. The rooms report their position on every scroll frame; the
    * numbers live in a ref and become React state ONLY for the `?hud=1`

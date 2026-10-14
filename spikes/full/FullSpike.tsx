@@ -1,5 +1,5 @@
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { ScrollProvider } from '@/animations/scroll';
 import { InquiryProvider } from '@/lib/inquiry';
@@ -7,6 +7,8 @@ import { InquiryProvider } from '@/lib/inquiry';
 import { FlowPage } from '../flow/FlowSpike';
 import { HeroStage } from '../hero-stone/HeroStoneSpike';
 import { PerfHud, wantsPerfHud } from '../perf/PerfHud';
+
+import { watchRoomTone } from './roomTone';
 
 /**
  * The whole experience, one page — every approved spike in the approved
@@ -69,8 +71,30 @@ function setBar(k: number) {
 }
 
 function FullPage() {
-  // the bar follows the descent: nothing while the hero's header is up, in over the film's last frames
-  const onPassage = useCallback((t: number) => setBar(smoothstep(0.86, 1, t)), []);
+  // the browser's chrome follows the room under the top edge (`roomTone.ts`)
+  // (the flow's layer report runs before this effect on mount — kept, and applied once the watcher exists)
+  const tone = useRef<ReturnType<typeof watchRoomTone> | null>(null);
+  const layerOpen = useRef(false);
+  useEffect(() => {
+    const t = watchRoomTone();
+    tone.current = t;
+    t.setLayer(layerOpen.current ? 'pricing' : null);
+    return () => {
+      t.dispose();
+      tone.current = null;
+    };
+  }, []);
+  const onLayer = useCallback((open: boolean) => {
+    layerOpen.current = open;
+    tone.current?.setLayer(open ? 'pricing' : null);
+  }, []);
+
+  // the bar follows the descent: nothing while the hero's header is up, in over the film's last frames;
+  // the chrome turns from the hero's tone to the manifesto's once the film has passed half way
+  const onPassage = useCallback((t: number) => {
+    setBar(smoothstep(0.86, 1, t));
+    tone.current?.setDescended(t >= 0.5);
+  }, []);
 
   // without the film the manifesto is a still room after the hero: the bar comes in as it arrives
   useEffect(() => {
@@ -89,6 +113,7 @@ function FullPage() {
   return (
     <FlowPage
       home="#hero"
+      onLayer={onLayer}
       head={(services) => <HeroStage services={services} onPassage={onPassage} />}
     />
   );
