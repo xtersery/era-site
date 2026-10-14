@@ -38,7 +38,10 @@ const initials = (author: string) =>
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
+    // by code point and letters only: «Blum 🐰» → «B», never half an emoji («B�»)
+    .map((w) => Array.from(w)[0] ?? '')
+    .filter((c) => /\p{L}/u.test(c))
+    .map((c) => c.toUpperCase())
     .join('');
 
 /** the first words of a review, for the index */

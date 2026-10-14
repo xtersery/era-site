@@ -310,20 +310,29 @@ export function HeroStage({
       const svFrame = servicesRef.current!;
       const words = wordsRef.current!;
       const ground = groundRef.current!;
+      // On the phone the seam veils carry the whole way from the forest to
+      // Услуги (the manifesto's tail is one tone, `.mf__foot`), and both live
+      // inside these two layers: fading either let the wall and the page's
+      // bone through the veils as a step at the meeting line, and moving
+      // either opened a gap the head veil had to cover with a solid overlap —
+      // which lay over the manifesto's last line. The phone keeps the two
+      // layers still; the ground's lag stays.
+      const phoneSeam = window.matchMedia('(max-width: 1023px)');
       const flow = (p: number) => {
+        const moves = !phoneSeam.matches;
         const e = p * p * (3 - 2 * p);
         // the frame: 40 px → 0, 0.9 → 1 — inside the window only. Outside it
         // (below the viewport, or at rest) the frame carries no transform at
         // all: below the viewport the offset is invisible anyway, and a
         // trigger created or measured then (a composing page's rooms after
         // Услуги) sees the true layout.
-        const inWindow = p > 0 && p < 1;
+        const inWindow = moves && p > 0 && p < 1;
         svFrame.style.transform = inWindow ? `translate3d(0, ${(40 * (1 - e)).toFixed(2)}px, 0)` : '';
         svFrame.style.opacity = inWindow ? (0.9 + 0.1 * e).toFixed(3) : '';
         // the manifesto: the words soften and drift a touch ahead of the page,
         // the ground lags it — a shallow parallax
-        words.style.opacity = (1 - 0.15 * e).toFixed(3);
-        words.style.transform = `translate3d(0, ${(-24 * e).toFixed(2)}px, 0)`;
+        words.style.opacity = moves ? (1 - 0.15 * e).toFixed(3) : '';
+        words.style.transform = moves ? `translate3d(0, ${(-24 * e).toFixed(2)}px, 0)` : '';
         gsap.set(ground, { y: 36 * e });
       };
       const flowTrigger = ScrollTrigger.create({

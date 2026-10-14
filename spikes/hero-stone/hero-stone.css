@@ -910,11 +910,35 @@
 
 /* ---- the phone: its own spread (the mobile board) --------------------------- */
 @media (max-width: 1023px) {
+  /*
+   * The phone's spread is composed in the VISIBLE viewport (dvh: the screen
+   * as it is now — iOS Safari's bars in or out), not the small one: in svh the
+   * composition stopped short of the screen's foot whenever the bars
+   * collapsed. As a layer it spans the WHOLE pinned stage — on the phone the
+   * hero is taller than the screen, so the stage is too — with the spread in
+   * its first `--mf-h` and the rest a tail row the room's end shade owns
+   * (`.mf::after`). Before, the layer stopped at 100svh and the bare wall
+   * under it showed as a band below the room.
+   */
   .mf {
     --mf-measure: calc(100vw - 2 * var(--gutter));
+    --mf-h: max(600px, 100svh);
+    --mf-pb: calc(4.6svh + env(safe-area-inset-bottom, 0px));
     grid-template-columns: repeat(8, minmax(0, 1fr));
-    grid-template-rows: auto auto auto 1fr auto;
-    padding: 0 var(--gutter) calc(4.6svh + env(safe-area-inset-bottom, 0px));
+    grid-template-rows: auto auto auto 1fr auto max(0px, calc(100% + var(--mf-pb) - var(--mf-h)));
+    height: var(--mf-h);
+    min-height: 0;
+    padding: 0 var(--gutter) var(--mf-pb);
+  }
+
+  @supports (height: 100dvh) {
+    .mf {
+      --mf-h: max(600px, 100dvh);
+    }
+  }
+
+  .mf--layer {
+    height: auto;
   }
 
   .mf-ground__wall {
@@ -952,19 +976,19 @@
 
   /* each voice is sized to the measure, never to a word-break */
   .mf__line--plate {
-    font-size: min(calc(var(--mf-measure) / 8.25), 6.25rem);
+    font-size: min(calc(var(--mf-measure) / 10.3), 5rem);
   }
 
   .mf__line--soft {
     margin-top: 0.1em;
     padding-left: calc(var(--mf-measure) * 0.085);
-    font-size: min(calc(var(--mf-measure) / 10.6), 5rem);
+    font-size: min(calc(var(--mf-measure) / 13.25), 4rem);
   }
 
   .mf__line--grand {
     margin-top: 0.04em;
     padding-left: 0;
-    font-size: min(calc(var(--mf-measure) / 5.05), 8.75rem);
+    font-size: min(calc(var(--mf-measure) / 6.3), 7rem);
   }
 
   .mf__text {
@@ -998,14 +1022,25 @@
     margin-right: -0.28em;
   }
 
-  /* at the foot the gold lies under the aside: a low shade between them */
+  /*
+   * The room's end: the low shade under the aside (0.62 at the screen's foot,
+   * as on the board) carries on below the spread into solid forest, so the
+   * stage's tail is shading and then one flat tone — never the wall or the
+   * gold running on past the composition. The seam into Услуги starts from
+   * that tone (`.mf__foot`).
+   */
   .mf::after {
     content: '';
     position: absolute;
-    inset: auto 0 0;
+    inset: calc(var(--mf-h) - 15svh) 0 0;
     z-index: 0;
-    height: 15svh;
-    background: linear-gradient(180deg, rgb(9 16 11 / 0) 0%, rgb(9 16 11 / 0.62) 100%);
+    background: linear-gradient(
+      180deg,
+      rgb(9 16 11 / 0) 0,
+      rgb(9 16 11 / 0.62) 15svh,
+      rgb(9 16 11 / 1) calc(15svh + 9svh),
+      rgb(9 16 11 / 1) 100%
+    );
     pointer-events: none;
   }
 
@@ -1014,7 +1049,8 @@
   .mf__obj--drape {
     left: -62vw;
     top: auto;
-    bottom: -26vw;
+    /* held to the spread's foot, not the stage's */
+    bottom: calc(100% - var(--mf-h) - 26vw);
     width: 118vw;
     height: auto;
     transform: rotate(-20deg);
@@ -1101,13 +1137,38 @@
   );
 }
 
+/*
+ * The phone: shading, then a clean change of ground. The room's end is
+ * already solid forest (`.mf::after`), so the foot veil only turns that tone
+ * toward bone; the head of Услуги takes the same tone over its empty upper
+ * field alone — short of the label and the plate, so nothing of the room is
+ * washed in grey-green on the way in.
+ */
 @media (max-width: 1023px) {
+  /*
+   * Over the room's end shade (still under the words, which follow it), and
+   * as tall as the stage's tail plus the shade: the whole tail is ONE tone,
+   * the tone the head of Услуги starts from, so there is no step anywhere
+   * between the spread's foot and Услуги's ground.
+   */
   .mf__foot {
-    height: 24svh;
+    z-index: 1;
+    height: calc(100% - var(--mf-h) + 24svh);
+    background: linear-gradient(
+      180deg,
+      transparent 0,
+      color-mix(in oklab, var(--seam-tone) 34%, transparent) 8svh,
+      color-mix(in oklab, var(--seam-tone) 76%, transparent) 15svh,
+      var(--seam-tone) 22svh,
+      var(--seam-tone) 100%
+    );
   }
 
+  /* nothing on the phone moves the two rooms apart (see the flow trigger), so
+     the head veil needs no overlap above the frame — it starts at the line */
   .sv-seam {
-    --seam-reach: 34svh;
+    --seam-overlap: 0px;
+    --seam-reach: 12svh;
   }
 }
 

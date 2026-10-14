@@ -1,6 +1,7 @@
 import { getSanityClient } from '@/lib/sanity';
 import { ru } from '@/lib/utils/ru';
 
+import snapshot from './snapshot.json';
 import { FEATURED_COUNT } from './select';
 import type { Review, ReviewSource, ReviewsProvider } from './types';
 
@@ -66,15 +67,35 @@ export function toReview(row: ReviewRow): Review | null {
  * answers with nothing — never throws.
  */
 export async function getFeaturedReviews(limit = FEATURED_COUNT): Promise<Review[]> {
+  return (await fetchFeaturedReviews(limit)) ?? [];
+}
+
+const toReviews = (rows: readonly unknown[]) =>
+  rows.map((row) => toReview(row as ReviewRow)).filter((r): r is Review => r !== null);
+
+/**
+ * As `getFeaturedReviews`, but tells «Sanity answered with nothing» (`[]`)
+ * from «Sanity could not be reached» (`null`) — only the second may fall back
+ * on the build-time snapshot.
+ */
+export async function fetchFeaturedReviews(limit = FEATURED_COUNT): Promise<Review[] | null> {
   const client = await getSanityClient();
-  if (!client) return [];
+  if (!client) return null;
   try {
     const rows = await client.fetch<unknown>(FEATURED_REVIEWS_QUERY, { limit });
-    if (!Array.isArray(rows)) return [];
-    return rows.map((row) => toReview(row as ReviewRow)).filter((r): r is Review => r !== null);
+    return Array.isArray(rows) ? toReviews(rows) : null;
   } catch {
-    return [];
+    return null;
   }
+}
+
+/**
+ * The same reviews as captured at build time (`scripts/reviews-snapshot.mjs`):
+ * what the room shows when the live request cannot get through — a mobile
+ * network that drops or throttles the CMS's CDN must not empty the room.
+ */
+export function snapshotReviews(limit = FEATURED_COUNT): Review[] {
+  return toReviews(snapshot.rows).slice(0, limit);
 }
 
 export const sanityProvider: ReviewsProvider = {

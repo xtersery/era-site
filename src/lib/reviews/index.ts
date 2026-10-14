@@ -1,7 +1,7 @@
 import { isDev } from '@/lib/env';
 
 import { createYandexProvider, localProvider } from './providers';
-import { sanityProvider } from './sanityProvider';
+import { fetchFeaturedReviews, sanityProvider, snapshotReviews } from './sanityProvider';
 import { selectFeatured } from './select';
 import type { Review, ReviewsProvider } from './types';
 
@@ -28,6 +28,8 @@ const quietly = (p: ReviewsProvider) => p.getReviews().catch(() => [] as readonl
  *
  *   1. Sanity — the reviews the clinic curated in the Studio, in the order
  *      the Studio gives them (`published && featured`, priority, date, ≤ 5).
+ *      When Sanity cannot be reached, the same curated set as captured at
+ *      build time (`snapshot.json`) — real published reviews, never samples.
  *   2. the reserved platform provider, through the one selection rule.
  *   3. in development only: the sample records, so the room is never empty
  *      on a desk without credentials — labelled as samples by the room.
@@ -40,8 +42,13 @@ export async function getReviews(): Promise<{
   reviews: Review[];
   provider: ReviewsProvider['id'];
 }> {
-  const fromSanity = await quietly(sanityProvider);
-  if (fromSanity.length) return { reviews: [...fromSanity], provider: sanityProvider.id };
+  const fromSanity = await fetchFeaturedReviews();
+  if (fromSanity?.length) return { reviews: fromSanity, provider: sanityProvider.id };
+  // unreachable (not «nothing featured»): the same curated reviews, as captured at build time
+  if (fromSanity === null) {
+    const captured = snapshotReviews();
+    if (captured.length) return { reviews: captured, provider: sanityProvider.id };
+  }
 
   const fromLive = await quietly(live);
   if (fromLive.length) return { reviews: selectFeatured(fromLive), provider: live.id };
