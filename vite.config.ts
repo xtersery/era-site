@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 
+import { cenyPage } from './server/cenyPage.ts';
 import { leadApi } from './server/vite.ts';
 
 const resolvePath = (segment: string) => fileURLToPath(new URL(segment, import.meta.url));
@@ -25,6 +26,8 @@ export default defineConfig({
     react(),
     // POST /api/lead → Telegram, in the dev and preview servers (server/README.md)
     leadApi(),
+    // /ceny/ — the price page, prerendered from the price list (server/cenyPage.ts)
+    cenyPage(),
     // the bundle report is for the desk — never in a deployed `dist/` (Vercel sets `VERCEL=1`)
     ...(process.env['VERCEL']
       ? []
@@ -64,6 +67,11 @@ export default defineConfig({
     // Three.js is large by nature; the warning is noise once it is split out.
     chunkSizeWarningLimit: 1_000,
     rollupOptions: {
+      // the site, and the price page (`ceny/index.html` → `dist/ceny/index.html`, no JS)
+      input: {
+        index: resolvePath('./index.html'),
+        ceny: resolvePath('./ceny/index.html'),
+      },
       output: {
         // Vite 8 runs on Rolldown: chunking is `codeSplitting.groups`, not
         // Rollup's object-form `manualChunks` (function-only here) and not the

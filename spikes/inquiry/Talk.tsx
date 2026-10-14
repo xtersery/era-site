@@ -327,6 +327,7 @@ export function Talk() {
         </p>
         <p className="talk__foot-where">
           <span data-placeholder="fact">{contact.city}</span>
+          <a href="/ceny/">Цены</a>
           <a href={contact.telegramHref} data-placeholder="fact" rel="noopener noreferrer">{cta.telegram}</a>
           <a href={contact.whatsappHref} data-placeholder="fact" rel="noopener noreferrer">{cta.whatsapp}</a>
         </p>

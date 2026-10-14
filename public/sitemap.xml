@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- The site is one page; its rooms are anchors (#services, #contact …), not URLs. -->
+<!-- The site is one page (its rooms are anchors: #services, #contact …) and the price page /ceny/. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://era-cosmetology.ru/</loc>
+    <lastmod>2026-10-15</lastmod>
+  </url>
+  <url>
+    <loc>https://era-cosmetology.ru/ceny/</loc>
     <lastmod>2026-10-15</lastmod>
   </url>
 </urlset>

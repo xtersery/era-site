@@ -21,9 +21,6 @@ export const pending = {
 export const proposed = {
   brandMono: 'cosmetology',
   pricingPlaque: ru('Точно, потому что вы спросите.'),
-  pricingColophon: ru(
-    '[Юридическая сноска клиента: НДС, лицензия, формулировка об уточнении стоимости на консультации после осмотра.]',
-  ),
   specialistsHelp: ru('Не знаете, к кому?'),
   inquiryHeadline: ru('Расскажите, что вы хотели бы обсудить.'),
   inquirySuccessTitle: ru('Заявка получена.'),

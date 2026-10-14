@@ -121,10 +121,6 @@ export function Pricing({ id, className }: SectionProps) {
         ))}
       </table>
 
-      <p className="pricing__colophon t-meta t-muted" data-placeholder="copy">
-        {proposed.pricingColophon}
-      </p>
-
       <Handoff className="pricing__handoff" primary={<InquiryLink>{cta.leaveRequest}</InquiryLink>}>
         <TextLink href={sectionAnchor('cases')} glyph="down">
           {cta.seeResults}

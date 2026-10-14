@@ -1,147 +1,53 @@
 // Стоимость — the real price list, 2026: is every line of the client's source
 // rendered, in order, with its amount unchanged? Opens the layer from the
 // menu (desktop and phone), reads every row and note out of the DOM and
-// compares them line by line against the source below (typography
+// compares them line by line against the canonical `priceList` (typography
 // normalised: NBSP / narrow NBSP → space, a range's dash → «–»). Also: the
 // layer is not in the document flow, the index jumps to a category, the phone
 // keeps each price on its service's line, no horizontal overflow. Writes
 // stills to spikes/flow/__captures__/. Dev server must be up.
 import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
+import { fileURLToPath, URL } from 'node:url';
+
+import { runnerImport } from 'vite';
 
 const base = process.env['BASE'] ?? 'http://localhost:5173/spikes/flow/';
 const OUT = 'spikes/flow/__captures__';
 mkdirSync(OUT, { recursive: true });
 
-// The client's list, bullet lines verbatim. Two notes the source gives as
-// plain lines («Note: …») are marked `+` and sit where the source puts them.
-const SOURCE = `
-• Прием врача-косметолога первичный (консультация, осмотр) — 2 000 ₽
-• Прием врача дерматокосметолога первичный (консультация по акне) — 4 500 ₽
-• Прием врача-косметолога (дерматолога) повторный — 1 500 ₽
-• Комбинированное очищение кожи лица и шеи + пилинг — 4 900 ₽
-• Комбинированное очищение кожи лица и шеи + пилинг нового поколения — 8 500 ₽
-• Комбинированное очищение кожи лица и шеи + профессиональный уход за лицом — 8 500 ₽
-• Комбинированная чистка лица, шеи + PRP-терапия (2 пробирки) — 8 500 ₽
-• Комбинированное очищение кожи лица и шеи + профессиональный уход за лицом на премиальной космецевтике RHEA — 12 000 ₽
-• Атравматическая чистка лица и шеи + пилинг — 4 000 ₽
-• Комбинированная чистка спины + пилинг — 6 500 ₽
-• Комбинированная чистка лица, шеи + спины — 10 000 ₽
-• Дерматологический пилинг (миндальный, молочный, азелаиновый, гликолевый, салициловый) — 4 500 ₽
-• Дерматологический пилинг BioRePeel — 6 000 ₽
-• Пилинг PRP-T33 — 6 500 ₽
-• Peach Peel — 5 500 ₽
-• Pink Peel — 4 500 ₽
-• Пилинг TCA — 7 000 ₽
-• Жёлтый пилинг — 7 000 ₽
-• Омолаживающий уход «Мона Лиза» — 8 500 ₽
-• Осветляющий уход «Венера Милосская» — 8 500 ₽
-• Очищающий уход «Даная» — 8 500 ₽
-• SPA-программа «Итальянская роскошь» — 8 500 ₽
-• RADIESS 1.5 — 28 000 ₽
-• RADIESS 3.0 — 45 000 ₽
-• Gana V (лицо, шея) — 43 000 ₽
-• Gana X (тело) — 55 000 ₽
-• Novacutan PLA (лицо) — 39 900 ₽
-• PLLA CUBE — 19 900 ₽
-• Rejubella — 25 000 ₽
-• Коллост Micro — 20 500 ₽
-• Коллост 7% (1 мл) — 13 000 ₽
-• Субцизия рубцов — +5 000 ₽
-• Exoxe — 18 000 ₽
-• Диспорт — 150 ₽ за ед.
-• Миотокс — 350 ₽ за ед.
-• Релатокс — 380 ₽ за ед.
-• Ксеомин — 380 ₽ за ед.
-• Миотокс, 100 ед. — 26 000 ₽
-• Релатокс, 100 ед. — 28 000 ₽
-• Ксеомин, 100 ед. — 28 000 ₽
-• Диспорт, 300 ед. — 26 000 ₽
-• Релатокс, 100 ед. — 28 000 ₽
-• Profhilo — 21 500 ₽
-• Mesosculpt C71 — 18 000 ₽
-• MesoWharton P199 — 18 000 ₽
-• MesoXanthin F199 — 18 000 ₽
-• MesoEye C71 — 18 000 ₽
-• Bellarti Nucleo — 18 000 ₽
-• Bellarti Vita — 18 000 ₽
-• Novacutan S Bio — 18 000 ₽
-• Novacutan Y Bio — 18 000 ₽
-• Novacutan Prima / Master / Bright — 19 500 ₽
-• Novacutan Bio Pro — 19 000 ₽
-• Novacutan Eye — 20 000 ₽
-• Novacutan Gentle — 18 000 ₽
-• Revi SILK 1.0 — 15 000 ₽
-• Revi SILK 2.0 — 17 000 ₽
-• Revi STRONG 1.0 — 16 000 ₽
-• Revi STRONG 2.0 — 19 000 ₽
-• Revi Eye — 14 500 ₽
-• Repart 4 Aqua Balance — 10 000 ₽
-• Repart 5 Active — 11 500 ₽
-• Repart 6 (Eyes / Lips) — 9 500 ₽
-• NCTF 135+ — 12 500 ₽
-• INFINI — 7 000 ₽
-• INFINI Hair — 5 000 ₽
-• Лицо (2 пробирки) — 5 000 ₽
-• Лицо + шея (3 пробирки) — 5 500 ₽
-• Волосистая часть головы (1 пробирка) — 4 000 ₽
-• PRP-терапия — обогащенная плазма (2 пробирки) — 7 000 ₽
-• Revi (любой) + Revi Eye — скидка 3 000 ₽
-• Лицо — 5 500–18 000 ₽
-• Тело — 5 500–18 000 ₽
-• PB Serum триада — 10 000 ₽
-• Лонгидаза (Россия) — 10 000 ₽
-• Мононити White Ever, 10 шт. — 10 000 ₽
-• Нити (молдинги) White Ever, 8 шт. — 36 000 ₽
-• Нити (молдинги) White Ever, 12 шт. — 45 000 ₽
-• Belotero Lips Shape (0,6 ml) — 17 000 ₽
-• Belotero Intense — 21 000 ₽
-• Stylage M — 19 000 ₽
-• Stylage L — 20 500 ₽
-• Pluryal Classic — 19 500 ₽
-• Аппликационная анестезия — бесплатно
-• Стоматологическая анестезия — 1 000 ₽
-• BELOTERO BALANCE — 20 000 ₽
-• BELOTERO SOFT — 19 000 ₽
-• Belotero Volume — 21 000 ₽
-• Stylage L — 20 500 ₽
-• Pluryal Volume — 20 500 ₽
-• От 2 шприцев — скидка 5%
-• Вакуумный гидропилинг лица — 6 000 ₽
-• Радиочастотный RF-лифтинг (40 мин) — 3 800 ₽
-• Микротоковая терапия (30 мин) — 3 000 ₽
-+ Анестезия включена в процедуру.
-• 1–5 шт. — 5 000 ₽
-• 5–20 шт. — 8 000 ₽
-• 20–35 шт. — 12 000 ₽
-• Лицо — 50 000 ₽
-• Зона глаз и субментальная зона — в подарок
-• Лицо полностью + шея + декольте — 65 000 ₽
-• Зона глаз и субментальная зона — в подарок
-• 1 зона — 65 000 ₽
-+ живот полностью и боковые части талии — в подарок
-• 2 зоны — 75 000 ₽
-• 3 зоны — 85 000 ₽
-• Лицо — 13 000 ₽
-• Шея — 8 000 ₽
-• Декольте — 8 000 ₽
-• Лицо + шея — 16 000 ₽
-• Лицо + декольте — 16 000 ₽
-• Лицо + шея + декольте — 20 000 ₽
-• Точечные сосуды (до 3 шт.) — 3 000 ₽
-• Крылья носа — 5 000 ₽
-• Щеки — 6 000 ₽
-• Вибровакуумный массаж + RF лица (40 мин) — 3 000 ₽
-• Вибровакуумный массаж + RF тела (60 мин) — 4 000 ₽
-• Вибровакуумный массаж + RF лица и тела (90 мин) — 6 000 ₽
-• Ультразвуковой липолиз (30 мин) — 2 500 ₽
-• Миостимуляция / пассивный фитнес (30 мин) — 2 500 ₽
-• Ультразвуковой липолиз + миостимуляция (60 мин) — 4 000 ₽
-• Вибровакуумный массаж тела + RF + миостимуляция ягодиц и пресса (90 мин) — 6 000 ₽
-• 6 процедур (60 мин) — 22 800 ₽
-• 10 процедур (60 мин) — 36 000 ₽
-• Миостимуляция к каждой процедуре на выбор: пресс / ягодицы — в подарок
-`;
+// The expected lines come from the canonical price list itself
+// (`src/data/priceList.ts`, loaded through Vite's module runner) — no second
+// copy to keep by hand. They are written out HERE, by walking the data in
+// reading order with a formatter of the test's own, so a row the layer drops,
+// reorders, renames or prices differently is still a mismatch.
+const { module: data } = await runnerImport(fileURLToPath(new URL('../src/data/priceList.ts', import.meta.url)), {
+  configFile: false,
+  logLevel: 'error',
+  resolve: { alias: { '@': fileURLToPath(new URL('../src', import.meta.url)) } },
+});
+const rub = (n) => `${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ₽`;
+const price = (p) =>
+  ({
+    exact: () => rub(p.rub),
+    range: () => `${rub(p.from).replace(' ₽', '')}–${rub(p.to)}`,
+    perUnit: () => `${rub(p.rub)} за ед.`,
+    surcharge: () => `+${rub(p.rub)}`,
+    free: () => 'бесплатно',
+  })[p.kind]();
+const noteLine = (n) => (n.price ? `${n.text} — ${price(n.price)}` : n.text);
+const groupLines = (g) => [
+  ...(g.lead ?? []).map(noteLine),
+  ...(g.items ?? []).flatMap((it) => [`${it.name} — ${price(it.price)}`, ...(it.notes ?? []).map((n) => n.text)]),
+  ...(g.notes ?? []).map(noteLine),
+  ...(g.groups ?? []).flatMap(groupLines),
+];
+const SOURCE_LINES = data.priceList.flatMap((c) => c.groups.flatMap(groupLines));
+// a guard against comparing nothing with nothing: the list as the client last changed it (77dcbf4)
+for (const must of ['Apple Peel — 5 500 ₽', 'Коллост']) {
+  if (!SOURCE_LINES.some((l) => l.replace(/[\u00a0\u202f]/g, ' ').includes(must))) throw new Error(`priceList: no «${must}»`);
+}
+if (SOURCE_LINES.length < 100) throw new Error(`priceList: ${SOURCE_LINES.length} lines`);
 
 const norm = (s) =>
   s
@@ -152,9 +58,7 @@ const norm = (s) =>
     // the only case change the page makes: a note line starts with a capital
     .replace(/^./, (c) => c.toLowerCase());
 
-const expected = SOURCE.trim()
-  .split('\n')
-  .map((l) => norm(l.replace(/^[•+]\s*/, '')));
+const expected = SOURCE_LINES.map(norm);
 
 const browser = await chromium.launch({ channel: 'chrome' });
 let failures = 0;

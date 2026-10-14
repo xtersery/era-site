@@ -16,7 +16,17 @@ createServer(async (req, res) => {
   const path = normalize(decodeURIComponent((req.url ?? '/').split('?')[0])).replace(/^(\.\.[/\\])+/, '');
   let file = join(dir, path);
   try {
-    if ((await stat(file)).isDirectory()) file = join(file, 'index.html');
+    if ((await stat(file)).isDirectory()) {
+      // Caddy's `file_server`: a directory with an index, asked without the slash → 308 to it
+      if (!path.endsWith('/')) {
+        try {
+          await stat(join(file, 'index.html'));
+          const q = (req.url ?? '').split('?')[1];
+          return res.writeHead(308, { Location: `${path}/${q ? `?${q}` : ''}` }).end();
+        } catch { /* no index: as before */ }
+      }
+      file = join(file, 'index.html');
+    }
   } catch {
     file = join(dir, 'index.html');
   }

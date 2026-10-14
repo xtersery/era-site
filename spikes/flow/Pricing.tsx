@@ -119,14 +119,16 @@ export function SpikePricing() {
           </section>
         ))}
 
-        <p className="spike-pricing__colophon">{proposed.pricingColophon}</p>
-
         <div className="spike-pricing__handoff">
           <a className="state__btn" href="#inquiry">
             Оставить заявку
           </a>
           <a className="state__link" href="#cases">
             Посмотреть результаты →
+          </a>
+          {/* the same list as a page of its own (/ceny/) — a URL to send, to save, to find */}
+          <a className="state__link" href="/ceny/">
+            Прайс-лист отдельной страницей →
           </a>
         </div>
       </div>
