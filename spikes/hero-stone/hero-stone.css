@@ -470,6 +470,24 @@
   }
 }
 
+/* the open menu's frosted ground: the phone and portrait tablet only; the mark and the controls stand over it */
+.hh__scrim {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .hh__scrim {
+    display: block;
+    z-index: 0;
+  }
+
+  .hh__brand,
+  .hh__right {
+    position: relative;
+    z-index: 1;
+  }
+}
+
 @media (max-width: 767px) {
   .hh__descriptor,
   .hh__menu-word {

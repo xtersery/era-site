@@ -1,10 +1,10 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { registerGsap } from '@/animations/gsap/register';
 import { ScrollContext, ScrollProvider } from '@/animations/scroll';
-import { SECTION_LABELS, sectionIndex, type SectionId } from '@/lib/constants/sections';
+import { NAV_SECTION_IDS, SECTION_LABELS, sectionAnchor, sectionIndex, type SectionId } from '@/lib/constants/sections';
 import { InquiryProvider } from '@/lib/inquiry';
 import { initTier } from '@/lib/stage';
 import { debugQuery, debugTools } from '@/lib/env';
@@ -262,8 +262,29 @@ const consumers = (...selectors: string[]) =>
  */
 function FlowHeader({ home = '#top' }: { home?: string }) {
   const rooms: readonly SectionId[] = ['services', 'cases', 'specialists', 'founder', 'reviews', 'contact', 'inquiry'];
+  // the phone's menu (< 1024): «Меню» in place of the CTA — «Стоимость» is already the bar's centre entry
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    const onPointer = (e: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('pointerdown', onPointer);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('pointerdown', onPointer);
+    };
+  }, [open]);
   return (
-    <header className="flowbar">
+    <header className={open ? 'flowbar is-menu-open' : 'flowbar'}>
+      {/* under the open menu: the frosted ground the links read on (the phone only) */}
+      <div className={open ? 'menu-scrim flowbar__scrim is-open' : 'menu-scrim flowbar__scrim'} aria-hidden="true" />
       <a className="flowbar__mark" href={home} aria-label="эра — к началу">
         эра
       </a>
@@ -289,6 +310,26 @@ function FlowHeader({ home = '#top' }: { home?: string }) {
       <a className="flowbar__cta" href="#pricing" data-layer="pricing">
         {SECTION_LABELS.pricing}
       </a>
+      <div ref={menuRef} className="flowbar__menu">
+        <button
+          type="button"
+          className="flowbar__menu-button"
+          aria-expanded={open}
+          aria-controls={listId}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? 'Закрыть' : 'Меню'}
+        </button>
+        <ul id={listId} className="flowbar__menu-list" role="list" hidden={!open}>
+          {NAV_SECTION_IDS.map((id) => (
+            <li key={id}>
+              <a className="flowbar__menu-link" href={sectionAnchor(id)} onClick={() => setOpen(false)}>
+                {SECTION_LABELS[id]}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </header>
   );
 }

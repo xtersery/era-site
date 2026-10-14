@@ -58,10 +58,18 @@ for (const run of RUNS) {
   for (let y = 0; y <= max; y += Math.round(H / 6)) { await page.evaluate((y) => { window.__lenis?.scrollTo(y, { immediate: true, force: true }); scrollTo(0, y); }, y); await page.waitForTimeout(60); steps++; }
   await page.waitForTimeout(800);
   const writes = await page.evaluate(() => window.__toneWrites.slice());
-  console.log(`  writes over a full pass of ${steps} scroll steps: ${writes.length} → ${writes.join(' → ')}`);
+  console.log(`  ↓ writes over a full pass of ${steps} scroll steps: ${writes.length} → ${writes.join(' → ')}`);
+  // and all the way back up
+  await page.evaluate(() => { window.__toneWrites.length = 0; });
+  steps = 0;
+  for (let y = max; y >= 0; y -= Math.round(H / 6)) { await page.evaluate((y) => { window.__lenis?.scrollTo(y, { immediate: true, force: true }); scrollTo(0, y); }, y); await page.waitForTimeout(60); steps++; }
+  await page.evaluate(() => { window.__lenis?.scrollTo(0, { immediate: true, force: true }); scrollTo(0, 0); });
+  await page.waitForTimeout(1200);
+  const back = await page.evaluate(() => window.__toneWrites.slice());
+  console.log(`  ↑ writes over the way back (${steps} steps): ${back.length} → ${back.join(' → ')}`);
   console.log(`  overscroll ground: at the top ${atTop.root} (hero), at the end ${atEnd.root} (footer)`);
-  // the price layer
-  await to(0, 1200);
+  // the price layer — opened over an inner room, closed: the tone is that room's again
+  await to((await top('#reviews')) + 4, 1500);
   await page.evaluate(() => document.querySelector('.flowbar a[href="#pricing"]')?.click());
   await page.waitForTimeout(1500);
   const layer = await state(); console.log(`  price layer open      meta ${layer.meta}  root ${layer.root}`);

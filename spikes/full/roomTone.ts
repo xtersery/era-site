@@ -1,9 +1,11 @@
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
 import { setThemeColor } from '@/lib/themeColor';
 
 /**
- * Each room's tone for the browser's chrome — its dominant ground, taken from
- * the palette the rooms are painted with (measured against the page at
- * 390 px). A room whose ground moves (a seam, a film, a portrait) gives its
+ * Each room's tone for the browser's chrome — its dominant ground at the top
+ * of the screen, from the palette the rooms are painted with (measured on the
+ * page). A room whose ground moves (a seam, a film, a portrait) gives its
  * resting ground; the chrome never follows a frame of an animation.
  */
 export const ROOM_TONES = {
@@ -17,107 +19,147 @@ export const ROOM_TONES = {
   contact: '#ece8df', //     daylight bone
   inquiry: '#070707', //     the black room with the form and the footer (`--black`)
   pricing: '#ece8df', //     the price layer over the page
+  passage: '#b9b4ab', //     the phone only: the light marble between Специалисты and Основатель (the marble's mean)
 } as const;
 
 export type RoomTone = keyof typeof ROOM_TONES;
 
 /**
- * The rooms in page order; the manifesto's still room exists only without
- * the film. A third value marks a part that keeps the PREVIOUS room's tone
- * for that fraction of its height: Адрес opens with a dawn (its head goes
- * from the forest to the bone over 46–64svh), so the bars stay forest until
- * half the dawn has passed the top edge, then turn bone.
+ * The phone's own compositions put another ground under the status bar: the
+ * portrait fills the top of Специалисты (the wall is below it), and Основатель
+ * reads on the dark plate below her for most of its length.
  */
-const ROOMS: ReadonlyArray<readonly [selector: string, room: RoomTone, upTo?: number]> = [
-  ['#hero', 'hero'],
-  ['.mf-room', 'manifesto'],
-  ['.sv-frame', 'services'],
-  ['#cases', 'cases'],
-  ['#specialists', 'specialists'],
-  ['#founder', 'founder'],
-  ['#reviews', 'reviews'],
-  ['#contact', 'contact'],
-  ['.place__dawn', 'reviews', 0.5],
-  ['#inquiry', 'inquiry'],
+const PHONE = '(max-width: 1023px)';
+const PHONE_TONES: Partial<Record<RoomTone, string>> = {
+  specialists: '#2f2d29', // under the portrait: warm graphite (`--hs-graphite`)
+  founder: '#08140f', //     the dark read below her (`bg-dark`)
+};
+
+/**
+ * The rooms in page order. `lead` places the line at which a room's tone
+ * takes over, as a fraction of the screen's height, measured where the colour
+ * at the top edge actually crosses from one room's ground to the next (390,
+ * 430 and an iPhone viewport agree): positive — before the room's top reaches
+ * the edge, because the seam above it already wears its ground (Услуги's head
+ * veil, the dark between Услуги and Кейсы, the corridor's black before
+ * Заявка); negative — after, because the room opens in the previous one's
+ * colour (Адрес's dawn, forest to bone, half of it). 0 — a clean edge.
+ */
+/*
+ * The phone's passage from Специалисты to Основатель crosses a light marble
+ * (the specialists' exit onto the wall, then the wall her room opens on)
+ * between their two dark grounds — the portrait, then the read. Measured at
+ * the top edge (390, 430, an iPhone viewport agree): light from 0.83 of a
+ * screen before Основатель's top to 0.32 after it. So on the phone the
+ * marble has its own line there, and Основатель's dark begins 0.32 after.
+ */
+const ROOMS: ReadonlyArray<{
+  readonly sel: string;
+  readonly room: RoomTone;
+  readonly lead: number;
+  /** the phone's own line, where its composition differs */
+  readonly phoneLead?: number;
+  /** a line that exists on the phone only */
+  readonly phoneOnly?: boolean;
+}> = [
+  { sel: '#hero', room: 'hero', lead: 0 },
+  { sel: '.mf-room', room: 'manifesto', lead: 0 }, // only without the film
+  { sel: '.sv-frame', room: 'services', lead: 0.08 },
+  { sel: '#cases', room: 'cases', lead: 0.25 },
+  { sel: '#specialists', room: 'specialists', lead: 0 },
+  // on Основатель's wrapper, not the room: the room pins itself at its top, so a line past its top
+  // on the room would wait for the pin's end; the wrapper's top is the room's top and never pins
+  { sel: '.flow-founder', room: 'passage', lead: 0.83, phoneOnly: true },
+  { sel: '.flow-founder', room: 'founder', lead: 0, phoneLead: -0.32 },
+  { sel: '#reviews', room: 'reviews', lead: 0 },
+  { sel: '#contact', room: 'contact', lead: -0.27 },
+  { sel: '#inquiry', room: 'inquiry', lead: 0.35 },
 ];
 
 /**
- * Follows the room under the top edge of the screen — the one the status
- * bar sits against — and tints the chrome to it.
+ * Follows the room at the top of the screen and tints the chrome to it.
  *
- * An IntersectionObserver on a 1 % band at the top of the viewport: it calls
- * back only when a room crosses that band, never per frame, and reads
- * geometry only then. Inside the pinned hero the descent decides: the hero
- * until the film covers it, the manifesto after (`setDescended`, called with
- * a boolean, so only its flips matter). The price layer overrides while open.
+ * The room is a pure function of the scroll position: the LAST room whose
+ * start line has been passed. The start lines are ScrollTrigger positions —
+ * measured with every pin's spacing included, re-measured on every refresh —
+ * so the answer is the same scrolling down or up, through pins, snaps and the
+ * long scenes, and never depends on what was shown before. It is worked out
+ * only when a line is crossed (each room's toggle), after a refresh, and once
+ * more when a scroll comes to rest (`scrollEnd`) — never per frame.
  *
- * A new tone is applied once it has held for `SETTLE` ms: a pin's snap that
- * pulls the page back across a boundary, or a fast fling through a short
- * room, never flickers the bars. The first tone is applied at once.
+ * Inside the pinned hero the descent decides: the hero until the film is half
+ * way, the manifesto after (`setDescended`, a boolean, so only its flips
+ * matter). The price layer overrides while open and, closed, the tone is the
+ * room's at that moment — worked out again, never a stored one.
+ *
+ * A new tone is applied once it has held for `SETTLE` ms (a pin's snap pulling
+ * the page back across a line never flickers the bars); at rest, and the very
+ * first time, at once.
  */
 const SETTLE = 120;
 
 export function watchRoomTone() {
-  const els = ROOMS.map(([sel, room, upTo = 1]) => [document.querySelector<HTMLElement>(sel), room, upTo] as const).filter(
-    (e): e is readonly [HTMLElement, RoomTone, number] => e[0] !== null,
-  );
-  const inBand = new Set<HTMLElement>();
+  const phone = window.matchMedia(PHONE);
   let descended = false;
   let layer: RoomTone | null = null;
   let first = true;
   let timer = 0;
-  const apply = (room: RoomTone) => {
+
+  const tone = (room: RoomTone) => (phone.matches && PHONE_TONES[room]) || ROOM_TONES[room];
+  const apply = (room: RoomTone, now: boolean) => {
     window.clearTimeout(timer);
-    if (first) {
+    if (first || now) {
       first = false;
-      return setThemeColor(ROOM_TONES[room]);
+      setThemeColor(tone(room));
+      return;
     }
-    timer = window.setTimeout(() => setThemeColor(ROOM_TONES[room]), SETTLE);
+    timer = window.setTimeout(() => setThemeColor(tone(room)), SETTLE);
   };
 
-  const resolve = () => {
-    if (layer) return apply(layer);
-    // the room whose box holds the screen's top edge; on an overlap the later room (it stands over the earlier)
-    let room: RoomTone | null = null;
-    for (const [el, r, upTo] of els) {
-      if (!inBand.has(el)) continue;
-      const b = el.getBoundingClientRect();
-      if (b.top <= 1 && b.top + b.height * upTo > 1) room = r;
+  const lines: { room: RoomTone; st: ScrollTrigger; phoneOnly: boolean }[] = [];
+  const resolve = (now: boolean) => {
+    if (layer) return apply(layer, now);
+    let room: RoomTone = 'hero';
+    for (const { room: r, st, phoneOnly } of lines) {
+      if (phoneOnly && !phone.matches) continue;
+      if (st.scroll() >= st.start - 0.5) room = r;
     }
-    if (!room) return;
     if (room === 'hero' && descended) room = 'manifesto';
-    apply(room);
+    apply(room, now);
   };
 
-  const io = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) (e.isIntersecting ? inBand.add : inBand.delete).call(inBand, e.target as HTMLElement);
-      resolve();
-    },
-    { rootMargin: '0px 0px -99% 0px' },
-  );
-  for (const [el] of els) io.observe(el);
-  // a part with a fraction: its fraction line crossing the top edge changes nothing in the band,
-  // so it is watched by how much of it is on screen (once it reaches the top, that is the line)
-  const parts = new IntersectionObserver(resolve, { threshold: [...new Set(els.filter((e) => e[2] < 1).map((e) => 1 - e[2]))] });
-  for (const [el, , upTo] of els) if (upTo < 1) parts.observe(el);
-  resolve();
+  for (const { sel, room, lead, phoneLead, phoneOnly = false } of ROOMS) {
+    const el = document.querySelector<HTMLElement>(sel);
+    if (!el) continue;
+    // a function, so a refresh across the breakpoint re-reads which line applies
+    const start = () => `top ${(phone.matches && phoneLead !== undefined ? phoneLead : lead) * 100}%`;
+    const st = ScrollTrigger.create({ trigger: el, start, onToggle: () => resolve(false) });
+    lines.push({ room, st, phoneOnly });
+  }
+
+  const atRest = () => resolve(true);
+  ScrollTrigger.addEventListener('scrollEnd', atRest);
+  ScrollTrigger.addEventListener('refresh', atRest);
+  phone.addEventListener('change', atRest);
+  resolve(true);
 
   return {
     setDescended(next: boolean) {
       if (next === descended) return;
       descended = next;
-      resolve();
+      resolve(false);
     },
     setLayer(next: RoomTone | null) {
       if (next === layer) return;
       layer = next;
-      resolve();
+      resolve(true);
     },
     dispose() {
-      io.disconnect();
-      parts.disconnect();
       window.clearTimeout(timer);
+      ScrollTrigger.removeEventListener('scrollEnd', atRest);
+      ScrollTrigger.removeEventListener('refresh', atRest);
+      phone.removeEventListener('change', atRest);
+      for (const { st } of lines) st.kill();
     },
   };
 }

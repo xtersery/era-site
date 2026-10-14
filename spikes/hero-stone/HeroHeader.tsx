@@ -34,7 +34,9 @@ export function HeroHeader() {
   }, [open]);
 
   return (
-    <header className="hh">
+    <header className={cn('hh', open && 'is-menu-open')}>
+      {/* under the open menu on the phone: the frosted ground its links read on, between the stone and the header */}
+      <div className={cn('menu-scrim hh__scrim', open && 'is-open')} aria-hidden="true" />
       <a
         className="hh__brand"
         href={sectionAnchor('hero')}

@@ -6,5 +6,46 @@
  * This file exists for shared component-layer primitives that no single
  * component owns.
  *
- * Nothing yet — the design pass has not started.
  */
+
+/*
+ * The ground under an open phone menu — frosted bone glass, not a modal: the
+ * room shows through, softened, and the menu's ink reads on it. Fixed over the
+ * screen and placed by its owner BELOW the header's own controls (the mark,
+ * the menu button), which stay as they are. `.is-open` shows it.
+ */
+.menu-scrim {
+  position: fixed;
+  inset: 0;
+  /* denser where the menu stands (top right), thinner away from it, so the room shows through */
+  background: linear-gradient(
+    235deg,
+    rgb(244 241 234 / 0.82) 0%,
+    rgb(244 241 234 / 0.7) 42%,
+    rgb(244 241 234 / 0.36) 100%
+  );
+  -webkit-backdrop-filter: blur(8px) saturate(1.06);
+  backdrop-filter: blur(8px) saturate(1.06);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.45s var(--ease-out),
+    visibility 0s linear 0.45s;
+}
+
+.menu-scrim.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.45s var(--ease-out),
+    visibility 0s;
+}
+
+/* without the blur the glass is denser, so the words still read */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .menu-scrim {
+    background: linear-gradient(235deg, rgb(244 241 234 / 0.92) 0%, rgb(244 241 234 / 0.8) 45%, rgb(244 241 234 / 0.6) 100%);
+  }
+}

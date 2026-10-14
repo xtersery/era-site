@@ -134,8 +134,13 @@ body {
   font-family: var(--font-text);
   font-size: 0.9375rem;
 }
+/* the phone's menu and its ground exist only below 1024 */
+.flowbar__scrim,
+.flowbar__menu {
+  display: none;
+}
 @media (max-width: 1023.98px) {
-  /* the phone keeps the wordmark, the CTA and the one utility entry */
+  /* the phone keeps the wordmark, the one utility entry («03 Стоимость») and «Меню» — never two «Стоимость» */
   .flowbar__index li:not(.flowbar__utility) {
     display: none;
   }
@@ -143,6 +148,66 @@ body {
     margin-left: 0;
     padding-left: 0;
     border-left: 0;
+  }
+  .flowbar__cta {
+    display: none;
+  }
+  .flowbar__mark,
+  .flowbar__nav,
+  .flowbar__menu {
+    position: relative;
+    z-index: 1;
+  }
+  .flowbar__menu,
+  .flowbar__scrim {
+    display: block;
+  }
+  .flowbar__menu-button {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-height-compact);
+    min-width: 5.5rem;
+    justify-content: center;
+    padding: 0 var(--space-sm);
+    border: 1px solid currentColor;
+    background: none;
+    color: inherit;
+    font-family: var(--font-text);
+    font-size: 0.9375rem;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  /* the rooms, unfolded under the button on the right, as the hero's index does */
+  .flowbar__menu-list {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .flowbar__menu-list[hidden] {
+    display: none;
+  }
+  .flowbar__menu-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-height-compact);
+    font-family: var(--font-text);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  /* open: the bar leaves `difference` and reads in ink (the hero's graphite) on the frosted ground */
+  .flowbar.is-menu-open {
+    mix-blend-mode: normal;
+    color: #2f2d29;
   }
 }
 
