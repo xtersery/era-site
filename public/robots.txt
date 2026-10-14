@@ -1,0 +1,12 @@
+# era-cosmetology.ru — one page, open to every crawler
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Яндекс: the services wheel links its states as `?a=0 … 6` — the same page
+User-agent: Yandex
+Allow: /
+Disallow: /api/
+Clean-param: a /
+
+Sitemap: https://era-cosmetology.ru/sitemap.xml

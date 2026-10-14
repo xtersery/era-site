@@ -19,7 +19,8 @@ import sp4m from './assets/sp4@phone.jpg';
  * kept whole as masters in `public/images/specialists/sp1–4.jpg`; the plates
  * here are the same frames resized only (1100 × 1654, 640 × 962): no crop, no
  * retouch, no grade. The mapping is fixed by the client and keyed by id, never by order:
- * sp1 → Корягина, sp2 → Сон, sp3 → Коргачева, sp4 → Воронина.
+ * The files: sp1 → Корягина, sp2 → Сон, sp3 / sp4 → Воронина / Коргачева
+ * (see `swap` below — the plates were named the other way round).
  */
 export interface Sitter {
   readonly person: Specialist;
@@ -50,12 +51,12 @@ const framing: Readonly<Record<string, Pick<Sitter, 'eye' | 'anchorY'>>> = {
 };
 
 /**
- * THE PHONE ONLY (the client's decision, 14.10): Коргачева and Воронина are
- * shown with each other's photograph. Only the plate travels — the image and
- * the framing measured on it; her name, role, words and place in the row stay
- * hers. Desktop keeps the mapping above.
+ * The client's correction (14.10 for the phone, 15.10 for the desktop too):
+ * the photographs sp3 and sp4 belong the other way round — Коргачева is sp4,
+ * Воронина sp3. Only the plate travels — the image and the framing measured
+ * on it; her name, role, words and place in the row stay hers.
  */
-const phoneSwap: Readonly<Record<string, string>> = { korgacheva: 'voronina', voronina: 'korgacheva' };
+const swap: Readonly<Record<string, string>> = { korgacheva: 'voronina', voronina: 'korgacheva' };
 
 const cast = (plateOf: (id: string) => string): readonly Sitter[] =>
   specialists.map((person) => {
@@ -66,6 +67,6 @@ const cast = (plateOf: (id: string) => string): readonly Sitter[] =>
     return { person, portrait: plate[0], portraitPhone: plate[1], ...frame };
   });
 
-export const sitters: readonly Sitter[] = cast((id) => id);
-/** the same row on the phone layout (< 1024 px) */
-export const sittersPhone: readonly Sitter[] = cast((id) => phoneSwap[id] ?? id);
+export const sitters: readonly Sitter[] = cast((id) => swap[id] ?? id);
+/** the same row on the phone layout (< 1024 px) — the same people, the same photographs */
+export const sittersPhone: readonly Sitter[] = sitters;

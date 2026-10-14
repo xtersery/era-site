@@ -18,9 +18,150 @@
     <link rel="preload" as="image" type="image/avif" crossorigin="anonymous" href="/spikes/hero-stone/assets/hero/emblem@phone.avif" media="(max-width: 1023px)" fetchpriority="high" />
     <link rel="preload" as="image" type="image/avif" crossorigin="anonymous" href="/spikes/hero-stone/assets/hero/emblem.avif" media="(min-width: 1024px)" fetchpriority="high" />
 
-    <title>ЭРА cosmetology — косметология для женщин</title>
-    <meta name="description" content="[Описание клиники для поисковых систем — предоставляется клиентом]" />
+    <title>Косметологическая клиника ЭРА в Хабаровске — косметология для женщин</title>
+    <meta name="description" content="Косметологическая клиника ЭРА в Хабаровске: инъекционная и аппаратная косметология, контурная пластика, лечение кожи и anti-age программы. Госпитальный переулок, 1." />
+    <link rel="canonical" href="https://era-cosmetology.ru/" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <!-- sharing: the hero's onyx and emblem (public/og-image.jpg, 1200 × 630) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:site_name" content="ЭРА" />
+    <meta property="og:title" content="Косметологическая клиника ЭРА в Хабаровске — косметология для женщин" />
+    <meta property="og:description" content="Косметологическая клиника ЭРА в Хабаровске: инъекционная и аппаратная косметология, контурная пластика, лечение кожи и anti-age программы. Госпитальный переулок, 1." />
+    <meta property="og:url" content="https://era-cosmetology.ru/" />
+    <meta property="og:image" content="https://era-cosmetology.ru/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Эмблема клиники ЭРА на ониксе" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!--
+      The clinic for search engines, in the HTML itself (no JS needed): only
+      what the site states — the name, the address, the phone, the hours, the
+      2GIS card, the seven directions of Услуги. No ratings, prices, doctors or
+      geo point (the map point still awaits a check against 2GIS).
+    -->
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "MedicalClinic",
+      "@id": "https://era-cosmetology.ru/#clinic",
+      "name": "ЭРА",
+      "alternateName": [
+        "ERA",
+        "ЭРА cosmetology",
+        "Клиника ЭРА"
+      ],
+      "description": "Косметологическая клиника в Хабаровске.",
+      "url": "https://era-cosmetology.ru/",
+      "image": "https://era-cosmetology.ru/og-image.jpg",
+      "logo": "https://era-cosmetology.ru/favicon.svg",
+      "telephone": "+7 914 777-85-00",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Госпитальный переулок, 1",
+        "addressLocality": "Хабаровск",
+        "addressRegion": "Хабаровский край",
+        "postalCode": "680038",
+        "addressCountry": "RU"
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+          ],
+          "opens": "09:00",
+          "closes": "21:00"
+        }
+      ],
+      "hasMap": "https://2gis.ru/khabarovsk/firm/70000001057599223",
+      "sameAs": [
+        "https://2gis.ru/khabarovsk/firm/70000001057599223",
+        "https://t.me/eracosmetology"
+      ],
+      "areaServed": {
+        "@type": "City",
+        "name": "Хабаровск"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Направления",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Инъекционная косметология"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Контурная пластика"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Аппаратная косметология"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Лечение и качество кожи"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Anti-age программы"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Коррекция тела"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Индивидуальные программы"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://era-cosmetology.ru/#website",
+      "url": "https://era-cosmetology.ru/",
+      "name": "ЭРА — косметологическая клиника в Хабаровске",
+      "inLanguage": "ru-RU",
+      "publisher": {
+        "@id": "https://era-cosmetology.ru/#clinic"
+      }
+    }
+  ]
+}
+    </script>
 
     <!--
       TODO(perf): when the licensed production faces land in public/fonts, preload

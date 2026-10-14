@@ -127,19 +127,6 @@
   text-wrap: pretty;
   color: var(--ink);
 }
-.sitter__facts {
-  display: grid;
-  grid-template-columns: 15ch 1fr;
-  row-gap: 5px;
-  margin: 18px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-  font-family: var(--font-mono);
-  font-size: var(--text-meta);
-  max-width: var(--column);
-}
-.sitter__facts dt { color: var(--mute); }
-.sitter__facts dd { margin: 0; color: var(--ink); }
 .sitter__cta { display: flex; align-items: center; gap: var(--space-md); margin-top: 20px; }
 .sitter__primary {
   display: inline-grid;
@@ -367,8 +354,6 @@
   .sitter__role { font-size: 1rem; margin-top: 2px; }
   .sitter__focus { display: none; }
   .sitter__approach { font-size: 1.0625rem; line-height: 1.32; margin-top: 10px; max-width: 34ch; }
-  /* the phone reads portrait → name → role → her sentence → the CTA: no experience line (desktop keeps it) */
-  .sitter__facts { display: none; }
   .sitter__cta { margin-top: 22px; gap: var(--space-sm); }
   .sitter__primary { min-height: 52px; padding: 0 20px; }
   /* above the toolbar's reach: the room is 100lvh, the view with the toolbar out is 100svh */

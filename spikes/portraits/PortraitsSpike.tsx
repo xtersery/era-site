@@ -497,12 +497,8 @@ export function Sitting({
             {/* the body starts a fixed distance BELOW the datum, whatever the name did */}
             <div className="sitter__body">
               <p className="sitter__role">{s.person.role}</p>
+              {/* no experience line (the client's decision: the phone since 14.10, the desktop since 15.10) */}
               <p className="sitter__approach">«{s.person.sentence}»</p>
-              <dl className="sitter__facts">
-                {s.person.facts.map(([dt, dd]) => (
-                  <div key={dt} style={{ display: 'contents' }}><dt>{dt}</dt><dd>{dd}</dd></div>
-                ))}
-              </dl>
               <div className="sitter__cta">
                 <a className="sitter__primary" href="#inquiry" tabIndex={i === current ? 0 : -1} onClick={() => inquiry?.setPrefill({ specialist: s.person.id })}>{cta.bookWith(s.person.shortName)}</a>
                 <a className="sitter__link" href="#services" tabIndex={i === current ? 0 : -1}>К направлениям →</a>
