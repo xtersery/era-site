@@ -265,12 +265,16 @@ export function Founder({
               src={record.image}
               alt=""
               aria-hidden="true"
+              loading="lazy"
+              decoding="async"
               draggable={false}
             />
             <img
               className="founder__her"
               src={record.image}
               alt={`${record.name} — ${record.role.toLowerCase()}`}
+              loading="lazy"
+              decoding="async"
               draggable={false}
             />
             <figcaption className="founder__caption">{record.portraitLabel}</figcaption>

@@ -6,6 +6,15 @@
     <meta name="color-scheme" content="light" />
     <!-- the browser chrome's first tone: the hero's onyx; then the room on screen (spikes/full/roomTone.ts) -->
     <meta name="theme-color" content="#f3dfba" />
+    <!--
+      The hero's LCP pictures, fetched with the HTML instead of after the app's
+      JS: the onyx (one file, every width) and the emblem the screen will use
+      (the same media as its <picture>). AVIF only — a browser without it
+      skips these and the <picture> falls back to WebP on its own.
+    -->
+    <link rel="preload" as="image" type="image/avif" href="/spikes/hero-stone/assets/hero/onyx.avif" fetchpriority="high" />
+    <link rel="preload" as="image" type="image/avif" href="/spikes/hero-stone/assets/hero/emblem@phone.avif" media="(max-width: 1023px)" fetchpriority="high" />
+    <link rel="preload" as="image" type="image/avif" href="/spikes/hero-stone/assets/hero/emblem.avif" media="(min-width: 1024px)" fetchpriority="high" />
     <meta name="robots" content="noindex" />
     <title>ЭРА — вся страница · спайк</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

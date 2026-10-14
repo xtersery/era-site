@@ -3,8 +3,9 @@
 Reads docs/references/{stone.png, era-logo_3.png, era-logo.jpg} (all in Git);
 writes into spikes/hero-stone/assets/ (or the folder given as the first argument):
 
-    onyx-tiles.jpg · onyx-tiles@phone.jpg   the illuminated onyx (pass 9), resized only
-    emblem.webp · emblem@phone.webp          the 3D emblem (pass 9), alpha kept
+    hero/onyx.{avif,webp}                    the illuminated onyx, the source's own size
+    hero/emblem{,@phone}.{avif,webp}         the 3D emblem, alpha kept (desktop 1254 · phone 900);
+                                             the imprint at the foot of Заявка reads the same files
     era-mark-ink.png                         the official mark for the header, ink, flat
 
 One-off tooling (Python, not part of the build):
@@ -50,9 +51,25 @@ print('mark', box)
 # --- the illuminated onyx (stone.png, as is — resized only) and the 3D emblem
 # (era-logo_3.png, alpha kept, WebP for the web).
 onyx = Image.open(REF + 'stone.png').convert('RGB')
-onyx.resize((2400, round(2400 * onyx.height / onyx.width)), Image.LANCZOS).save(OUT + 'onyx-tiles.jpg', quality=90, optimize=True, progressive=True)
-onyx.resize((1200, round(1200 * onyx.height / onyx.width)), Image.LANCZOS).save(OUT + 'onyx-tiles@phone.jpg', quality=86, optimize=True)
 emblem = Image.open(REF + 'era-logo_3.png').convert('RGBA')
-emblem.save(OUT + 'emblem.webp', quality=92, method=6)
-emblem.resize((720, 720), Image.LANCZOS).save(OUT + 'emblem@phone.webp', quality=90, method=6)
-print('onyx', onyx.size, 'emblem', emblem.size)
+
+# --- the hero's own delivery (14.10, performance pass): AVIF first, WebP for
+# the browsers without it — every file straight from the source, never from
+# another lossy file. The onyx at the source's own size (1672 × 941): the old
+# 2400 px JPEG was an upscale (bytes, no detail), and the phone shows a
+# portrait crop of the full height, so it needs every source pixel too — one
+# file for both. The emblem: the source size for the desktop (≈ 720 css px at
+# 2×), 900 px for the phone (≈ 300 css px at 3×). Qualities chosen on 5×
+# crops of the darkest onyx and the emblem's glass edge: no banding, no blocks;
+# below q72 the onyx's fine veins soften.
+H = OUT + 'hero/'
+import os
+os.makedirs(H, exist_ok=True)
+onyx.save(H + 'onyx.avif', quality=75, speed=4)
+onyx.save(H + 'onyx.webp', quality=88, method=6)
+emblem.save(H + 'emblem.avif', quality=74, speed=4)
+emblem.save(H + 'emblem.webp', quality=88, method=6)
+phone_emblem = emblem.resize((900, 900), Image.LANCZOS)
+phone_emblem.save(H + 'emblem@phone.avif', quality=74, speed=4)
+phone_emblem.save(H + 'emblem@phone.webp', quality=88, method=6)
+print('onyx', onyx.size, 'emblem', emblem.size, '->', sorted(os.listdir(H)))

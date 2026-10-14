@@ -535,6 +535,8 @@ export function Sitting({
               src={phone ? s.portraitPhone : s.portrait}
               alt={`${s.person.name} — ${s.person.role}. ${s.person.portraitLabel}`}
               style={{ objectPosition: `50% ${s.anchorY * 100}%` }}
+              loading="lazy"
+              decoding="async"
               draggable={false}
             />
           </figure>

@@ -98,6 +98,25 @@ export function ServicesRadial({ start = 0, still = null, drive = 'snap', dist =
   const stateRefs = useRef<(HTMLElement | null)[]>([]);
   const wheel = useRef({ turn: still === null ? start : start + MINERAL(still) });
   const L = useRef<Wheel>(layout(window.innerWidth, window.innerHeight));
+  /* The seven campaign photographs are CSS backgrounds, which a browser fetches
+     as soon as the element exists — all seven at the page's first load, in
+     competition with the hero. They are set once the room is within nine
+     tenths of a screen below the viewport (not yet at the hero's rest — the
+     room starts about two screens down — but as soon as the visitor moves on),
+     and stay. */
+  const [near, setNear] = useState(() => typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || near) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e?.isIntersecting) {
+        setNear(true);
+        io.disconnect();
+      }
+    }, { rootMargin: '90% 0px 90% 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [near]);
   const tween = useRef<gsap.core.Tween | null>(null);
   const trigger = useRef<ScrollTrigger | null>(null);
   const [active, setActive] = useState(() => mod(Math.round(wheel.current.turn), N));
@@ -401,9 +420,9 @@ export function ServicesRadial({ start = 0, still = null, drive = 'snap', dist =
               <div className="state__field">
                 <div className="state__recess" />
                 <div className="state__hair" />
-                <div className="state__image" role="img" aria-label={`Кампания — ${s.imageLabel}`} style={{ backgroundImage: `url(${s.image})`, ['--pos' as string]: s.imagePosition }} />
+                <div className="state__image" role="img" aria-label={`Кампания — ${s.imageLabel}`} style={{ backgroundImage: near ? `url(${s.image})` : undefined, ['--pos' as string]: s.imagePosition }} />
                 <div className="state__glass" />
-                <div className="state__detail" style={{ backgroundImage: `url(${s.image})`, ['--pos' as string]: s.detailPosition }} />
+                <div className="state__detail" style={{ backgroundImage: near ? `url(${s.image})` : undefined, ['--pos' as string]: s.detailPosition }} />
                 <p className="state__caption">Кампания — {s.imageLabel}</p>
               </div>
             </article>

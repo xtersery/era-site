@@ -1,4 +1,4 @@
-import React, { Suspense, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import React, { Suspense, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { NoToneMapping } from 'three';
 
 import { gsap, registerGsap, ScrollTrigger, useGSAP } from '@/animations/gsap';
@@ -15,11 +15,13 @@ import { ru } from '@/lib/utils/ru';
 import { SceneCanvas } from '@/three/components/SceneCanvas';
 import { hasWebGL } from '@/three/utils/webgl';
 
-import emblemPhoneUrl from './assets/emblem@phone.webp';
-import emblemUrl from './assets/emblem.webp';
 import markUrl from './assets/era-mark-ink.png';
-import onyxPhoneUrl from './assets/onyx-tiles@phone.jpg';
-import onyxUrl from './assets/onyx-tiles.jpg';
+import emblemPhoneAvif from './assets/hero/emblem@phone.avif';
+import emblemPhoneWebp from './assets/hero/emblem@phone.webp';
+import emblemAvif from './assets/hero/emblem.avif';
+import emblemWebp from './assets/hero/emblem.webp';
+import onyxAvif from './assets/hero/onyx.avif';
+import onyxWebp from './assets/hero/onyx.webp';
 import { GlassButton } from './GlassButton';
 import { HeroHeader } from './HeroHeader';
 import { Manifesto } from './Manifesto';
@@ -52,11 +54,27 @@ const scaled = (r: Rhythm, k: number): Rhythm => ({
   hold: r.hold * k,
 });
 
-/* The official mark in the header — flat graphite on the light stone. The emblem's alpha masks its light. */
+/* The official mark in the header — flat graphite on the light stone. */
 const pageStyle = {
   '--hs-mark': `url(${markUrl})`,
-  '--hs-emblem': `url(${emblemUrl})`,
 } as React.CSSProperties;
+
+/*
+ * The hero's two pictures (the LCP): AVIF, WebP where AVIF is missing, the
+ * phone's own emblem below 1024 px — one file per device, preloaded from
+ * index.html. The <img>'s fallback `src` is set only once the element stands
+ * inside its <picture>: React sets attributes while the <img> is still
+ * detached, and WebKit fetched that fallback (the desktop file) at once, on
+ * top of the source it then chose. And everything else that shows these
+ * pictures — the emblem's light (its mask) and the film's textures — is given
+ * the very file the browser picked (`currentSrc`), never a second one.
+ */
+const PHONE_ART = '(max-width: 1023px)';
+const fallbackOnceInPicture = (src: string) => (el: HTMLImageElement | null) => {
+  if (el && !el.getAttribute('src')) el.setAttribute('src', src);
+};
+const onyxFallback = fallbackOnceInPicture(onyxWebp);
+const emblemFallback = fallbackOnceInPicture(emblemWebp);
 
 /**
  * 00 — Главная, after docs/references/hero-ref.png.
@@ -95,10 +113,8 @@ export function HeroStage({
   const tier = useVisualTier();
   const scrollRef = useContext(ScrollContext);
   const webgl = hasWebGL();
-  /* The film samples the picture the page shows: the `@phone` art below 1024 px
-     (the same media as the <picture> sources) — a quarter of the texture memory
-     of the desktop pair on a phone's GPU. Desktop: unchanged. */
-  const phoneArt = useMemo(() => window.matchMedia('(max-width: 1023px)').matches, []);
+  /* The film samples the very pictures the page shows (their `currentSrc`, once loaded). */
+  const [art, setArt] = useState<{ onyx?: string; emblem?: string }>({});
   /* The passage plays only when it can be a film: motion allowed, WebGL present,
      a live tier. Otherwise the manifesto is a still room after the hero. */
   const passage = webgl && !reducedMotion && isLiveTier(tier);
@@ -404,7 +420,10 @@ export function HeroStage({
   }, { dependencies: [passage] });
 
   return (
-    <main className="hs-page" style={pageStyle}>
+    <main
+      className="hs-page"
+      style={art.emblem ? ({ ...pageStyle, '--hs-emblem': `url(${art.emblem})` } as React.CSSProperties) : pageStyle}
+    >
       <section
         id="hero"
         ref={sectionRef}
@@ -413,8 +432,17 @@ export function HeroStage({
         tabIndex={-1}
       >
         <picture className="hs__field" aria-hidden="true">
-          <source media="(max-width: 1023px)" srcSet={onyxPhoneUrl} />
-          <img src={onyxUrl} alt="" decoding="async" fetchPriority="high" />
+          <source type="image/avif" srcSet={onyxAvif} />
+          <img
+            ref={onyxFallback}
+            alt=""
+            decoding="async"
+            fetchPriority="high"
+            onLoad={(e) => {
+              const src = e.currentTarget.currentSrc; // read now: React clears currentTarget after the handler
+              setArt((a) => ({ ...a, onyx: src }));
+            }}
+          />
         </picture>
 
         <HeroHeader />
@@ -422,8 +450,19 @@ export function HeroStage({
         {/* The brand object. */}
         <div ref={emblemRef} className="hs__emblem" aria-hidden="true">
           <picture>
-            <source media="(max-width: 1023px)" srcSet={emblemPhoneUrl} />
-            <img src={emblemUrl} alt="" decoding="async" fetchPriority="high" />
+            <source media={PHONE_ART} type="image/avif" srcSet={emblemPhoneAvif} />
+            <source media={PHONE_ART} type="image/webp" srcSet={emblemPhoneWebp} />
+            <source type="image/avif" srcSet={emblemAvif} />
+            <img
+              ref={emblemFallback}
+              alt=""
+              decoding="async"
+              fetchPriority="high"
+              onLoad={(e) => {
+              const src = e.currentTarget.currentSrc; // read now: React clears currentTarget after the handler
+              setArt((a) => ({ ...a, emblem: src }));
+            }}
+            />
           </picture>
           <div className="hs__emblem-light" />
         </div>
@@ -474,14 +513,14 @@ export function HeroStage({
                 gl={{ antialias: false, alpha: true, toneMapping: NoToneMapping }}
               >
                 <Suspense fallback={null}>
-                  <PassageScene
-                    onyxUrl={phoneArt ? onyxPhoneUrl : onyxUrl}
-                    emblemUrl={phoneArt ? emblemPhoneUrl : emblemUrl}
+                  {art.onyx && art.emblem && <PassageScene
+                    onyxUrl={art.onyx}
+                    emblemUrl={art.emblem}
                     progress={progress}
                     emblem={emblemBox}
                     quality={tier === 'high' ? 1 : 0}
                     frameRef={frame}
-                  />
+                  />}
                 </Suspense>
               </SceneCanvas>
             </div>

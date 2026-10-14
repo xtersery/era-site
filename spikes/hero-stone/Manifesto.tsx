@@ -23,8 +23,9 @@ export const Manifesto = forwardRef<HTMLDivElement, { readonly asLayer?: boolean
   function Manifesto({ asLayer = false }, ref) {
     return (
       <div ref={ref} className={asLayer ? 'mf mf--layer' : 'mf'} id="manifesto">
-        <img className="mf__obj mf__obj--net" src={filigreeUrl} alt="" aria-hidden="true" decoding="async" draggable={false} />
-        <img className="mf__obj mf__obj--ginkgo" src={ginkgoUrl} alt="" aria-hidden="true" decoding="async" draggable={false} />
+        {/* on screen from the start (the stage's hidden layer), so never lazy — but after the hero's pictures */}
+        <img className="mf__obj mf__obj--net" src={filigreeUrl} alt="" aria-hidden="true" decoding="async" fetchPriority="low" draggable={false} />
+        <img className="mf__obj mf__obj--ginkgo" src={ginkgoUrl} alt="" aria-hidden="true" decoding="async" fetchPriority="low" draggable={false} />
         {/* the seam into Услуги: a veil at the foot, over the gold, under the words */}
         <div className="mf__foot" aria-hidden="true" />
 

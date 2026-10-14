@@ -51,15 +51,15 @@
 
 /* ---- the imprint: the hero's emblem, the brand's closing signature ---------- */
 /* The approved hero's brand object — `docs/references/era-logo_3.png`, the 3D
-   emblem of gold letters in a green-glass ring, through the hero spike's own
-   web copy (`emblem.webp`, alpha kept, nothing redrawn) — oversized at the
+   emblem of gold letters in a green-glass ring, through the hero's own files
+   (`hero-stone/assets/hero/`: the very AVIF the hero has already loaded, so
+   it costs nothing; WebP where `image-set()` types are not read) — oversized at the
    room's lower left, running out of the left and bottom edges. On the black
    it is the emblem itself, dimmed to dark gold and deep green (no blend can
    press into black): its own light kept low, the highlights held, so it is
    read as the object from Главная, in the dark. Under the words, never near
    the title. */
 .talk__imprint {
-  --emblem: url('../hero-stone/assets/emblem.webp');
   position: absolute;
   left: -12vw;
   bottom: -9vw; /* the ring runs off the bottom; the letters end above the colophon, the crown below the support */
@@ -73,7 +73,12 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--emblem) center / contain no-repeat;
+  background: url('../hero-stone/assets/hero/emblem.webp') center / contain no-repeat;
+  /* literal, not a variable: where typed image-set() is unknown this line is dropped and the WebP above stays */
+  background-image: image-set(
+    url('../hero-stone/assets/hero/emblem.avif') type('image/avif'),
+    url('../hero-stone/assets/hero/emblem.webp') type('image/webp')
+  );
 }
 /* a breath of the emblem's own warmth behind it, in the surface — not a glow: blurred wide, very low */
 .talk__imprint::before {
@@ -345,7 +350,16 @@
   .talk__lede { font-size: 1.0625rem; max-width: none; }
   .talk__side { padding-top: 0; min-height: 0; }
   .talk__form { max-width: none; }
-  .talk__imprint { --emblem: url('../hero-stone/assets/emblem@phone.webp'); width: 80vw; left: -30vw; bottom: -22vw; }
+  .talk__imprint { width: 80vw; left: -30vw; bottom: -22vw; }
+  /* the phone's emblem, the one its hero loaded */
+  .talk__imprint::before,
+  .talk__imprint::after {
+    background-image: url('../hero-stone/assets/hero/emblem@phone.webp');
+    background-image: image-set(
+      url('../hero-stone/assets/hero/emblem@phone.avif') type('image/avif'),
+      url('../hero-stone/assets/hero/emblem@phone.webp') type('image/webp')
+    );
+  }
   .talk__imprint::after { opacity: 0.44; }
   .talk__foot { margin: 0 var(--gutter); min-height: 0; padding: var(--space-md) 0; flex-direction: column; align-items: flex-start; gap: var(--space-sm); }
   .talk__form .field__control { font-size: 1.125rem; }

@@ -90,7 +90,8 @@
     rgb(255 240 210 / 0) 75%
   );
   mix-blend-mode: screen;
-  mask: var(--hs-emblem) center / contain no-repeat;
+  /* the emblem the page loaded (set once it has); until then a clear mask — no light without its object */
+  mask: var(--hs-emblem, linear-gradient(transparent, transparent)) center / contain no-repeat;
 }
 
 /* ---- The interface -------------------------------------------------------- */
