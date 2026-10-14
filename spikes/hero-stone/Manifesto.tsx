@@ -4,7 +4,7 @@ import { SECTION_LABELS, sectionIndex } from '@/lib/constants/sections';
 import { ru } from '@/lib/utils/ru';
 
 import filigreeUrl from './assets/manifest/gold-filigree.webp';
-import ginkgoUrl from './assets/manifest/gold-ginkgo.webp';
+import ginkgoUrl from './assets/manifest/gold-ginkgo-v2.webp';
 
 /**
  * 01 — Манифест: FOREST AND GOLD (14.10, the client's target boards

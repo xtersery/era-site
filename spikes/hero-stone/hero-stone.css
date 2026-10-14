@@ -698,6 +698,23 @@
   --mf-hair: rgb(236 222 196 / 0.6);
   /* one indent for «естественную» and the note under it — they share a left edge */
   --mf-indent: 12.6vw;
+  /* the four voices' sizes (the phone sets its own) */
+  --mf-eyebrow-fs: 0.875rem;
+  --mf-plate-fs: clamp(2.5rem, 3.95vw, 4.75rem);
+  --mf-soft-fs: clamp(1.9rem, 3.65vw, 4.25rem);
+  --mf-grand-fs: clamp(3.25rem, 7.75vw, 9rem);
+  /*
+   * ONE visible gap between the statement's lines, measured on the ink:
+   * eyebrow → the plate's edge → the x-height of «естественную» → the caps of
+   * «красоту». The margins below are that gap less each voice's own inner
+   * space in Prata (measured: x-height top 0.29em below the line top,
+   * baseline 0.741em; caps top 0.064em above a 0.92 line, their foot 0.144em
+   * above it; the eyebrow's line reaches 0.53em below its caps; the note's
+   * first x-height 0.78em below its top), so the rhythm is even at every
+   * width. The note stands one and a half gaps below «красоту».
+   */
+  --mf-gap: calc(var(--mf-soft-fs) * 0.7);
+  --mf-note-fs: clamp(1.0625rem, 1.2vw, 1.375rem);
   position: relative;
   z-index: 1;
   display: grid;
@@ -776,9 +793,9 @@
 
 /* «Наша миссия:» — the eyebrow: micro grotesk, widely tracked */
 .mf__line--eyebrow {
-  margin-bottom: 1.9rem;
+  margin-bottom: calc(var(--mf-gap) - 0.06 * var(--mf-plate-fs) - 0.53 * var(--mf-eyebrow-fs));
   font-family: var(--font-text);
-  font-size: 0.875rem;
+  font-size: var(--mf-eyebrow-fs);
   font-weight: 600;
   letter-spacing: 0.34em;
   text-transform: uppercase;
@@ -788,7 +805,7 @@
 /* «сохранять» — the accent: the same thin serif in capitals, cream on an olive plate */
 .mf__line--plate {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 3.95vw, 4.75rem);
+  font-size: var(--mf-plate-fs);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.045em;
@@ -805,10 +822,10 @@
 
 /* «естественную» — the thin voice: the serif in lower case, in the words' cream */
 .mf__line--soft {
-  margin-top: 0.24em;
+  margin-top: calc(var(--mf-gap) - 0.35 * var(--mf-soft-fs));
   padding-left: var(--mf-indent);
   font-family: var(--font-display);
-  font-size: clamp(1.9rem, 3.65vw, 4.25rem);
+  font-size: var(--mf-soft-fs);
   line-height: 1;
   letter-spacing: -0.012em;
   color: var(--mf-cream);
@@ -816,10 +833,10 @@
 
 /* «красоту» — the grand voice: the serif in capitals, the largest thing on the page */
 .mf__line--grand {
-  margin-top: 0;
+  margin-top: calc(var(--mf-gap) - 0.259 * var(--mf-soft-fs) + 0.004 * var(--mf-grand-fs));
   padding-left: calc(var(--mf-indent) * 0.485);
   font-family: var(--font-display);
-  font-size: clamp(3.25rem, 7.75vw, 9rem);
+  font-size: var(--mf-grand-fs);
   line-height: 0.92;
   letter-spacing: -0.052em;
   text-transform: uppercase;
@@ -831,12 +848,12 @@
   grid-column: 2 / span 6;
   grid-row: 4;
   align-self: start;
-  margin: 2.6svh 0 0 calc(var(--mf-indent) + 0.6vw);
+  margin: calc(1.5 * var(--mf-gap) - 0.144 * var(--mf-grand-fs) - 0.78 * var(--mf-note-fs)) 0 0 calc(var(--mf-indent) + 0.6vw);
   padding: 0.1rem 0 0.1rem 1.75rem;
   border-left: 1px solid var(--mf-hair);
   font-family: var(--font-text);
-  font-size: clamp(1.0625rem, 1.2vw, 1.375rem);
-  line-height: 1.55;
+  font-size: var(--mf-note-fs);
+  line-height: 1.75;
   color: rgb(251 241 220 / 0.88);
 }
 
@@ -903,9 +920,8 @@
 /* the gilded flower: hung on the right edge, a third of it past the frame */
 .mf__obj--ginkgo {
   left: 82.4vw;
-  top: 7.6svh;
-  height: 56svh;
-  transform: rotate(-4deg);
+  top: 8.5svh;
+  height: 52svh;
   filter: drop-shadow(-16px 24px 30px rgb(4 9 6 / 0.55));
 }
 
@@ -998,41 +1014,40 @@
 
   .mf__heading {
     grid-column: 1 / -1;
-    margin-top: 17svh;
+    margin-top: 13.5svh;
+  }
+
+  /* each voice is sized to the measure, never to a word-break; the gaps follow (--mf-gap) */
+  .mf {
+    --mf-eyebrow-fs: 0.8125rem;
+    --mf-plate-fs: min(calc(var(--mf-measure) / 10.5), 4.6rem);
+    --mf-soft-fs: min(calc(var(--mf-measure) / 10.2), 4.9rem);
+    --mf-grand-fs: min(calc(var(--mf-measure) / 6.1), 7rem);
+    --mf-note-fs: 1rem;
+    /* the same even rhythm, a little closer on the narrow page */
+    --mf-gap: calc(var(--mf-soft-fs) * 0.6);
   }
 
   .mf__line--eyebrow {
-    margin-bottom: 0.85rem;
     padding-left: 0.1em;
-    font-size: 0.6875rem;
     letter-spacing: 0.36em;
   }
 
-  /* each voice is sized to the measure, never to a word-break */
-  .mf__line--plate {
-    font-size: min(calc(var(--mf-measure) / 12.6), 4rem);
-  }
-
   .mf__line--soft {
-    margin-top: 0.1em;
-    padding-left: calc(var(--mf-measure) * 0.085);
-    font-size: min(calc(var(--mf-measure) / 15.6), 3.4rem);
+    padding-left: calc(var(--mf-measure) * 0.03);
   }
 
   .mf__line--grand {
-    margin-top: 0.04em;
     padding-left: 0;
-    font-size: min(calc(var(--mf-measure) / 7.4), 6rem);
   }
 
   .mf__text {
     grid-column: 1 / -1;
     grid-row: 4;
     align-self: start;
-    margin: 3svh 0 0 calc(var(--mf-measure) * 0.155);
+    margin-left: calc(var(--mf-measure) * 0.155);
     padding-left: 1rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
+    line-height: 1.75;
     text-shadow: 0 1px 14px rgb(7 13 10 / 0.6);
   }
 
@@ -1084,19 +1099,21 @@
      larger against the narrow page, from the left edge and the spread's foot,
      the long arm lifted toward the note and clear of the aside */
   .mf__obj--net {
-    left: -46vw;
+    /* sized by the width AND the height: on a short screen it stays below the note */
+    --mf-net-w: min(136vw, 64svh);
+    left: calc(var(--mf-net-w) * -0.338);
     /* held to the spread's foot, not the stage's; the dense part stands above the aside */
     bottom: calc(100% - var(--mf-h) + 5svh);
-    width: 136vw;
+    width: var(--mf-net-w);
     transform: rotate(-7deg);
   }
 
+  /* hung on the right edge as on the phone board: the stem past the frame */
   .mf__obj--ginkgo {
-    left: 74vw;
-    top: 6.5vw;
-    width: 63vw;
+    left: 73.3vw;
+    top: 9vw;
+    width: 36vw;
     height: auto;
-    transform: rotate(-6deg);
   }
 }
 
