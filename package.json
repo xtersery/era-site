@@ -11,6 +11,7 @@
     "dev": "vite",
     "build": "npm run typecheck && vite build",
     "reviews:snapshot": "node scripts/reviews-snapshot.mjs",
+    "indexnow": "node scripts/indexnow.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
