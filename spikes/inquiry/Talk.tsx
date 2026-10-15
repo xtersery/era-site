@@ -1,9 +1,10 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type SyntheticEvent } from 'react';
 
 import { CheckboxField, SelectField, TextField, TextareaField } from '@/components/ui';
 import { useNearViewport } from '@/hooks';
+import { trackEvent } from '@/lib/analytics';
 import { contact } from '@/data/contact';
 import { cta, proposed } from '@/data/copy';
 import { services } from '@/data/services';
@@ -159,6 +160,17 @@ export function Talk() {
   }, []);
   useStaging(status);
 
+  // `inquiry_start` — once, on her first real touch of a field (focus or typing), never on sight
+  const touched = useRef(false);
+  const onFirstTouch = (event: SyntheticEvent<HTMLFormElement>) => {
+    const field = event.target;
+    if (touched.current) return;
+    if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) return;
+    if (field.name === 'website') return;
+    touched.current = true;
+    trackEvent('inquiry_start');
+  };
+
   // the focus follows the render: the first invalid control, once it carries the error
   useEffect(() => {
     if (!attempt) return;
@@ -191,6 +203,8 @@ export function Talk() {
     });
     inFlight.current = false;
     if (result === 'ok') {
+      // the server confirmed the send — one event per send; nothing of the form goes to Analytics
+      trackEvent('generate_lead', { method: 'website_form' });
       setStatus('sent');
       clearPrefill();
     } else {
@@ -240,7 +254,7 @@ export function Talk() {
               </p>
             </div>
           ) : (
-            <form className="talk__form" onSubmit={onSubmit} noValidate>
+            <form className="talk__form" onSubmit={onSubmit} onFocus={onFirstTouch} onInput={onFirstTouch} noValidate>
               <TextField
                 label="Имя"
                 name="name"

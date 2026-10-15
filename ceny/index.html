@@ -40,7 +40,8 @@
     <link rel="stylesheet" href="/spikes/ceny/ceny.css" />
   </head>
   <body class="ceny-page">
-    <!-- The price page: static HTML, prerendered from src/data/priceList.ts (server/cenyPage.ts); no JavaScript. -->
+    <!-- The price page: static HTML, prerendered from src/data/priceList.ts (server/cenyPage.ts); its only script is the GA4 events module at the end. -->
 <!--ceny:body-->
+    <script type="module" src="/spikes/ceny/analytics.ts"></script>
   </body>
 </html>

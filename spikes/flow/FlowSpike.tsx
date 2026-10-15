@@ -3,6 +3,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { registerGsap } from '@/animations/gsap/register';
+import { trackEvent, type PricingSource } from '@/lib/analytics';
 import { ScrollContext, ScrollProvider } from '@/animations/scroll';
 import { NAV_SECTION_IDS, SECTION_LABELS, sectionAnchor, sectionIndex, type SectionId } from '@/lib/constants/sections';
 import { InquiryProvider } from '@/lib/inquiry';
@@ -239,6 +240,16 @@ function readParams() {
 }
 
 const isPricingHash = () => location.hash === '#pricing';
+
+/** which control opened the price layer — by where it sits, for `pricing_open` */
+const pricingSource = (a: Element): PricingSource =>
+  a.closest('.hh__index, .flowbar__menu-list')
+    ? 'menu'
+    : a.closest('.hh')
+      ? 'hero'
+      : a.closest('.flowbar')
+        ? 'header'
+        : 'other';
 
 /**
  * The elements a blend paints — its variables are written on these and only
@@ -596,6 +607,8 @@ export function FlowPage({
       const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href]');
       if (!a || a.hash !== '#pricing' || a.closest('.pricelayer')) return;
       e.preventDefault();
+      // a click on an already open layer opens nothing
+      if (!isPricingHash()) trackEvent('pricing_open', { source: pricingSource(a) });
       openPricing();
     };
     // capture: before the ScrollProvider's own anchor handler, which would

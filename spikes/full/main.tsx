@@ -17,7 +17,12 @@ import './full.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { watchContactLinks } from '@/lib/analytics';
+
 import { FullSpike } from './FullSpike';
+
+// phone_click / telegram_click — once per load, outside React (no StrictMode double)
+watchContactLinks();
 
 const container = document.getElementById('root');
 if (!container) throw new Error('Root element #root not found');
